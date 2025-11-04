@@ -1,2 +1,3 @@
-# WAD2
+# WantHave
+
 Developing a web application for a university project.
