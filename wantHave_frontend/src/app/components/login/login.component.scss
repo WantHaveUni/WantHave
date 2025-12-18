@@ -1,0 +1,29 @@
+.login-page {
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 0;
+}
+
+mat-card {
+  width: min(480px, 100%);
+}
+
+.login-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.actions {
+  margin-top: 0.75rem;
+}
+
+.error {
+  color: var(--mat-sys-error);
+  margin-top: 0.5rem;
+}
+
+.success,
+.info {
+  color: var(--mat-sys-on-surface-variant);
+}

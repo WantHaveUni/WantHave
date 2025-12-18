@@ -1,0 +1,35 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.brand {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.app-shell {
+  padding: 1rem clamp(1rem, 2vw, 2rem);
+}
+
+a.active {
+  font-weight: 600;
+}
+
+.user-chip {
+  margin-right: 0.5rem;
+  font-weight: 500;
+}

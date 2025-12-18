@@ -1,0 +1,50 @@
+<section class="hero">
+  <div class="headline">
+    <p class="eyebrow">Browse WantHave</p>
+    <h1>Products listed:</h1>
+  </div>
+  <button mat-stroked-button color="primary" (click)="fetchProducts()">Refresh list</button>
+</section>
+
+<section class="content">
+  @if (loading) {
+  <div class="loading-state">
+    <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+    <p>Loading products…</p>
+  </div>
+  } @if (!loading && error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <button mat-flat-button color="primary" (click)="fetchProducts()">Try again</button>
+  </div>
+  } @if (!loading && !error) { @if (products.length === 0) {
+  <p class="empty">No products yet.</p>
+  } @else {
+  <div class="product-grid">
+    @for (product of products; track product.id) {
+    <mat-card class="product-card">
+      @if (imageUrl(product); as img) {
+      <div class="image-shell">
+        <img [src]="img" [alt]="product.title" loading="lazy" />
+      </div>
+      } @else {
+      <div class="image-shell placeholder">No image</div>
+      }
+
+      <mat-card-header>
+        <mat-card-title>{{ product.title }}</mat-card-title>
+        <mat-card-subtitle>{{ product.price }} € · {{ product.status }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <p class="description">{{ product.description }}</p>
+        <div class="meta">
+          <span>Seller: {{ product.seller?.username || 'Unknown' }}</span>
+          <span>{{ product.created_at | date : 'mediumDate' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    }
+  </div>
+  } }
+</section>

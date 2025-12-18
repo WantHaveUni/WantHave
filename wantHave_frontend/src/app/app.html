@@ -1,0 +1,14 @@
+<mat-toolbar class="app-toolbar" color="primary">
+  <a routerLink="/" class="brand">WantHave</a>
+  <span class="spacer"></span>
+  <a mat-button routerLink="/products" routerLinkActive="active">Products</a>
+  <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
+  @if (auth.isAuthenticated()) {
+  <span class="user-chip">Hi, {{ auth.username() }}</span>
+  <button mat-stroked-button (click)="logout()">Logout</button>
+  }
+</mat-toolbar>
+
+<main class="app-shell">
+  <router-outlet></router-outlet>
+</main>
