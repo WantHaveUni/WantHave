@@ -10,10 +10,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    
+    active_listings_count = serializers.ReadOnlyField()
+    sold_items_count = serializers.ReadOnlyField()
+    member_since = serializers.DateTimeField(source='created_at', read_only=True)
+
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'bio', 'profile_picture', 'latitude', 'longitude', 'address']
+        fields = [
+            'id', 'user', 'bio', 'profile_picture',
+            'city', 'country', 'latitude', 'longitude', 'address',
+            'rating', 'active_listings_count', 'sold_items_count', 'member_since'
+        ]
+        read_only_fields = ['rating', 'member_since']
 
 class ProductSerializer(serializers.ModelSerializer):
     seller = UserSerializer(read_only=True)

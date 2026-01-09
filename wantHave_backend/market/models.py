@@ -6,7 +6,11 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
-    
+
+    # Location information
+    city = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+
     # Simple lat/lon for map. In a real app we might use GeoDjango (PostGIS)
     # but that complicates the setup (needs diff db engine).
     # For MVP float is fine.
@@ -14,8 +18,23 @@ class UserProfile(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     address = models.CharField(max_length=255, blank=True)
 
+    # Rating (0-5 stars)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+    @property
+    def active_listings_count(self):
+        """Count of products with AVAILABLE status"""
+        return self.user.products.filter(status='AVAILABLE').count()
+
+    @property
+    def sold_items_count(self):
+        """Count of products with SOLD status"""
+        return self.user.products.filter(status='SOLD').count()
 
 # Product for the Marketplace
 class Product(models.Model):
