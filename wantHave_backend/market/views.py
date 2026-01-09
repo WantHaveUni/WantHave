@@ -2,9 +2,12 @@ from rest_framework import viewsets, permissions, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
-from .models import Product, UserProfile, Conversation, Message
-from .serializers import ProductSerializer, UserProfileSerializer, ConversationSerializer, MessageSerializer, MyTokenObtainPairSerializer
+from django.contrib.auth.models import User
+from .models import UserProfile, Product
+from .serializers import (
+    UserProfileSerializer, UserProfileUpdateSerializer,
+    ProductSerializer, MyTokenObtainPairSerializer
+)
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -36,49 +39,67 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update', 'me']:
+            return UserProfileUpdateSerializer
+        return UserProfileSerializer
 
-    @action(detail=False, methods=['get', 'patch'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get', 'patch', 'delete'], permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
-        """
-        Get or update the current user's profile.
-        """
-        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        """Get, update, or delete current user's profile"""
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            return Response(
+                {'detail': 'Profile not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         if request.method == 'GET':
-            serializer = self.get_serializer(profile)
+            serializer = UserProfileSerializer(profile)
             return Response(serializer.data)
         
-        elif request.method == 'PATCH':
-            serializer = self.get_serializer(profile, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+        elif request.method in ['PATCH', 'PUT']:
+            serializer = UserProfileUpdateSerializer(
+                profile, data=request.data, partial=True
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif request.method == 'DELETE':
+            user = request.user
+            username = user.username
+            user.delete()
+            return Response(
+                {'detail': f'Account {username} and all associated data has been deleted.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+
+    @action(detail=True, methods=['get'])
+    def listings(self, request, pk=None):
+        """Get all listings by a user"""
+        try:
+            profile = self.get_object()
+            products = Product.objects.filter(seller=profile.user).order_by('-created_at')
+            serializer = ProductSerializer(products, many=True)
             return Response(serializer.data)
-
-class ConversationViewSet(viewsets.ModelViewSet):
-    serializer_class = ConversationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        # Users see only their conversations
-        return Conversation.objects.filter(participants=self.request.user)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {'detail': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     def perform_create(self, serializer):
-        # Logic to ensure current user is a participant would be good here
-        conversation = serializer.save()
-        conversation.participants.add(self.request.user)
+        """Prevent direct profile creation via API"""
+        pass
 
-class MessageViewSet(viewsets.ModelViewSet):
-    serializer_class = MessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        # Users see messages for conversations they are in
-        return Message.objects.filter(conversation__participants=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(sender=self.request.user)
+    def create(self, request, *args, **kwargs):
+        """Profiles should be created automatically with user registration"""
+        return Response(
+            {'detail': 'Profile creation is automatic upon user registration'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )

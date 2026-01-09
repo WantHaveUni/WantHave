@@ -1,40 +1,26 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 # User Profile with Map Location
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    bio = models.TextField(blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
-
-    # Location information
-    city = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, blank=True)
-
-    # Simple lat/lon for map. In a real app we might use GeoDjango (PostGIS)
-    # but that complicates the setup (needs diff db engine).
-    # For MVP float is fine.
-    latitude = models.FloatField(blank=True, null=True)
-    longitude = models.FloatField(blank=True, null=True)
-    address = models.CharField(max_length=255, blank=True)
-
-    # Rating (0-5 stars)
-    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
-
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    bio = models.TextField(blank=True, null=True, max_length=500)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    country = models.CharField(max_length=100, blank=True, null=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    rating = models.FloatField(default=0, validators=[MinValueValidator(0), MaxValueValidator(5)])
+    active_listings_count = models.IntegerField(default=0)
+    sold_items_count = models.IntegerField(default=0)
+    member_since = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username}'s Profile"
-
-    @property
-    def active_listings_count(self):
-        """Count of products with AVAILABLE status"""
-        return self.user.products.filter(status='AVAILABLE').count()
-
-    @property
-    def sold_items_count(self):
-        """Count of products with SOLD status"""
-        return self.user.products.filter(status='SOLD').count()
+        return f"{self.user.username}'s profile"
 
 # Product for the Marketplace
 class Product(models.Model):

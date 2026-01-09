@@ -21,4 +21,8 @@ export class ProfileService {
   updateMeWithFormData(formData: FormData): Observable<UserProfile> {
     return this.http.patch<UserProfile>(`${this.baseUrl}me/`, formData);
   }
+
+  deleteAccount(): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}me/`);
+  }
 }
