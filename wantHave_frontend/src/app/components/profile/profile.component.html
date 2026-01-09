@@ -1,0 +1,206 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>My Profile</h1>
+    @if (profile && !isEditMode) {
+      <button class="edit-button" (click)="enableEditMode()">Edit Profile</button>
+    }
+  </div>
+
+  @if (loading) {
+    <p>Loading...</p>
+  }
+
+  @if (error) {
+    <p class="error-message">{{ error }}</p>
+  }
+
+  @if (profile && !isEditMode) {
+    <div class="profile-view">
+      @if (profile.profile_picture) {
+        <div class="profile-picture-container">
+          <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
+        </div>
+      }
+
+      <div class="profile-section">
+        <h2>Account Information</h2>
+        <div class="profile-field">
+          <strong>Username:</strong>
+          <span>{{ profile.user.username }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>Email:</strong>
+          <span>{{ profile.user.email }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>First Name:</strong>
+          <span>{{ profile.user.first_name || 'Not set' }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>Last Name:</strong>
+          <span>{{ profile.user.last_name || 'Not set' }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>Member Since:</strong>
+          <span>{{ profile.member_since ? (profile.member_since | date:'mediumDate') : 'Unknown' }}</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h2>Profile Details</h2>
+        <div class="profile-field">
+          <strong>Bio:</strong>
+          <span>{{ profile.bio || 'No bio provided' }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>City:</strong>
+          <span>{{ profile.city || 'Not set' }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>Country:</strong>
+          <span>{{ profile.country || 'Not set' }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>Address:</strong>
+          <span>{{ profile.address || 'No address provided' }}</span>
+        </div>
+        @if (profile.latitude && profile.longitude) {
+          <div class="profile-field">
+            <strong>Coordinates:</strong>
+            <span>{{ profile.latitude }}, {{ profile.longitude }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="profile-section">
+        <h2>Marketplace Statistics</h2>
+        <div class="profile-field">
+          <strong>Rating:</strong>
+          <span class="rating">
+            {{ profile.rating }} ⭐
+          </span>
+        </div>
+        <div class="profile-field">
+          <strong>Active Listings:</strong>
+          <span>{{ profile.active_listings_count }}</span>
+        </div>
+        <div class="profile-field">
+          <strong>Sold Items:</strong>
+          <span>{{ profile.sold_items_count }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (profile && isEditMode) {
+    <div class="profile-edit">
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+        <div class="form-section">
+          <h2>Account Information</h2>
+          <p class="info-text">Account details cannot be edited here.</p>
+          <div class="profile-field readonly">
+            <strong>Username:</strong>
+            <span>{{ profile.user.username }}</span>
+          </div>
+          <div class="profile-field readonly">
+            <strong>Email:</strong>
+            <span>{{ profile.user.email }}</span>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Profile Picture</h2>
+          @if (profile.profile_picture) {
+            <div class="current-picture">
+              <img [src]="profile.profile_picture" alt="Current Profile Picture" class="preview-picture">
+            </div>
+          }
+          <div class="form-group">
+            <label for="profile_picture">Upload New Picture</label>
+            <input
+              type="file"
+              id="profile_picture"
+              (change)="onFileSelected($event)"
+              accept="image/*">
+            @if (selectedFileName) {
+              <p class="file-selected">Selected: {{ selectedFileName }}</p>
+            }
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Profile Details</h2>
+
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea
+              id="bio"
+              formControlName="bio"
+              rows="4"
+              placeholder="Tell us about yourself..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city">City</label>
+              <input
+                type="text"
+                id="city"
+                formControlName="city"
+                placeholder="e.g., Berlin">
+            </div>
+
+            <div class="form-group">
+              <label for="country">Country</label>
+              <input
+                type="text"
+                id="country"
+                formControlName="country"
+                placeholder="e.g., Germany">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Address</label>
+            <input
+              type="text"
+              id="address"
+              formControlName="address"
+              placeholder="Enter your address">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="latitude">Latitude</label>
+              <input
+                type="number"
+                id="latitude"
+                formControlName="latitude"
+                step="any"
+                placeholder="e.g., 52.520008">
+            </div>
+
+            <div class="form-group">
+              <label for="longitude">Longitude</label>
+              <input
+                type="number"
+                id="longitude"
+                formControlName="longitude"
+                step="any"
+                placeholder="e.g., 13.404954">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="save-button" [disabled]="saving || profileForm.invalid">
+            {{ saving ? 'Saving...' : 'Save Changes' }}
+          </button>
+          <button type="button" class="cancel-button" (click)="cancelEdit()" [disabled]="saving">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

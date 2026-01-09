@@ -2,8 +2,13 @@
   <a routerLink="/" class="brand">WantHave</a>
   <span class="spacer"></span>
   <a mat-button routerLink="/products" routerLinkActive="active">Products</a>
-  <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
+  
+  @if (!auth.isAuthenticated()) {
+    <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
+  }
+
   @if (auth.isAuthenticated()) {
+  <a mat-button routerLink="/profile" routerLinkActive="active">Profile</a>
   <span class="user-chip">Hi, {{ auth.username() }}</span>
   <button mat-stroked-button (click)="logout()">Logout</button>
   }
