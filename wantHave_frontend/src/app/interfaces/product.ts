@@ -9,6 +9,7 @@ export interface UserSummary {
 export interface Product {
   id: number;
   seller?: UserSummary;
+  seller_username?: string;
   title: string;
   description: string;
   price: string | number;

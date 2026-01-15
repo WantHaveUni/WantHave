@@ -1,0 +1,54 @@
+<section class="detail-shell">
+  <a routerLink="/products" class="back-link">Back to products</a>
+
+  @if (loading) {
+  <div class="loading-state">
+    <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+    <p>Loading product...</p>
+  </div>
+  } @else if (error) {
+  <div class="error-state">
+    <p>{{ error }}</p>
+    <a mat-flat-button color="primary" routerLink="/products">Return to listings</a>
+  </div>
+  } @else if (product; as product) {
+  <mat-card class="detail-card">
+    <div class="detail-grid">
+      @if (imageUrl(product); as img) {
+      <div class="image-shell">
+        <img [src]="img" [alt]="product.title" loading="lazy" />
+      </div>
+      } @else {
+      <div class="image-shell placeholder">No image</div>
+      }
+
+      <div class="detail-body">
+        <p class="eyebrow">Listing</p>
+        <h1>{{ product.title }}</h1>
+        <p class="price">{{ product.price }} EUR</p>
+        <p class="description">{{ product.description }}</p>
+
+        <div class="meta">
+          @for (item of details; track item.label) {
+          <div class="meta-row">
+            <span class="label">{{ item.label }}</span>
+            <span class="value">{{ item.value }}</span>
+          </div>
+          }
+        </div>
+
+        <div class="actions">
+          <button mat-stroked-button (click)="messageSeller()" [disabled]="!canInteract">Message seller</button>
+          <button mat-flat-button color="primary" (click)="startCheckout()" [disabled]="!canInteract">Buy now</button>
+        </div>
+
+        @if (!auth.isAuthenticated()) {
+        <p class="hint">Log in to message or buy this product.</p>
+        } @else if (isOwner) {
+        <p class="hint">You own this listing, so buying is disabled.</p>
+        }
+      </div>
+    </div>
+  </mat-card>
+  }
+</section>

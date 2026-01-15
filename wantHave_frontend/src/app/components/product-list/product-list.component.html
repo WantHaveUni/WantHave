@@ -22,28 +22,30 @@
   } @else {
   <div class="product-grid">
     @for (product of products; track product.id) {
-    <mat-card class="product-card">
-      @if (imageUrl(product); as img) {
-      <div class="image-shell">
-        <img [src]="img" [alt]="product.title" loading="lazy" />
-      </div>
-      } @else {
-      <div class="image-shell placeholder">No image</div>
-      }
-
-      <mat-card-header>
-        <mat-card-title>{{ product.title }}</mat-card-title>
-        <mat-card-subtitle>{{ product.price }} € · {{ product.status }}</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <p class="description">{{ product.description }}</p>
-        <div class="meta">
-          <span>Seller: {{ product.seller?.username || 'Unknown' }}</span>
-          <span>{{ product.created_at | date : 'mediumDate' }}</span>
+    <a class="product-link" [routerLink]="['/products', product.id]" [attr.aria-label]="'View details for ' + product.title">
+      <mat-card class="product-card">
+        @if (imageUrl(product); as img) {
+        <div class="image-shell">
+          <img [src]="img" [alt]="product.title" loading="lazy" />
         </div>
-      </mat-card-content>
-    </mat-card>
+        } @else {
+        <div class="image-shell placeholder">No image</div>
+        }
+
+        <mat-card-header>
+          <mat-card-title>{{ product.title }}</mat-card-title>
+          <mat-card-subtitle>{{ product.price }} € · {{ product.status }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <p class="description">{{ product.description }}</p>
+          <div class="meta">
+            <span>Seller: {{ product.seller?.username || product.seller_username || 'Unknown' }}</span>
+            <span>{{ product.created_at | date : 'mediumDate' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </a>
     }
   </div>
   } }
