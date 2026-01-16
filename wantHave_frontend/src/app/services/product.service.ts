@@ -24,4 +24,9 @@ export class ProductService {
   get(id: number): Observable<Product> {
     return this.http.get<Product>(`${this.baseUrl}${id}/detail/`);
   }
+
+  // buys a product
+  buy(id: number): Observable<Product> {
+    return this.http.post<Product>(`${this.baseUrl}${id}/buy/`, {});
+  }
 }

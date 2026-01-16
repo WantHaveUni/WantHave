@@ -63,7 +63,9 @@ class Product(models.Model):
     image = models.ImageField(upload_to='product_images/')
     
     created_at = models.DateTimeField(auto_now_add=True)
+    sold_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='AVAILABLE')
+    buyer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='purchases')
 
     def __str__(self):
         return self.title

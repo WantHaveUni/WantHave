@@ -2,199 +2,236 @@
   <div class="profile-header">
     <h1>My Profile</h1>
     @if (profile && !isEditMode) {
-      <button class="edit-button" (click)="enableEditMode()">Edit Profile</button>
+    <button class="edit-button" (click)="enableEditMode()">Edit Profile</button>
     }
   </div>
 
   @if (loading) {
-    <p>Loading...</p>
+  <p>Loading...</p>
   }
 
   @if (error) {
-    <p class="error-message">{{ error }}</p>
+  <p class="error-message">{{ error }}</p>
   }
 
   @if (profile && !isEditMode) {
-    <div class="profile-view">
-      @if (profile.profile_picture) {
-        <div class="profile-picture-container">
-          <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
-        </div>
-      }
+  <div class="profile-view">
+    @if (profile.profile_picture) {
+    <div class="profile-picture-container">
+      <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
+    </div>
+    }
 
-      <div class="profile-section">
-        <h2>Account Information</h2>
-        <div class="profile-field">
-          <strong>Username:</strong>
-          <span>{{ profile.user.username }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>Email:</strong>
-          <span>{{ profile.user.email }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>First Name:</strong>
-          <span>{{ profile.user.first_name || 'Not set' }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>Last Name:</strong>
-          <span>{{ profile.user.last_name || 'Not set' }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>Member Since:</strong>
-          <span>{{ profile.member_since ? (profile.member_since | date:'mediumDate') : 'Unknown' }}</span>
-        </div>
+    <div class="profile-section">
+      <h2>Account Information</h2>
+      <div class="profile-field">
+        <strong>Username:</strong>
+        <span>{{ profile.user.username }}</span>
       </div>
-
-      <div class="profile-section">
-        <h2>Profile Details</h2>
-        <div class="profile-field">
-          <strong>Bio:</strong>
-          <span>{{ profile.bio || 'No bio provided' }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>City:</strong>
-          <span>{{ profile.city || 'Not set' }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>Country:</strong>
-          <span>{{ profile.country || 'Not set' }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>Address:</strong>
-          <span>{{ profile.address || 'No address provided' }}</span>
-        </div>
-        @if (profile.latitude && profile.longitude) {
-          <div class="profile-field">
-            <strong>Coordinates:</strong>
-            <span>{{ profile.latitude }}, {{ profile.longitude }}</span>
-          </div>
-        }
+      <div class="profile-field">
+        <strong>Email:</strong>
+        <span>{{ profile.user.email }}</span>
       </div>
-
-      <div class="profile-section">
-        <h2>Marketplace Statistics</h2>
-        <div class="profile-field">
-          <strong>Active Listings:</strong>
-          <span>{{ profile.active_listings_count }}</span>
-        </div>
-        <div class="profile-field">
-          <strong>Sold Items:</strong>
-          <span>{{ profile.sold_items_count }}</span>
-        </div>
+      <div class="profile-field">
+        <strong>First Name:</strong>
+        <span>{{ profile.user.first_name || 'Not set' }}</span>
+      </div>
+      <div class="profile-field">
+        <strong>Last Name:</strong>
+        <span>{{ profile.user.last_name || 'Not set' }}</span>
+      </div>
+      <div class="profile-field">
+        <strong>Member Since:</strong>
+        <span>{{ profile.member_since ? (profile.member_since | date:'mediumDate') : 'Unknown' }}</span>
       </div>
     </div>
+
+    <div class="profile-section">
+      <h2>Profile Details</h2>
+      <div class="profile-field">
+        <strong>Bio:</strong>
+        <span>{{ profile.bio || 'No bio provided' }}</span>
+      </div>
+      <div class="profile-field">
+        <strong>City:</strong>
+        <span>{{ profile.city || 'Not set' }}</span>
+      </div>
+      <div class="profile-field">
+        <strong>Country:</strong>
+        <span>{{ profile.country || 'Not set' }}</span>
+      </div>
+      <div class="profile-field">
+        <strong>Address:</strong>
+        <span>{{ profile.address || 'No address provided' }}</span>
+      </div>
+      @if (profile.latitude && profile.longitude) {
+      <div class="profile-field">
+        <strong>Coordinates:</strong>
+        <span>{{ profile.latitude }}, {{ profile.longitude }}</span>
+      </div>
+      }
+    </div>
+
+    <div class="profile-section">
+      <h2>Marketplace Statistics</h2>
+      <div class="profile-field">
+        <strong>Active Listings:</strong>
+        <span>{{ profile.active_listings_count }}</span>
+      </div>
+      <div class="profile-field">
+        <strong>Sold Items:</strong>
+        <span>{{ profile.sold_items_count }}</span>
+      </div>
+    </div>
+
+    <div class="profile-section full-width">
+      <h2>My Listings</h2>
+      @if (listingsLoading) {
+      <p>Loading listings...</p>
+      } @else if (listings.length === 0) {
+      <p class="empty-state">No listings found.</p>
+      } @else {
+      <div class="mini-grid">
+        @for (item of listings; track item.id) {
+        <div class="mini-card">
+          <div class="mini-content">
+            <div class="mini-header">
+              <span class="mini-title">{{ item.title }}</span>
+              <span class="mini-price">{{ item.price }} €</span>
+            </div>
+            <div class="mini-status" [class.sold]="item.status === 'SOLD'">
+              {{ item.status }}
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="profile-section full-width">
+      <h2>My Purchases</h2>
+      @if (purchasesLoading) {
+      <p>Loading purchases...</p>
+      } @else if (purchases.length === 0) {
+      <p class="empty-state">No purchases made yet.</p>
+      } @else {
+      <div class="mini-grid">
+        @for (item of purchases; track item.id) {
+        <div class="mini-card">
+          <div class="mini-content">
+            <div class="mini-header">
+              <span class="mini-title">{{ item.title }}</span>
+              <span class="mini-price">{{ item.price }} €</span>
+            </div>
+            <div class="mini-meta">
+              Sold on {{ item.sold_at | date }} by {{ item.seller_username }}
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
   }
 
   @if (profile && isEditMode) {
-    <div class="profile-edit">
-      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-        <div class="form-section">
-          <h2>Account Information</h2>
-          <p class="info-text">Account details cannot be edited here.</p>
-          <div class="profile-field readonly">
-            <strong>Username:</strong>
-            <span>{{ profile.user.username }}</span>
-          </div>
-          <div class="profile-field readonly">
-            <strong>Email:</strong>
-            <span>{{ profile.user.email }}</span>
-          </div>
+  <div class="profile-edit">
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+      <div class="form-section">
+        <h2>Account Information</h2>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" formControlName="username">
         </div>
 
-        <div class="form-section">
-          <h2>Profile Picture</h2>
-          @if (profile.profile_picture) {
-            <div class="current-picture">
-              <img [src]="profile.profile_picture" alt="Current Profile Picture" class="preview-picture">
-            </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" formControlName="email">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" formControlName="first_name">
+          </div>
+
+          <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" formControlName="last_name">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Profile Picture</h2>
+        @if (profile.profile_picture) {
+        <div class="current-picture">
+          <img [src]="profile.profile_picture" alt="Current Profile Picture" class="preview-picture">
+        </div>
+        }
+        <div class="form-group">
+          <label for="profile_picture">Upload New Picture</label>
+          <input type="file" id="profile_picture" (change)="onFileSelected($event)" accept="image/*">
+          @if (selectedFileName) {
+          <p class="file-selected">Selected: {{ selectedFileName }}</p>
           }
-          <div class="form-group">
-            <label for="profile_picture">Upload New Picture</label>
-            <input
-              type="file"
-              id="profile_picture"
-              (change)="onFileSelected($event)"
-              accept="image/*">
-            @if (selectedFileName) {
-              <p class="file-selected">Selected: {{ selectedFileName }}</p>
-            }
-          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>Profile Details</h2>
+
+        <div class="form-group">
+          <label for="bio">Bio</label>
+          <textarea id="bio" formControlName="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
         </div>
 
-        <div class="form-section">
-          <h2>Profile Details</h2>
-
+        <div class="form-row">
           <div class="form-group">
-            <label for="bio">Bio</label>
-            <textarea
-              id="bio"
-              formControlName="bio"
-              rows="4"
-              placeholder="Tell us about yourself..."></textarea>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="city">City</label>
-              <input
-                type="text"
-                id="city"
-                formControlName="city"
-                placeholder="e.g., Berlin">
-            </div>
-
-            <div class="form-group">
-              <label for="country">Country</label>
-              <input
-                type="text"
-                id="country"
-                formControlName="country"
-                placeholder="e.g., Germany">
-            </div>
+            <label for="city">City</label>
+            <input type="text" id="city" formControlName="city" placeholder="e.g., Graz">
           </div>
 
           <div class="form-group">
-            <label for="address">Address</label>
-            <input
-              type="text"
-              id="address"
-              formControlName="address"
-              placeholder="Enter your address">
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="latitude">Latitude</label>
-              <input
-                type="number"
-                id="latitude"
-                formControlName="latitude"
-                step="any"
-                placeholder="e.g., 52.520008">
-            </div>
-
-            <div class="form-group">
-              <label for="longitude">Longitude</label>
-              <input
-                type="number"
-                id="longitude"
-                formControlName="longitude"
-                step="any"
-                placeholder="e.g., 13.404954">
-            </div>
+            <label for="country">Country</label>
+            <input type="text" id="country" formControlName="country" placeholder="e.g., Austria">
           </div>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="save-button" [disabled]="saving || profileForm.invalid">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </button>
-          <button type="button" class="cancel-button" (click)="cancelEdit()" [disabled]="saving">
-            Cancel
-          </button>
+        <div class="form-group">
+          <label for="address">Address</label>
+          <input type="text" id="address" formControlName="address" placeholder="Enter your address">
         </div>
-      </form>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label>Location (Click on map to set)</label>
+            <div id="map" class="map-container"></div>
+            <input type="hidden" formControlName="latitude">
+            <input type="hidden" formControlName="longitude">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="save-button" [disabled]="saving || profileForm.invalid">
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button type="button" class="cancel-button" (click)="cancelEdit()" [disabled]="saving">
+          Cancel
+        </button>
+      </div>
+    </form>
+
+    <div class="danger-zone">
+      <h3>Danger Zone</h3>
+      <button type="button" class="delete-button" (click)="deleteAccount()">
+        Delete Account
+      </button>
     </div>
+  </div>
   }
 </div>

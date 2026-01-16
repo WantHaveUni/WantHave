@@ -52,6 +52,33 @@ class ProductViewSet(viewsets.ModelViewSet):
             "price": 120.00
         }, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+
+    def buy(self, request, pk=None):
+        """Allow a user to buy a product"""
+        product = self.get_object()
+        
+        if product.status == 'SOLD':
+             return Response(
+                {'detail': 'This product is already sold.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if product.seller == request.user:
+            return Response(
+                {'detail': 'You cannot buy your own product.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Mark as sold
+        from django.utils import timezone
+        product.status = 'SOLD'
+        product.buyer = request.user
+        product.sold_at = timezone.now()
+        product.save()
+
+        return Response(ProductSerializer(product).data)
+
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
@@ -109,6 +136,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         """Get all listings by a user"""
         try:
             profile = self.get_object()
+            # Show all products (sold and available) for the profile owner
             products = Product.objects.filter(seller=profile.user).order_by('-created_at')
             serializer = ProductSerializer(products, many=True)
             return Response(serializer.data)
@@ -117,6 +145,13 @@ class UserProfileViewSet(viewsets.ModelViewSet):
                 {'detail': 'User not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def purchases(self, request):
+        """Get all products bought by the current user"""
+        products = Product.objects.filter(buyer=request.user).order_by('-sold_at')
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         """Prevent direct profile creation via API"""

@@ -79,7 +79,23 @@ export class ProductDetailComponent implements OnInit {
   }
 
   startCheckout() {
-    console.info('Checkout is not implemented yet.');
+    if (!this.product) return;
+
+    // In a real app, this would redirect to a stripe checkout or similar.
+    // For this prototype, we simulate a direct buy.
+    if (confirm(`Are you sure you want to buy "${this.product.title}" for ${this.product.price} EUR?`)) {
+      this.productService.buy(this.product.id).subscribe({
+        next: (updatedProduct) => {
+          this.product = updatedProduct;
+          this.details = this.buildDetails(updatedProduct);
+          alert('Purchase successful!');
+        },
+        error: (err) => {
+          console.error('Purchase failed', err);
+          alert('Purchase failed: ' + (err.error?.detail || 'Unknown error'));
+        }
+      });
+    }
   }
 
   // fetches the product details from the service and handles loading and error states

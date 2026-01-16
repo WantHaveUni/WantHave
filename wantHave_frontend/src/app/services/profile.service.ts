@@ -25,4 +25,12 @@ export class ProfileService {
   deleteAccount(): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}me/`);
   }
+
+  getPurchases(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}purchases/`);
+  }
+
+  getListings(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}${userId}/listings/`);
+  }
 }

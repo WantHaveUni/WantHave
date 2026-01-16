@@ -33,13 +33,14 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
     email = serializers.EmailField(source='user.email', required=False)
+    username = serializers.CharField(source='user.username', required=False)
 
     class Meta:
         model = UserProfile
         fields = [
             'bio', 'profile_picture', 'city', 'country',
             'latitude', 'longitude', 'address',
-            'first_name', 'last_name', 'email'
+            'first_name', 'last_name', 'email', 'username'
         ]
 
     def update(self, instance, validated_data):
@@ -49,6 +50,14 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         user.first_name = user_data.get('first_name', user.first_name)
         user.last_name = user_data.get('last_name', user.last_name)
         user.email = user_data.get('email', user.email)
+        
+        # specific check for username to avoid integrity errors if duplicate
+        new_username = user_data.get('username')
+        if new_username and new_username != user.username:
+            if User.objects.filter(username=new_username).exists():
+                raise serializers.ValidationError({'username': 'This username is already taken.'})
+            user.username = new_username
+
         user.save()
 
         return super().update(instance, validated_data)
@@ -83,8 +92,10 @@ class ProductSerializer(serializers.ModelSerializer):
             'seller_username',
             'category',
             'category_id',
+            'buyer',
+            'sold_at',
         ]
-        read_only_fields = ['id', 'created_at', 'seller_username', 'category']
+        read_only_fields = ['id', 'created_at', 'seller_username', 'category', 'buyer', 'sold_at']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     pass

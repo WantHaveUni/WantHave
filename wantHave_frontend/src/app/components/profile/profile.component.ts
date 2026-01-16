@@ -1,8 +1,25 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ProfileService } from '../../services/profile.service';
 import { UserProfile } from '../../interfaces/user-profile';
+import * as L from 'leaflet';
+
+// Fix for default marker icons
+const iconRetinaUrl = 'assets/marker-icon-2x.png';
+const iconUrl = 'assets/marker-icon.png';
+const shadowUrl = 'assets/marker-shadow.png';
+const iconDefault = L.icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = iconDefault;
 
 @Component({
   selector: 'app-profile',
@@ -11,7 +28,7 @@ import { UserProfile } from '../../interfaces/user-profile';
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   private profileService = inject(ProfileService);
   private fb = inject(FormBuilder);
 
@@ -23,6 +40,9 @@ export class ProfileComponent implements OnInit {
   selectedFile: File | null = null;
   selectedFileName: string = '';
 
+  private map: L.Map | undefined;
+  private marker: L.Marker | undefined;
+
   profileForm: FormGroup = this.fb.group({
     bio: [''],
     city: [''],
@@ -31,6 +51,11 @@ export class ProfileComponent implements OnInit {
     latitude: [null],
     longitude: [null]
   });
+
+  listings: any[] = [];
+  purchases: any[] = [];
+  listingsLoading = false;
+  purchasesLoading = false;
 
   ngOnInit() {
     this.loadProfile();
@@ -50,6 +75,10 @@ export class ProfileComponent implements OnInit {
           longitude: data.longitude
         });
         this.loading = false;
+
+        // Load additional data
+        this.loadListings(data.id);
+        this.loadPurchases();
       },
       error: (err) => {
         console.error(err);
@@ -59,8 +88,97 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  loadListings(userId: number) {
+    this.listingsLoading = true;
+    this.profileService.getListings(userId).subscribe({
+      next: (data) => {
+        this.listings = data;
+        this.listingsLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load listings', err);
+        this.listingsLoading = false;
+      }
+    });
+  }
+
+  loadPurchases() {
+    this.purchasesLoading = true;
+    this.profileService.getPurchases().subscribe({
+      next: (data) => {
+        this.purchases = data;
+        this.purchasesLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load purchases', err);
+        this.purchasesLoading = false;
+      }
+    });
+  }
+
+  deleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      this.profileService.deleteAccount().subscribe({
+        next: () => {
+          alert('Account deleted successfully.');
+          window.location.href = '/'; // Refresh/Redirect
+        },
+        error: (err) => {
+          console.error('Delete failed', err);
+          alert('Failed to delete account.');
+        }
+      });
+    }
+  }
+
   enableEditMode() {
     this.isEditMode = true;
+    setTimeout(() => {
+      this.initMap();
+    }, 100);
+  }
+
+  ngAfterViewInit(): void {
+  }
+
+  ngOnDestroy(): void {
+    if (this.map) {
+      this.map.remove();
+    }
+  }
+
+  private initMap(): void {
+    const lat = this.profileForm.get('latitude')?.value || 47.0707; // Default to Graz
+    const lng = this.profileForm.get('longitude')?.value || 15.4395;
+
+    if (this.map) {
+      this.map.remove();
+    }
+
+    this.map = L.map('map').setView([lat, lng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(this.map);
+
+    this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+
+    this.marker.on('dragend', (e) => {
+      const position = this.marker!.getLatLng();
+      this.profileForm.patchValue({
+        latitude: position.lat,
+        longitude: position.lng
+      });
+    });
+
+    this.map.on('click', (e: L.LeafletMouseEvent) => {
+      this.marker!.setLatLng(e.latlng);
+      this.profileForm.patchValue({
+        latitude: e.latlng.lat,
+        longitude: e.latlng.lng
+      });
+    });
   }
 
   cancelEdit() {
