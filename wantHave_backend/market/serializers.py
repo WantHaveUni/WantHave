@@ -18,10 +18,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'id', 'user', 'bio', 'profile_picture', 'city', 'country',
-            'latitude', 'longitude', 'address', 'rating',
+            'latitude', 'longitude', 'address',
             'active_listings_count', 'sold_items_count', 'member_since', 'updated_at'
         ]
-        read_only_fields = ['id', 'rating', 'member_since', 'updated_at']
+        read_only_fields = ['id', 'member_since', 'updated_at']
 
     def get_active_listings_count(self, obj):
         return obj.user.products.filter(status='AVAILABLE').count()

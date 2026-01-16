@@ -13,7 +13,6 @@ class UserProfile(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     address = models.CharField(max_length=255, blank=True, null=True)
-    rating = models.FloatField(default=0, validators=[MinValueValidator(0), MaxValueValidator(5)])
     active_listings_count = models.IntegerField(default=0)
     sold_items_count = models.IntegerField(default=0)
     member_since = models.DateTimeField(default=timezone.now)

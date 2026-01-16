@@ -10,7 +10,6 @@ export interface UserProfile {
   latitude: number | null;
   longitude: number | null;
   address: string;
-  rating: number;
   active_listings_count: number;
   sold_items_count: number;
   member_since: string | null;
