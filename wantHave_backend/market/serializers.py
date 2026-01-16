@@ -1,6 +1,7 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.models import User
-from .models import UserProfile, Product
+from .models import UserProfile, Product, Category
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,15 +53,38 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'parent']
+        read_only_fields = ['id']
+
 class ProductSerializer(serializers.ModelSerializer):
     seller_username = serializers.CharField(source='seller.username', read_only=True)
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        source='category',
+        queryset=Category.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = Product
-        fields = ['id', 'title', 'description', 'price', 'image', 'status', 'created_at', 'seller_username']
-        read_only_fields = ['id', 'created_at', 'seller_username']
+        fields = [
+            'id',
+            'title',
+            'description',
+            'price',
+            'image',
+            'status',
+            'created_at',
+            'seller_username',
+            'category',
+            'category_id',
+        ]
+        read_only_fields = ['id', 'created_at', 'seller_username', 'category']
 
-class MyTokenObtainPairSerializer(serializers.Serializer):
-    # Add your custom token serializer implementation here
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     pass
-

@@ -1,15 +1,15 @@
 <mat-toolbar class="app-toolbar" color="primary">
   <a routerLink="/" class="brand">WantHave</a>
   <span class="spacer"></span>
-  <a mat-button routerLink="/products" routerLinkActive="active">Products</a>
-  
-  @if (!auth.isAuthenticated()) {
-    <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
-  }
-
   @if (auth.isAuthenticated()) {
-  <a mat-button routerLink="/profile" routerLinkActive="active">Profile</a>
-  <span class="user-chip">Hi, {{ auth.username() }}</span>
+  <a mat-button routerLink="/messages" routerLinkActive="active">Messages</a>
+  <a mat-button routerLink="/products/new" routerLinkActive="active">+ Add product</a>
+  } @if (!auth.isAuthenticated()) {
+  <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
+  } @if (auth.isAuthenticated()) {
+  <button mat-stroked-button class="user-chip" routerLink="/profile">
+    {{ auth.username() }}
+  </button>
   <button mat-stroked-button (click)="logout()">Logout</button>
   }
 </mat-toolbar>

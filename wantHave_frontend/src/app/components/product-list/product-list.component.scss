@@ -29,6 +29,22 @@
   margin-top: 0.75rem;
 }
 
+.layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 1rem;
+}
+
+.results {
+  min-width: 0;
+}
+
 .loading-state,
 .error-state {
   display: flex;
@@ -87,7 +103,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .image-shell.placeholder {
@@ -113,6 +129,14 @@
 @media (max-width: 700px) {
   .hero {
     align-items: flex-start;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
   }
 
   .meta {

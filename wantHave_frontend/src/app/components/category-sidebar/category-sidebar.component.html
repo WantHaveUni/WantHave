@@ -1,0 +1,34 @@
+<aside class="category-shell">
+  <div class="header">
+    <h2>Categories</h2>
+    <button mat-button class="all-link" (click)="selectCategory(null)" [disabled]="selectedId === null">
+      All listings
+    </button>
+  </div>
+
+  <nav class="breadcrumbs">
+    @if (breadcrumb.length === 0) {
+    <span class="crumb active">All listings</span>
+    } @else {
+    <button mat-button class="crumb" (click)="selectCategory(null)">All listings</button>
+    @for (crumb of breadcrumb; track crumb.id) {
+    <span class="sep">/</span>
+    <button mat-button class="crumb" (click)="selectCategory(crumb.id)" [class.active]="crumb.id === selectedId">
+      {{ crumb.name }}
+    </button>
+    }
+    }
+  </nav>
+
+  <div class="category-list">
+    @if (visibleCategories.length === 0) {
+    <p class="empty">No subcategories.</p>
+    } @else {
+    @for (category of visibleCategories; track category.id) {
+    <button mat-stroked-button class="category-item" (click)="selectCategory(category.id)">
+      {{ category.name }}
+    </button>
+    }
+    }
+  </div>
+</aside>

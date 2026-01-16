@@ -1,0 +1,52 @@
+.category-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mat-sys-surface-variant) 45%, transparent);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.crumb.active {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.sep {
+  opacity: 0.7;
+}
+
+.category-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.category-item {
+  justify-content: flex-start;
+}
+
+.empty {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}

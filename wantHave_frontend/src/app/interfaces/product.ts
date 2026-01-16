@@ -6,10 +6,13 @@ export interface UserSummary {
   last_name: string;
 }
 
+import { Category } from './category';
+
 export interface Product {
   id: number;
   seller?: UserSummary;
   seller_username?: string;
+  category?: Category | null;
   title: string;
   description: string;
   price: string | number;

@@ -3,10 +3,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .models import UserProfile, Product
+from .models import UserProfile, Product, Category
 from .serializers import (
     UserProfileSerializer, UserProfileUpdateSerializer,
-    ProductSerializer, MyTokenObtainPairSerializer
+    ProductSerializer, MyTokenObtainPairSerializer, CategorySerializer
 )
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -17,6 +17,21 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().order_by('-created_at')
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Product.objects.all().order_by('-created_at')
+        category_id = self.request.query_params.get('category')
+
+        if category_id:
+            try:
+                category = Category.objects.get(pk=category_id)
+            except Category.DoesNotExist:
+                return queryset.none()
+
+            category_ids = category.descendant_ids(include_self=True)
+            queryset = queryset.filter(category_id__in=category_ids)
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
@@ -36,6 +51,11 @@ class ProductViewSet(viewsets.ModelViewSet):
             "description": "This looks like a vintage camera...",
             "price": 120.00
         }, status=status.HTTP_200_OK)
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.AllowAny]
 
 class ProductDetailView(generics.RetrieveAPIView):
     queryset = Product.objects.all()

@@ -13,6 +13,7 @@ interface DetailItem {
   value: string;
 }
 
+// this component shows the details of a single product and allows interaction if the user is authenticated
 @Component({
   selector: 'app-product-detail',
   standalone: true,
@@ -30,6 +31,7 @@ export class ProductDetailComponent implements OnInit {
   error = '';
   details: DetailItem[] = [];
 
+  // on component initialization, fetch the product based on the route parameter
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!Number.isFinite(id) || id <= 0) {
@@ -41,6 +43,7 @@ export class ProductDetailComponent implements OnInit {
     this.fetchProduct(id);
   }
 
+  // returns the full image URL for the product, or null if no image is available
   imageUrl(product: Product): string | null {
     if (!product.image) {
       return null;
@@ -51,10 +54,12 @@ export class ProductDetailComponent implements OnInit {
     return product.image.startsWith('/') ? product.image : `/${product.image}`;
   }
 
+  // returns the seller's name for display purposes
   sellerName(product: Product): string {
     return product.seller?.username || product.seller_username || 'Unknown';
   }
 
+  // checks if the current authenticated user is the owner of the product
   get isOwner(): boolean {
     if (!this.product) {
       return false;
@@ -64,6 +69,7 @@ export class ProductDetailComponent implements OnInit {
     return !!username && !!seller && username === seller;
   }
 
+  // checks if the user can interact with the product (i.e., is authenticated and not the owner)
   get canInteract(): boolean {
     return this.auth.isAuthenticated() && !this.isOwner;
   }
@@ -76,6 +82,7 @@ export class ProductDetailComponent implements OnInit {
     console.info('Checkout is not implemented yet.');
   }
 
+  // fetches the product details from the service and handles loading and error states
   private fetchProduct(id: number) {
     this.loading = true;
     this.error = '';
@@ -96,6 +103,7 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
+  // builds the array of detail items to display for the product
   private buildDetails(product: Product): DetailItem[] {
     const createdAt = product.created_at ? new Date(product.created_at) : null;
     const listed = createdAt ? createdAt.toLocaleDateString() : 'Unknown';

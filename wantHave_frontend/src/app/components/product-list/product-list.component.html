@@ -7,46 +7,77 @@
 </section>
 
 <section class="content">
-  @if (loading) {
-  <div class="loading-state">
-    <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
-    <p>Loading products…</p>
-  </div>
-  } @if (!loading && error) {
-  <div class="error-state">
-    <p>{{ error }}</p>
-    <button mat-flat-button color="primary" (click)="fetchProducts()">Try again</button>
-  </div>
-  } @if (!loading && !error) { @if (products.length === 0) {
-  <p class="empty">No products yet.</p>
-  } @else {
-  <div class="product-grid">
-    @for (product of products; track product.id) {
-    <a class="product-link" [routerLink]="['/products', product.id]" [attr.aria-label]="'View details for ' + product.title">
-      <mat-card class="product-card">
-        @if (imageUrl(product); as img) {
-        <div class="image-shell">
-          <img [src]="img" [alt]="product.title" loading="lazy" />
-        </div>
-        } @else {
-        <div class="image-shell placeholder">No image</div>
+  <div class="layout">
+    <aside class="sidebar">
+      @if (categoryLoading) {
+      <div class="loading-state">
+        <mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
+        <p>Loading categories…</p>
+      </div>
+      } @else if (categoryError) {
+      <div class="error-state">
+        <p>{{ categoryError }}</p>
+        <button mat-flat-button color="primary" (click)="fetchCategories()">Try again</button>
+      </div>
+      } @else {
+      <app-category-sidebar
+        [categories]="categories"
+        [selectedId]="selectedCategoryId"
+        (categoryChange)="onCategoryChange($event)"
+      ></app-category-sidebar>
+      }
+    </aside>
+
+    <div class="results">
+      @if (loading) {
+      <div class="loading-state">
+        <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+        <p>Loading products…</p>
+      </div>
+      } @else if (error) {
+      <div class="error-state">
+        <p>{{ error }}</p>
+        <button mat-flat-button color="primary" (click)="fetchProducts()">Try again</button>
+      </div>
+      } @else if (products.length === 0) {
+      <p class="empty">No products yet.</p>
+      } @else {
+      <div class="product-grid">
+        @for (product of products; track product.id) {
+        <a
+          class="product-link"
+          [routerLink]="['/products', product.id]"
+          [attr.aria-label]="'View details for ' + product.title"
+        >
+          <mat-card class="product-card">
+            @if (imageUrl(product); as img) {
+            <div class="image-shell">
+              <img [src]="img" [alt]="product.title" loading="lazy" />
+            </div>
+            } @else {
+            <div class="image-shell placeholder">No image</div>
+            }
+
+            <mat-card-header>
+              <mat-card-title>{{ product.title }}</mat-card-title>
+              <mat-card-subtitle>{{ product.price }} € · {{ product.status }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p class="description">{{ product.description }}</p>
+              <div class="meta">
+                <span
+                  >Seller:
+                  {{ product.seller?.username || product.seller_username || 'Unknown' }}</span
+                >
+                <span>{{ product.created_at | date : 'mediumDate' }}</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </a>
         }
-
-        <mat-card-header>
-          <mat-card-title>{{ product.title }}</mat-card-title>
-          <mat-card-subtitle>{{ product.price }} € · {{ product.status }}</mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-          <p class="description">{{ product.description }}</p>
-          <div class="meta">
-            <span>Seller: {{ product.seller?.username || product.seller_username || 'Unknown' }}</span>
-            <span>{{ product.created_at | date : 'mediumDate' }}</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </a>
-    }
+      </div>
+      }
+    </div>
   </div>
-  } }
 </section>
