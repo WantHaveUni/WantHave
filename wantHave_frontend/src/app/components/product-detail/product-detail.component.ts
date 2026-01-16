@@ -107,8 +107,10 @@ export class ProductDetailComponent implements OnInit {
   private buildDetails(product: Product): DetailItem[] {
     const createdAt = product.created_at ? new Date(product.created_at) : null;
     const listed = createdAt ? createdAt.toLocaleDateString() : 'Unknown';
+    const categoryName = product.category?.name ?? 'Uncategorized';
 
     return [
+      { label: 'Category', value: categoryName },
       { label: 'Seller', value: this.sellerName(product) },
       { label: 'Status', value: product.status },
       { label: 'Listed', value: listed },
