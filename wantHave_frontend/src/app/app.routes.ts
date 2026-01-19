@@ -11,6 +11,7 @@ export const routes: Routes = [
   { path: 'products/:id', component: ProductDetailComponent },
   { path: 'login', component: LoginComponent },
   { path: 'profile', component: ProfileComponent },
+  { path: 'chat', loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent) },
   { path: 'create-listing', component: CreateListingComponent },
   { path: '**', redirectTo: '/products' },
 ];

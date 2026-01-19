@@ -10,6 +10,7 @@
   <button mat-stroked-button class="user-chip" routerLink="/profile">
     {{ auth.username() }}
   </button>
+  <a mat-button routerLink="/chat" routerLinkActive="active">Chat</a>
   <button mat-stroked-button (click)="logout()">Logout</button>
   }
 </mat-toolbar>
