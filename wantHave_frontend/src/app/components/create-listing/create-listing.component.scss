@@ -1,0 +1,133 @@
+.create-listing-container {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  min-height: calc(100vh - 64px);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.listing-card,
+.preview-card {
+  width: 100%;
+  max-width: 600px;
+}
+
+.image-upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.image-preview {
+  width: 100%;
+  max-width: 400px;
+  height: 300px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: #673ab7;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #999;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.ai-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-spinner {
+    margin-right: 8px;
+  }
+}
+
+.listing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.price-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #e8f5e9;
+  border-radius: 4px;
+  color: #2e7d32;
+  font-size: 14px;
+
+  mat-icon {
+    color: #4caf50;
+  }
+}
+
+// Preview mode styles
+.preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.preview-image {
+  width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.preview-details {
+  h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+  }
+}
+
+.preview-price {
+  font-size: 28px;
+  font-weight: bold;
+  color: #673ab7;
+  margin: 0 0 16px 0;
+}
+
+.preview-description {
+  color: #666;
+  line-height: 1.6;
+}
+
+.preview-category {
+  color: #999;
+  font-size: 14px;
+  margin-top: 16px;
+}
