@@ -34,7 +34,7 @@ class AIAutofillTestCase(TestCase):
         image_io.name = 'test_image.jpg'
         return image_io
 
-    @patch('market.views.analyze_product_image')
+    @patch('market.ai_service.analyze_product_image')
     def test_ai_autofill_success(self, mock_analyze):
         """Test successful AI autofill with mocked response."""
         # Mock the analyze_product_image function return value
@@ -84,7 +84,7 @@ class AIAutofillTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch('market.views.analyze_product_image')
+    @patch('market.ai_service.analyze_product_image')
     def test_ai_autofill_creates_new_category(self, mock_analyze):
         """Test that a new category is created if it doesn't exist."""
         # Mock the function return value with a new category
@@ -110,7 +110,7 @@ class AIAutofillTestCase(TestCase):
         # Category should now exist
         self.assertTrue(Category.objects.filter(name='NewTestCategory').exists())
 
-    @patch('market.views.analyze_product_image')
+    @patch('market.ai_service.analyze_product_image')
     def test_ai_autofill_api_error(self, mock_analyze):
         """Test handling of API errors."""
         # Mock an API error
