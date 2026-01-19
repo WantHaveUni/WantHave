@@ -34,23 +34,17 @@ class AIAutofillTestCase(TestCase):
         image_io.name = 'test_image.jpg'
         return image_io
 
-    @patch('market.ai_service.genai')
-    def test_ai_autofill_success(self, mock_genai):
+    @patch('market.views.analyze_product_image')
+    def test_ai_autofill_success(self, mock_analyze):
         """Test successful AI autofill with mocked response."""
-        # Mock the Gemini API response
-        mock_response = MagicMock()
-        mock_response.text = '''
-        {
-            "title": "Vintage Camera",
-            "description": "A beautiful vintage film camera in excellent condition.",
-            "category_suggestion": "Electronics",
-            "price_min": 50,
-            "price_max": 100
+        # Mock the analyze_product_image function return value
+        mock_analyze.return_value = {
+            'title': 'Vintage Camera',
+            'description': 'A beautiful vintage film camera in excellent condition.',
+            'category_suggestion': 'Electronics',
+            'price_min': 50,
+            'price_max': 100
         }
-        '''
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value = mock_response
-        mock_genai.GenerativeModel.return_value = mock_model
 
         # Create test image and make request
         image = self._create_test_image()
@@ -90,23 +84,17 @@ class AIAutofillTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch('market.ai_service.genai')
-    def test_ai_autofill_creates_new_category(self, mock_genai):
+    @patch('market.views.analyze_product_image')
+    def test_ai_autofill_creates_new_category(self, mock_analyze):
         """Test that a new category is created if it doesn't exist."""
-        # Mock the response with a new category
-        mock_response = MagicMock()
-        mock_response.text = '''
-        {
-            "title": "Test Product",
-            "description": "Test description",
-            "category_suggestion": "NewTestCategory",
-            "price_min": 10,
-            "price_max": 20
+        # Mock the function return value with a new category
+        mock_analyze.return_value = {
+            'title': 'Test Product',
+            'description': 'Test description',
+            'category_suggestion': 'NewTestCategory',
+            'price_min': 10,
+            'price_max': 20
         }
-        '''
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value = mock_response
-        mock_genai.GenerativeModel.return_value = mock_model
 
         # Ensure category doesn't exist
         self.assertFalse(Category.objects.filter(name='NewTestCategory').exists())
@@ -122,11 +110,11 @@ class AIAutofillTestCase(TestCase):
         # Category should now exist
         self.assertTrue(Category.objects.filter(name='NewTestCategory').exists())
 
-    @patch('market.ai_service.genai')
-    def test_ai_autofill_api_error(self, mock_genai):
+    @patch('market.views.analyze_product_image')
+    def test_ai_autofill_api_error(self, mock_analyze):
         """Test handling of API errors."""
         # Mock an API error
-        mock_genai.GenerativeModel.side_effect = Exception("API Error")
+        mock_analyze.side_effect = Exception("API Error")
 
         image = self._create_test_image()
         response = self.client.post(
