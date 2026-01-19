@@ -3,6 +3,7 @@ import { LoginComponent } from './components/login/login.component';
 import { ProductDetailComponent } from './components/product-detail/product-detail.component';
 import { ProductListComponent } from './components/product-list/product-list.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { CreateListingComponent } from './components/create-listing/create-listing.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/products', pathMatch: 'full' },
@@ -11,5 +12,6 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'chat', loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent) },
+  { path: 'create-listing', component: CreateListingComponent },
   { path: '**', redirectTo: '/products' },
 ];

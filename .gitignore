@@ -12,3 +12,7 @@ node_modules/
 # Misc
 .claude/
 CLAUDE.md
+
+# Virtual Environment
+venv/
+wantHave_backend/venv/

@@ -44,17 +44,58 @@ class ProductViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='ai-autofill')
     def ai_autofill(self, request):
         """
-        Placeholder for AI auto-fill feature.
-        In a real implementation, this would handle an image upload,
-        send it to an AI service (e.g., GPT-4o with Vision, Google Cloud Vision),
-        and return suggested title, description, and price.
+        AI-powered auto-fill for product listings.
+        Accepts an image upload, analyzes it with Gemini Pro,
+        and returns suggested title, description, category, and price range.
         """
-        # Logic to handle image from request.FILES['image']
-        # prediction = ai_service.predict(image)
+        from .ai_service import analyze_product_image
+        
+        # Check if image was uploaded
+        if 'image' not in request.FILES:
+            return Response(
+                {'error': 'No image provided. Please upload an image.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        image_file = request.FILES['image']
+        
+        # Analyze the image with AI
+        try:
+            result = analyze_product_image(image_file)
+        except Exception as e:
+            return Response(
+                {'error': f'AI service error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Check for errors from AI service
+        if 'error' in result and result.get('title') == '':
+            return Response(
+                {'error': result['error']},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Try to match or create the suggested category
+        category_name = result.get('category_suggestion', '')
+        category_id = None
+        
+        if category_name:
+            # Try to find existing category (case-insensitive)
+            category = Category.objects.filter(name__iexact=category_name).first()
+            
+            if not category:
+                # Create new category if it doesn't exist
+                category = Category.objects.create(name=category_name)
+            
+            category_id = category.id
+        
         return Response({
-            "title": "Suggested Title (AI)",
-            "description": "This looks like a vintage camera...",
-            "price": 120.00
+            'title': result.get('title', ''),
+            'description': result.get('description', ''),
+            'category_id': category_id,
+            'category_name': category_name,
+            'price_min': result.get('price_min', 0),
+            'price_max': result.get('price_max', 0)
         }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
