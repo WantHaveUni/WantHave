@@ -17,7 +17,7 @@ const iconDefault = L.icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   tooltipAnchor: [16, -28],
-  shadowSize: [41, 41]
+  shadowSize: [41, 41],
 });
 L.Marker.prototype.options.icon = iconDefault;
 
@@ -26,7 +26,7 @@ L.Marker.prototype.options.icon = iconDefault;
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+  styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   private profileService = inject(ProfileService);
@@ -49,7 +49,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     country: [''],
     address: [''],
     latitude: [null],
-    longitude: [null]
+    longitude: [null],
   });
 
   listings: any[] = [];
@@ -72,7 +72,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
           country: data.country || '',
           address: data.address || '',
           latitude: data.latitude,
-          longitude: data.longitude
+          longitude: data.longitude,
         });
         this.loading = false;
 
@@ -84,7 +84,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(err);
         this.error = 'Failed to load profile.';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -98,7 +98,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err) => {
         console.error('Failed to load listings', err);
         this.listingsLoading = false;
-      }
+      },
     });
   }
 
@@ -112,7 +112,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err) => {
         console.error('Failed to load purchases', err);
         this.purchasesLoading = false;
-      }
+      },
     });
   }
 
@@ -126,7 +126,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         error: (err) => {
           console.error('Delete failed', err);
           alert('Failed to delete account.');
-        }
+        },
       });
     }
   }
@@ -138,8 +138,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 100);
   }
 
-  ngAfterViewInit(): void {
-  }
+  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     if (this.map) {
@@ -159,7 +158,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(this.map);
 
     this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
@@ -168,7 +167,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
       const position = this.marker!.getLatLng();
       this.profileForm.patchValue({
         latitude: position.lat,
-        longitude: position.lng
+        longitude: position.lng,
       });
     });
 
@@ -176,7 +175,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
       this.marker!.setLatLng(e.latlng);
       this.profileForm.patchValue({
         latitude: e.latlng.lat,
-        longitude: e.latlng.lng
+        longitude: e.latlng.lng,
       });
     });
   }
@@ -192,7 +191,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         country: this.profile.country || '',
         address: this.profile.address || '',
         latitude: this.profile.latitude,
-        longitude: this.profile.longitude
+        longitude: this.profile.longitude,
       });
     }
     this.error = '';
@@ -247,7 +246,7 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(err);
         this.error = 'Failed to save profile. Please try again.';
         this.saving = false;
-      }
+      },
     });
   }
 }

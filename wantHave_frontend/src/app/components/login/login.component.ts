@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,26 +25,41 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
   private fb = inject(FormBuilder);
 
-  form = this.fb.nonNullable.group({
+  loginForm = this.fb.nonNullable.group({
     username: ['', Validators.required],
     password: ['', Validators.required],
   });
 
+  registerForm = this.fb.nonNullable.group(
+    {
+      username: ['', Validators.required],
+      email: ['', Validators.email],
+      password: ['', Validators.required],
+      confirmPassword: ['', Validators.required],
+    },
+    { validators: [this.passwordMatchValidator] }
+  );
+
   loading = false;
   error = '';
   success = false;
+  isRegisterMode = false;
 
   constructor(private auth: AuthService, private router: Router) {}
 
   submit() {
-    if (this.form.invalid) {
+    if (this.isRegisterMode) {
+      this.register();
+      return;
+    }
+    if (this.loginForm.invalid) {
       return;
     }
     this.loading = true;
     this.error = '';
     this.success = false;
 
-    this.auth.login(this.form.getRawValue()).subscribe({
+    this.auth.login(this.loginForm.getRawValue()).subscribe({
       next: () => {
         this.loading = false;
         this.success = true;
@@ -53,6 +68,42 @@ export class LoginComponent {
       error: (err) => {
         this.loading = false;
         this.error = err?.error?.detail || 'Login failed. Please check your credentials.';
+      },
+    });
+  }
+
+  register() {
+    if (this.registerForm.invalid) {
+      return;
+    }
+
+    const { username, password, email } = this.registerForm.getRawValue();
+    this.loading = true;
+    this.error = '';
+    this.success = false;
+
+    this.auth.register({ username, password, email }).subscribe({
+      next: () => {
+        this.auth.login({ username, password }).subscribe({
+          next: () => {
+            this.loading = false;
+            this.success = true;
+            this.router.navigate(['/products']);
+          },
+          error: () => {
+            this.loading = false;
+            this.error = 'Registered, but login failed. Please sign in.';
+            this.isRegisterMode = false;
+          },
+        });
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error =
+          err?.error?.username?.[0] ||
+          err?.error?.email?.[0] ||
+          err?.error?.detail ||
+          'Registration failed. Please try again.';
       },
     });
   }
@@ -68,5 +119,20 @@ export class LoginComponent {
 
   username() {
     return this.auth.username();
+  }
+
+  toggleMode() {
+    this.isRegisterMode = !this.isRegisterMode;
+    this.error = '';
+    this.success = false;
+  }
+
+  private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirm = control.get('confirmPassword')?.value;
+    if (!password || !confirm) {
+      return null;
+    }
+    return password === confirm ? null : { passwordMismatch: true };
   }
 }

@@ -1,34 +1,89 @@
 <div class="login-page">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>Sign in</mat-card-title>
-      <mat-card-subtitle>JWT auth via <code>/api/token/</code></mat-card-subtitle>
+      <mat-card-title>{{ isRegisterMode ? 'Create account' : 'Sign in' }}</mat-card-title>
+      <mat-card-subtitle>
+        {{
+          isRegisterMode ? 'Register to start listing products.' : 'Log in to manage your products.'
+        }}
+      </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       @if (isLoggedIn()) {
         <p class="info">
-          Logged in as <strong>{{ username() }}</strong>. Use the logout button if you want to switch accounts.
+          Logged in as <strong>{{ username() }}</strong
+          >. Use the logout button if you want to switch accounts.
         </p>
         <div class="actions">
           <button mat-stroked-button color="primary" (click)="logout()">Logout</button>
         </div>
       } @else {
-        <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
-          <mat-form-field appearance="outline">
-            <mat-label>Username</mat-label>
-            <input matInput formControlName="username" required />
-          </mat-form-field>
+        @if (isRegisterMode) {
+          <form [formGroup]="registerForm" (ngSubmit)="submit()" class="login-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Username</mat-label>
+              <input matInput formControlName="username" required />
+            </mat-form-field>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Password</mat-label>
-            <input matInput type="password" formControlName="password" required />
-          </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Email (optional)</mat-label>
+              <input matInput type="email" formControlName="email" />
+            </mat-form-field>
 
-          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || loading">
-            {{ loading ? 'Signing in…' : 'Sign in' }}
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input matInput type="password" formControlName="password" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Confirm password</mat-label>
+              <input matInput type="password" formControlName="confirmPassword" required />
+            </mat-form-field>
+
+            @if (registerForm.hasError('passwordMismatch')) {
+              <p class="error">Passwords do not match.</p>
+            }
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="registerForm.invalid || loading"
+            >
+              {{ loading ? 'Creating account…' : 'Create account' }}
+            </button>
+          </form>
+        } @else {
+          <form [formGroup]="loginForm" (ngSubmit)="submit()" class="login-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Username</mat-label>
+              <input matInput formControlName="username" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input matInput type="password" formControlName="password" required />
+            </mat-form-field>
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="loginForm.invalid || loading"
+            >
+              {{ loading ? 'Signing in…' : 'Sign in' }}
+            </button>
+          </form>
+        }
+
+        <div class="mode-switch">
+          <button mat-button type="button" (click)="toggleMode()">
+            {{
+              isRegisterMode ? 'Already have an account? Sign in' : 'New here? Create an account'
+            }}
           </button>
-        </form>
+        </div>
       }
 
       @if (error) {

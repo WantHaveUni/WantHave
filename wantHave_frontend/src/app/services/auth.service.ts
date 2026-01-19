@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { tap } from 'rxjs';
-import { Credentials, TokenResponse } from '../interfaces/auth';
+import { Credentials, RegisterPayload, TokenResponse } from '../interfaces/auth';
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +25,10 @@ export class AuthService {
         this.usernameSignal.set(credentials.username);
       })
     );
+  }
+
+  register(payload: RegisterPayload) {
+    return this.http.post('/api/market/register/', payload);
   }
 
   logout() {

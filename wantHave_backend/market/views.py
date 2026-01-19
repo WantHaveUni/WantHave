@@ -6,11 +6,16 @@ from django.contrib.auth.models import User
 from .models import UserProfile, Product, Category
 from .serializers import (
     UserProfileSerializer, UserProfileUpdateSerializer,
-    ProductSerializer, MyTokenObtainPairSerializer, CategorySerializer
+    ProductSerializer, MyTokenObtainPairSerializer, CategorySerializer,
+    RegisterSerializer
 )
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
 
 
 class ProductViewSet(viewsets.ModelViewSet):
