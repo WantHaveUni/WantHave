@@ -21,8 +21,8 @@ export interface Conversation {
     providedIn: 'root'
 })
 export class ChatService {
-    private apiUrl = 'http://localhost:8000/api/chat';
-    private wsUrl = 'ws://localhost:8000/ws/chat';
+    private apiUrl = '/api/chat';
+    private wsUrl = 'ws://127.0.0.1:8000/ws/chat';
 
     private socket: WebSocket | null = null;
     private messageSubject = new Subject<Message>();
@@ -60,7 +60,8 @@ export class ChatService {
             const message: Message = {
                 content: data.message,
                 sender: { id: data.sender_id }, // Partial user
-                timestamp: data.timestamp
+                timestamp: data.timestamp,
+                conversation: data.conversation
             };
             this.messageSubject.next(message);
         };

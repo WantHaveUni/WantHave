@@ -56,7 +56,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message': message,
             'sender_id': sender_id,
-            'timestamp': timestamp
+            'timestamp': timestamp,
+            'conversation': self.room_name
         }))
 
     @database_sync_to_async

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService, Conversation, Message } from '../../services/chat.service';
@@ -22,7 +22,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     constructor(
         private chatService: ChatService,
         private profileService: ProfileService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private ngZone: NgZone
     ) { }
 
     ngOnInit(): void {
@@ -33,13 +34,16 @@ export class ChatComponent implements OnInit, OnDestroy {
 
         // Subscribe to incoming messages
         this.chatService.messages$.subscribe(msg => {
-            // Only append if it belongs to current conversation
-            if (this.selectedConversation && this.selectedConversation.id === msg.conversation) {
-                this.messages.push(msg);
-            } else if (!this.selectedConversation || this.selectedConversation.id !== msg.conversation) {
-                // Maybe show a badge or update last message in conversation list
-                this.updateLastMessage(msg);
-            }
+            this.ngZone.run(() => {
+                // Only append if it belongs to current conversation
+                // We use loose equality (==) because ID might be string from WebSocket vs number from DB
+                if (this.selectedConversation && this.selectedConversation.id == msg.conversation) {
+                    this.messages.push(msg);
+                } else if (!this.selectedConversation || this.selectedConversation.id != msg.conversation) {
+                    // Maybe show a badge or update last message in conversation list
+                    this.updateLastMessage(msg);
+                }
+            });
         });
     }
 
