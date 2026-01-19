@@ -60,7 +60,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         image_file = request.FILES['image']
         
         # Analyze the image with AI
-        result = analyze_product_image(image_file)
+        try:
+            result = analyze_product_image(image_file)
+        except Exception as e:
+            return Response(
+                {'error': f'AI service error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
         # Check for errors from AI service
         if 'error' in result and result.get('title') == '':
