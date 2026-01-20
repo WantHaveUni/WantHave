@@ -39,7 +39,9 @@
 
         <div class="actions">
           <button mat-stroked-button (click)="messageSeller()" [disabled]="!canInteract">Message seller</button>
-          <button mat-flat-button color="primary" (click)="startCheckout()" [disabled]="!canInteract">Buy now</button>
+          <button mat-flat-button color="primary" (click)="startCheckout()" [disabled]="processingCheckout || !canInteract || product.status !== 'AVAILABLE'">
+            {{ processingCheckout ? 'Processing...' : 'Buy now' }}
+          </button>
         </div>
 
         @if (!auth.isAuthenticated()) {
