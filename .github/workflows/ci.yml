@@ -5,33 +5,66 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  frontend-build:
+  frontend-tests-and-build:
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Login to FH Registry
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          cd wantHave_frontend
+          npm install
+
+      - name: Run Angular Tests
+        run: |
+          cd wantHave_frontend
+          # --watch=false sorgt dafür, dass die Tests nach einem Durchlauf enden
+          # --browsers=ChromeHeadless ist nötig, da der Runner kein Display hat
+          npm run test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Login to Registry
         uses: docker/login-action@v3
         with:
           registry: registry.kub2.fh-joanneum.at
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and Push Angular Frontend
+      - name: Build and Push Frontend
         run: |
-          TAG=dev
-          # KORREKTUR: Pfad entspricht jetzt exakt der GitLab-Vorgabe aus deinem Screenshot
+          TAG=${{ github.ref_name }}
           docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
           docker push registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG
 
-  backend-build:
+  backend-tests-and-build:
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Login to FH Registry
+      - name: Set up Python
+        uses: actions/setup-node@v4 # Wir nutzen den Python Setup für Backend
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          cd wantHave_backend
+          pip install -r requirements.txt
+
+      - name: Run Django Tests
+        run: |
+          cd wantHave_backend
+          # Django nutzt standardmäßig SQLite für Unit-Tests in der CI
+          python manage.py test
+
+      - name: Login to Registry
         uses: docker/login-action@v3
         with:
           registry: registry.kub2.fh-joanneum.at
@@ -41,6 +74,5 @@ jobs:
       - name: Build and Push Backend
         run: |
           TAG=${{ github.ref_name }}
-          # WICHTIG: Kontext ist wantHave_backend/
           docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/backend:$TAG -f wantHave_backend/Dockerfile wantHave_backend/
           docker push registry.kub2.fh-joanneum.at/k8s/wanthave/backend:$TAG
