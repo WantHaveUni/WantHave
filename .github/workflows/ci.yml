@@ -6,7 +6,7 @@ on:
 
 jobs:
   frontend-build:
-    runs-on: [self-hosted, Linux, k8s] # Dein neuer Runner erkennt diese Labels
+    runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
