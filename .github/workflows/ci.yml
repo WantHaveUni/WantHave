@@ -48,7 +48,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-node@v4 # Wir nutzen den Python Setup für Backend
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
