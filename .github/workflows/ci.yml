@@ -24,3 +24,20 @@ jobs:
           # KORREKTUR: Pfad entspricht jetzt exakt der GitLab-Vorgabe aus deinem Screenshot
           docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
           docker push registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG
+
+  backend-build:
+  runs-on: [self-hosted, Linux, k8s]
+  steps:
+    - uses: actions/checkout@v4
+    - name: Login to Registry
+      uses: docker/login-action@v3
+      with:
+        registry: registry.kub2.fh-joanneum.at
+        username: ${{ secrets.REGISTRY_USER }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+    - name: Build and Push Backend
+      run: |
+        TAG=${{ github.ref_name }}
+        # Pfad angepasst an deinen erfolgreichen Frontend-Push
+        docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/backend:$TAG -f wantHave_backend/Dockerfile wantHave_backend/
+        docker push registry.kub2.fh-joanneum.at/k8s/wanthave/backend:$TAG
