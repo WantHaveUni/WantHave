@@ -8,3 +8,5 @@ docker push registry.kub2.fh-joanneum.at/want-have/frontend:dev
 # Build & Push Backend
 docker build -t registry.kub2.fh-joanneum.at/want-have/backend:dev -f wantHave_backend/Dockerfile wantHave_backend/
 docker push registry.kub2.fh-joanneum.at/want-have/backend:dev
+
+# Test
