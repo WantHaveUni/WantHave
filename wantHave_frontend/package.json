@@ -32,8 +32,11 @@
     "@angular/router": "^20.3.0",
     "@stripe/stripe-js": "^8.6.3",
     "@types/leaflet": "^1.9.21",
+    "@types/three": "^0.182.0",
     "leaflet": "^1.9.4",
+    "postprocessing": "^6.38.2",
     "rxjs": "~7.8.0",
+    "three": "^0.182.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
