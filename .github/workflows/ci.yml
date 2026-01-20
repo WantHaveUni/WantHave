@@ -5,48 +5,46 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  # STAGE 1: Frontend Tests in einem spezialisierten Docker-Container
+  # STAGE 1: Frontend Tests (Nativ im Container)
   test-frontend:
     runs-on: [self-hosted, Linux, k8s]
+    container:
+      image: trion/ng-cli-karma:latest
+      options: --user root
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run Angular Tests in specialized Container
+      - name: Run Angular Tests
         run: |
-          # Wir nutzen ein Image, das Node, Chrome und Angular CLI bereits enthält
-          docker run --rm \
-            -v ${{ github.workspace }}/wantHave_frontend:/app \
-            -w /app \
-            trion/ng-cli-karma:latest \
-            sh -c "npm install && npm run test -- --watch=false --browsers=ChromeHeadless --no-sandbox"
+          cd wantHave_frontend
+          npm install
+          # --no-sandbox ist im Container-Kontext zwingend erforderlich
+          npm run test -- --watch=false --browsers=ChromeHeadless --no-sandbox
 
-  # STAGE 1: Backend Tests (Parallel zum Frontend)
+  # STAGE 1: Backend Tests
   test-backend:
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - name: Run Django Tests
         run: |
           cd wantHave_backend
           pip install -r requirements.txt
           python manage.py test
 
-  # STAGE 2: Build & Push (Startet nur, wenn BEIDE Test-Jobs grün sind)
+  # STAGE 2: Build & Push
   build-and-push:
     needs: [test-frontend, test-backend]
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
       - name: Login to FH Registry
         uses: docker/login-action@v3
         with:
@@ -54,13 +52,13 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Build and Push Frontend
+      - name: Build & Push Frontend
         run: |
           TAG=${{ github.ref_name }}
           docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
           docker push registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG
 
-      - name: Build and Push Backend
+      - name: Build & Push Backend
         run: |
           TAG=${{ github.ref_name }}
           docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/backend:$TAG -f wantHave_backend/Dockerfile wantHave_backend/
