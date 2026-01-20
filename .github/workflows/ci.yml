@@ -20,7 +20,7 @@ jobs:
 
       - name: Build and Push Angular Frontend
         run: |
-          TAG=${{ github.ref_name }}
-          # Build-Kontext ist der Ordner des Frontends
-          docker build -t registry.kub2.fh-joanneum.at/want-have/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
-          docker push registry.kub2.fh-joanneum.at/want-have/frontend:$TAG
+          TAG=dev
+          # KORREKTUR: Pfad entspricht jetzt exakt der GitLab-Vorgabe aus deinem Screenshot
+          docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
+          docker push registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG
