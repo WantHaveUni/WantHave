@@ -14,17 +14,14 @@ jobs:
       - name: Run Angular Tests (via Temp-Image)
         run: |
           cd wantHave_frontend
-          # Wir bauen ein winziges Test-Image basierend auf dem Karma-Image
-          # Das kopiert deinen Code direkt hinein, damit wir keine Mounts brauchen
           echo "FROM trion/ng-cli-karma:latest
           WORKDIR /app
           COPY . .
           RUN npm install" > Test.Dockerfile
           
           docker build -t frontend-test -f Test.Dockerfile .
-          # Ausführung der Tests
-          docker run --rm frontend-test npm run test -- --watch=false --browsers=ChromeHeadless --no-sandbox
-
+          
+          docker run --rm frontend-test npm run test -- --watch=false --browsers=ChromeHeadlessNoSandbox
   test-backend:
     runs-on: [self-hosted, Linux, k8s]
     steps:
