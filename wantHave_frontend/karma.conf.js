@@ -1,20 +1,22 @@
-// wantHave_frontend/karma.conf.js
 module.exports = function (config) {
   config.set({
     basePath: '',
-    // Add the Angular devkit framework if it was missing
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
     plugins: [
-      require('karma-jasmine'),
+      require('jasmine-core'),
       require('karma-chrome-launcher'),
+      require('karma-jasmine'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma') // Essential for Angular
+      // HINWEIS: Das '@angular-devkit/build-angular/plugins/karma' Plugin 
+      // wird von neueren Angular-Buildern automatisch geladen. 
+      // Ein explizites require führt hier oft zu Fehlern und wurde daher entfernt.
     ],
     client: {
       jasmine: {
-        // configuration options for Jasmine
+        // Jasmine Konfigurationen können hier hinzugefügt werden
       },
+      clearContext: false // Lässt das Jasmine Spec Runner Ergebnis im Browser sichtbar
     },
     jasmineHtmlReporter: {
       suppressAll: true
@@ -28,22 +30,24 @@ module.exports = function (config) {
       ]
     },
     reporters: ['progress', 'kjhtml'],
-
-    // MODIFIED: Define the browsers and the custom launcher
-    browsers: ['Chrome', 'ChromeHeadless', 'ChromeHeadlessNoSandbox'],
+    port: 9876,
+    colors: true,
+    logLevel: config.LOG_INFO,
+    autoWatch: true,
+    // Konfiguration für die CI-Umgebung
+    browsers: ['ChromeHeadlessNoSandbox'],
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
         flags: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-gpu',
-          '--disable-dev-shm-usage'
+          '--disable-dev-shm-usage',
+          '--disable-gpu'
         ]
       }
     },
-
-    singleRun: false,
+    singleRun: true, // Wichtig für CI: Karma beendet sich nach den Tests
     restartOnFileChange: true
   });
 };
