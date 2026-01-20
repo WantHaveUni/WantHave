@@ -5,30 +5,49 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  frontend-tests-and-build:
+  # STAGE 1: Frontend Tests in einem spezialisierten Docker-Container
+  test-frontend:
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Run Angular Tests in specialized Container
+        run: |
+          # Wir nutzen ein Image, das Node, Chrome und Angular CLI bereits enthält
+          docker run --rm \
+            -v ${{ github.workspace }}/wantHave_frontend:/app \
+            -w /app \
+            trion/ng-cli-karma:latest \
+            sh -c "npm install && npm run test -- --watch=false --browsers=ChromeHeadless --no-sandbox"
+
+  # STAGE 1: Backend Tests (Parallel zum Frontend)
+  test-backend:
+    runs-on: [self-hosted, Linux, k8s]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: '22'
+          python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Run Django Tests
         run: |
-          cd wantHave_frontend
-          npm install
+          cd wantHave_backend
+          pip install -r requirements.txt
+          python manage.py test
 
-      - name: Run Angular Tests
-        run: |
-          cd wantHave_frontend
-          # --watch=false sorgt dafür, dass die Tests nach einem Durchlauf enden
-          # --browsers=ChromeHeadless ist nötig, da der Runner kein Display hat
-          npm run test -- --watch=false --browsers=ChromeHeadless
+  # STAGE 2: Build & Push (Startet nur, wenn BEIDE Test-Jobs grün sind)
+  build-and-push:
+    needs: [test-frontend, test-backend]
+    runs-on: [self-hosted, Linux, k8s]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Login to Registry
+      - name: Login to FH Registry
         uses: docker/login-action@v3
         with:
           registry: registry.kub2.fh-joanneum.at
@@ -40,35 +59,6 @@ jobs:
           TAG=${{ github.ref_name }}
           docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
           docker push registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG
-
-  backend-tests-and-build:
-    runs-on: [self-hosted, Linux, k8s]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          cd wantHave_backend
-          pip install -r requirements.txt
-
-      - name: Run Django Tests
-        run: |
-          cd wantHave_backend
-          # Django nutzt standardmäßig SQLite für Unit-Tests in der CI
-          python manage.py test
-
-      - name: Login to Registry
-        uses: docker/login-action@v3
-        with:
-          registry: registry.kub2.fh-joanneum.at
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Build and Push Backend
         run: |
