@@ -1,14 +1,21 @@
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from .models import UserProfile, Product, Category
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from django.db import models as django_models
+from django.utils import timezone
+import stripe
+
+from .models import UserProfile, Product, Category, Order, StripeWebhookEvent
 from .serializers import (
     UserProfileSerializer, UserProfileUpdateSerializer,
     ProductSerializer, MyTokenObtainPairSerializer, CategorySerializer,
-    RegisterSerializer
+    RegisterSerializer, OrderSerializer, CheckoutSessionSerializer
 )
+from .stripe_service import StripeService
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -99,11 +106,69 @@ class ProductViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def create_checkout_session(self, request, pk=None):
+        """
+        Create a Stripe Checkout session for purchasing this product.
 
-    def buy(self, request, pk=None):
-        """Allow a user to buy a product"""
+        Expected request body:
+        {
+            "success_url": "http://localhost:4200/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+            "cancel_url": "http://localhost:4200/checkout/cancel"
+        }
+        """
         product = self.get_object()
-        
+
+        # Validate product availability
+        if product.status != 'AVAILABLE':
+            return Response(
+                {'detail': 'This product is no longer available.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if product.seller == request.user:
+            return Response(
+                {'detail': 'You cannot buy your own product.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get redirect URLs
+        success_url = request.data.get('success_url')
+        cancel_url = request.data.get('cancel_url')
+
+        if not success_url or not cancel_url:
+            return Response(
+                {'detail': 'success_url and cancel_url are required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Create checkout session via Stripe service
+            session_data = StripeService.create_checkout_session(
+                product=product,
+                buyer_user=request.user,
+                success_url=success_url,
+                cancel_url=cancel_url
+            )
+
+            serializer = CheckoutSessionSerializer(session_data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except stripe.error.StripeError as e:
+            return Response(
+                {'detail': f'Payment service error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def buy(self, request, pk=None):
+        """Allow a user to buy a product (legacy endpoint - kept for backwards compatibility)"""
+        product = self.get_object()
+
         if product.status == 'SOLD':
              return Response(
                 {'detail': 'This product is already sold.'},
@@ -117,7 +182,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             )
 
         # Mark as sold
-        from django.utils import timezone
         product.status = 'SOLD'
         product.buyer = request.user
         product.sold_at = timezone.now()
@@ -209,3 +273,113 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             {'detail': 'Profile creation is automatic upon user registration'},
             status=status.HTTP_405_METHOD_NOT_ALLOWED
         )
+
+
+# Order ViewSet
+class OrderViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for viewing orders"""
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """Return orders where user is buyer or seller"""
+        user = self.request.user
+        return Order.objects.filter(
+            django_models.Q(buyer=user) | django_models.Q(seller=user)
+        ).select_related('product', 'buyer', 'seller', 'payment').order_by('-created_at')
+
+    @action(detail=False, methods=['get'])
+    def my_purchases(self, request):
+        """Get all orders where user is the buyer"""
+        orders = Order.objects.filter(buyer=request.user).select_related(
+            'product', 'seller', 'payment'
+        ).order_by('-created_at')
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def my_sales(self, request):
+        """Get all orders where user is the seller"""
+        orders = Order.objects.filter(seller=request.user).select_related(
+            'product', 'buyer', 'payment'
+        ).order_by('-created_at')
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
+
+
+# Stripe Webhook Handler
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def stripe_webhook(request):
+    """
+    Handle Stripe webhook events.
+    This endpoint receives events from Stripe and processes them.
+    """
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+
+    if not sig_header:
+        return HttpResponse('Missing signature', status=400)
+
+    try:
+        # Verify webhook signature
+        event = StripeService.verify_webhook_signature(payload, sig_header)
+    except ValueError:
+        # Invalid payload
+        return HttpResponse('Invalid payload', status=400)
+    except stripe.error.SignatureVerificationError:
+        # Invalid signature
+        return HttpResponse('Invalid signature', status=400)
+
+    # Log webhook event
+    webhook_event, created = StripeWebhookEvent.objects.get_or_create(
+        event_id=event['id'],
+        defaults={
+            'event_type': event['type'],
+            'event_data': event['data']['object']
+        }
+    )
+
+    # Skip if already processed
+    if not created and webhook_event.processed:
+        return HttpResponse('Already processed', status=200)
+
+    # Handle different event types
+    event_type = event['type']
+    event_data = event['data']['object']
+
+    try:
+        if event_type == 'checkout.session.completed':
+            # Handle successful checkout
+            order = StripeService.handle_checkout_session_completed(event_data)
+            if order:
+                webhook_event.related_order = order
+
+        elif event_type == 'payment_intent.succeeded':
+            # Handle successful payment intent
+            StripeService.handle_payment_intent_succeeded(event_data)
+
+        elif event_type == 'payment_intent.payment_failed':
+            # Handle failed payment
+            order_id = event_data.get('metadata', {}).get('order_id')
+            if order_id:
+                try:
+                    order = Order.objects.get(id=order_id)
+                    order.status = 'FAILED'
+                    order.save(update_fields=['status'])
+                    webhook_event.related_order = order
+                except Order.DoesNotExist:
+                    pass
+
+        # Mark as processed
+        webhook_event.processed = True
+        webhook_event.processed_at = timezone.now()
+        webhook_event.save()
+
+        return HttpResponse('Success', status=200)
+
+    except Exception as e:
+        # Log error but return 200 to prevent Stripe retries
+        print(f"Webhook processing error: {e}")
+        return HttpResponse('Error processing webhook', status=500)

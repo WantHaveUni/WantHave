@@ -6,6 +6,10 @@ db.sqlite3
 # Django
 media/
 
+# Environment variables
+.env
+*.env
+
 # Node
 node_modules/
 

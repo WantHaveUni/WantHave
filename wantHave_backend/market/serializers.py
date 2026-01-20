@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.models import User
-from .models import UserProfile, Product, Category
+from .models import UserProfile, Product, Category, Order, Payment
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -121,3 +121,42 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     pass
+
+
+# Payment Serializers
+class PaymentSerializer(serializers.ModelSerializer):
+    """Serializer for Payment details"""
+    class Meta:
+        model = Payment
+        fields = [
+            'id', 'amount', 'currency', 'payment_method_type',
+            'successful', 'processed_at', 'created_at'
+        ]
+        read_only_fields = fields
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for Order details"""
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    product_image = serializers.ImageField(source='product.image', read_only=True)
+    buyer_username = serializers.CharField(source='buyer.username', read_only=True)
+    seller_username = serializers.CharField(source='seller.username', read_only=True)
+    payment = PaymentSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'product', 'product_title', 'product_image',
+            'buyer', 'buyer_username', 'seller', 'seller_username',
+            'price', 'platform_fee', 'seller_amount', 'status',
+            'created_at', 'updated_at', 'paid_at',
+            'payment'
+        ]
+        read_only_fields = fields
+
+
+class CheckoutSessionSerializer(serializers.Serializer):
+    """Serializer for checkout session creation response"""
+    session_id = serializers.CharField()
+    url = serializers.URLField()
+    order_id = serializers.IntegerField()

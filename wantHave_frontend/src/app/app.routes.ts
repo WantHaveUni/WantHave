@@ -4,6 +4,8 @@ import { ProductDetailComponent } from './components/product-detail/product-deta
 import { ProductListComponent } from './components/product-list/product-list.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { CreateListingComponent } from './components/create-listing/create-listing.component';
+import { CheckoutSuccessComponent } from './components/checkout-success/checkout-success.component';
+import { CheckoutCancelComponent } from './components/checkout-cancel/checkout-cancel.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/products', pathMatch: 'full' },
@@ -13,5 +15,7 @@ export const routes: Routes = [
   { path: 'profile', component: ProfileComponent },
   { path: 'chat', loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent) },
   { path: 'create-listing', component: CreateListingComponent },
+  { path: 'checkout/success', component: CheckoutSuccessComponent },
+  { path: 'checkout/cancel', component: CheckoutCancelComponent },
   { path: '**', redirectTo: '/products' },
 ];

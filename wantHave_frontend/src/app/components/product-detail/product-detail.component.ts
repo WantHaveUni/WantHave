@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Product } from '../../interfaces/product';
 import { AuthService } from '../../services/auth.service';
 import { ProductService } from '../../services/product.service';
+import { PaymentService } from '../../services/payment.service';
 
 interface DetailItem {
   label: string;
@@ -24,12 +25,14 @@ interface DetailItem {
 export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
+  private paymentService = inject(PaymentService);
   readonly auth = inject(AuthService);
 
   product: Product | null = null;
   loading = true;
   error = '';
   details: DetailItem[] = [];
+  processingCheckout = false;
 
   // on component initialization, fetch the product based on the route parameter
   ngOnInit() {
@@ -78,24 +81,39 @@ export class ProductDetailComponent implements OnInit {
     console.info('Message seller is not implemented yet.');
   }
 
-  startCheckout() {
+  async startCheckout() {
     if (!this.product) return;
 
-    // In a real app, this would redirect to a stripe checkout or similar.
-    // For this prototype, we simulate a direct buy.
-    if (confirm(`Are you sure you want to buy "${this.product.title}" for ${this.product.price} EUR?`)) {
-      this.productService.buy(this.product.id).subscribe({
-        next: (updatedProduct) => {
-          this.product = updatedProduct;
-          this.details = this.buildDetails(updatedProduct);
-          alert('Purchase successful!');
+    if (!confirm(`Proceed to checkout for "${this.product.title}"?`)) {
+      return;
+    }
+
+    this.processingCheckout = true;
+
+    // Build redirect URLs with current origin
+    const origin = window.location.origin;
+    const successUrl = `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${origin}/products/${this.product.id}`;
+
+    this.paymentService
+      .createCheckoutSession(this.product.id, successUrl, cancelUrl)
+      .subscribe({
+        next: async (session) => {
+          try {
+            // Redirect to Stripe Checkout using the URL
+            await this.paymentService.redirectToCheckout(session.url);
+          } catch (error) {
+            console.error('Stripe redirect failed', error);
+            alert('Failed to redirect to checkout. Please try again.');
+            this.processingCheckout = false;
+          }
         },
         error: (err) => {
-          console.error('Purchase failed', err);
-          alert('Purchase failed: ' + (err.error?.detail || 'Unknown error'));
-        }
+          console.error('Checkout session creation failed', err);
+          alert('Failed to start checkout: ' + (err.error?.detail || 'Unknown error'));
+          this.processingCheckout = false;
+        },
       });
-    }
   }
 
   // fetches the product details from the service and handles loading and error states
