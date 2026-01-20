@@ -1,17 +1,22 @@
-# frontend/Dockerfile
-# Stage 1: Build
-FROM node:20-alpine AS build
+# STAGE 1: Build
+FROM node:22-alpine AS build
 WORKDIR /app
+
+# Abhängigkeiten kopieren und installieren
 COPY package*.json ./
 RUN npm install
+
+# Quellcode kopieren und bauen
 COPY . .
-RUN npm run build -- --configuration=production
+RUN npm run build --configuration=production
 
-# Stage 2: Serve via Nginx
+# STAGE 2: Run
 FROM nginx:stable-alpine
-COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
+# Kopiere das Build-Ergebnis in das Nginx-Verzeichnis
+COPY --from=build /app/dist/want-have/browser /usr/share/nginx/html
 
-# Custom Nginx Config
+# Eigene Nginx-Konfiguration für Angular-Routing
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

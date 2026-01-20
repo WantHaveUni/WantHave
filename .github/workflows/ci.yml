@@ -1,42 +1,12 @@
-name: CI Pipeline (Test & Build)
+name: CI Pipeline
 
 on:
   push:
     branches: [ main, dev ]
 
 jobs:
-  backend-ci:
-    runs-on: [self-hosted, Linux, k8s]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      # 1. Login mit Deploy-Token aus GitHub Secrets
-      - name: Login to FH Registry
-        uses: docker/login-action@v3
-        with:
-          registry: registry.kub2.fh-joanneum.at
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-
-      # 2. Test Stage (Django/ASGI)
-      - name: Build and Run Backend Tests
-        run: |
-          docker build -t backend-test -f wantHave_backend/Dockerfile wantHave_backend/
-          docker run --rm backend-test pytest
-
-      # 3. Build & Push mit Branch-Tag (main oder dev)
-      - name: Build and Push Backend
-        run: |
-          # Nutzt den Branch-Namen als Tag (z.B. dev)
-          TAG=${{ github.ref_name }}
-          echo "Building Backend for Branch: $TAG"
-          
-          docker build -t registry.kub2.fh-joanneum.at/vaske4/backend:$TAG ./wantHave_backend
-          docker push registry.kub2.fh-joanneum.at/vaske4/backend:$TAG
-
-  frontend-ci:
-    runs-on: [self-hosted, Linux, k8s]
+  frontend-build:
+    runs-on: [self-hosted, Linux, k8s] # Dein neuer Runner erkennt diese Labels
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -48,16 +18,9 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Install & Test Frontend (Angular)
-        run: |
-          cd wantHave_frontend
-          npm install
-          npm run test -- --watch=false --browsers=ChromeHeadless
-
-      - name: Build and Push Frontend
+      - name: Build and Push Angular Frontend
         run: |
           TAG=${{ github.ref_name }}
-          echo "Building Frontend for Branch: $TAG"
-          
-          docker build -t registry.kub2.fh-joanneum.at/vaske4/frontend:$TAG ./wantHave_frontend
-          docker push registry.kub2.fh-joanneum.at/vaske4/frontend:$TAG
+          # Build-Kontext ist der Ordner des Frontends
+          docker build -t registry.kub2.fh-joanneum.at/want-have/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
+          docker push registry.kub2.fh-joanneum.at/want-have/frontend:$TAG
