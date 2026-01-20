@@ -1,137 +1,164 @@
-<div class="create-listing-container">
-    @if (!previewMode()) {
-    <!-- EDIT MODE -->
-    <mat-card class="listing-card">
-        <mat-card-header>
-            <mat-card-title>Create New Listing</mat-card-title>
-            <mat-card-subtitle>Upload an image and let AI help you create your listing</mat-card-subtitle>
-        </mat-card-header>
+<div class="space-container">
+    <!-- Three.js 3D Canvas Background -->
+    <div class="three-container">
+        <canvas #spaceCanvas class="space-canvas"></canvas>
+    </div>
 
-        <mat-card-content>
-            <!-- Image Upload Section -->
-            <div class="image-upload-section">
-                <div class="image-preview" (click)="fileInput.click()">
-                    @if (imagePreviewUrl()) {
-                    <img [src]="imagePreviewUrl()" alt="Product preview" />
-                    } @else {
-                    <div class="upload-placeholder">
-                        <mat-icon>add_photo_alternate</mat-icon>
-                        <span>Click to upload image</span>
+    <!-- Main Content -->
+    <div class="content-layer">
+        @if (!previewMode()) {
+        <!-- EDIT MODE -->
+        <mat-card class="listing-card">
+            <mat-card-header>
+                <mat-card-title>Create New Listing</mat-card-title>
+                <mat-card-subtitle>Upload an image and let AI analyze your product</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+                <!-- Image Upload Section -->
+                <div class="image-upload-section">
+                    <div class="image-preview" [class.has-image]="imagePreviewUrl()" (click)="fileInput.click()">
+                        @if (imagePreviewUrl()) {
+                        <img [src]="imagePreviewUrl()" alt="Product preview" />
+                        @if (isAnalyzing()) {
+                        <div class="analyzing-overlay">
+                            <div class="scanner-ring"></div>
+                            <span class="scanning-text">Analyzing product...</span>
+                        </div>
+                        }
+                        } @else {
+                        <div class="upload-placeholder">
+                            <mat-icon>cloud_upload</mat-icon>
+                            <span class="upload-title">Drop your image here or click to upload</span>
+                            <span class="upload-hint">Supports JPG, PNG, WebP up to 10MB</span>
+                        </div>
+                        }
+                    </div>
+                    <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+
+                    <button mat-raised-button color="accent" (click)="analyzeWithAI()"
+                        [disabled]="!selectedFile() || isAnalyzing()" class="ai-button">
+                        @if (isAnalyzing()) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                        <span>Analyzing...</span>
+                        } @else {
+                        <ng-container>
+                            <mat-icon>auto_awesome</mat-icon>
+                            <span>Analyze with AI</span>
+                        </ng-container>
+                        }
+                    </button>
+                </div>
+
+                <!-- Form Section -->
+                <form [formGroup]="listingFormGroup" class="listing-form">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Title</mat-label>
+                        <input matInput formControlName="title" placeholder="Enter product title" />
+                        @if (listingFormGroup.controls['title'].hasError('required')) {
+                        <mat-error>Title is required</mat-error>
+                        }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Description</mat-label>
+                        <textarea matInput formControlName="description" placeholder="Describe your product..."
+                            rows="4"></textarea>
+                        @if (listingFormGroup.controls['description'].hasError('required')) {
+                        <mat-error>Description is required</mat-error>
+                        }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Category</mat-label>
+                        <mat-select formControlName="category_id">
+                            <mat-option [value]="null">Select a category</mat-option>
+                            @for (category of categories(); track category.id) {
+                            <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline">
+                        <mat-label>Price (€)</mat-label>
+                        <input matInput type="number" formControlName="price" placeholder="0.00" />
+                        @if (listingFormGroup.controls['price'].hasError('required')) {
+                        <mat-error>Price is required</mat-error>
+                        }
+                        @if (listingFormGroup.controls['price'].hasError('min')) {
+                        <mat-error>Price must be positive</mat-error>
+                        }
+                    </mat-form-field>
+
+                    @if (priceMin() !== null && priceMax() !== null) {
+                    <div class="price-suggestion">
+                        <mat-icon>lightbulb</mat-icon>
+                        <div class="suggestion-content">
+                            <span class="suggestion-label">AI Recommendation</span>
+                            <span class="suggestion-value">Suggested price range: €{{ priceMin() }} – €{{ priceMax()
+                                }}</span>
+                        </div>
                     </div>
                     }
-                </div>
-                <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+                </form>
+            </mat-card-content>
 
-                <button mat-raised-button color="accent" (click)="analyzeWithAI()"
-                    [disabled]="!selectedFile() || isAnalyzing()" class="ai-button">
-                    @if (isAnalyzing()) {
-                    <mat-spinner diameter="20"></mat-spinner>
-                    <span>Analyzing...</span>
-                    } @else {
-                    <ng-container>
-                        <mat-icon>auto_awesome</mat-icon>
-                        <span>Analyze with AI</span>
-                    </ng-container>
-                    }
+            <mat-card-actions align="end">
+                <button mat-button (click)="togglePreview()" [disabled]="!listingFormGroup.valid" class="preview-btn">
+                    <mat-icon>visibility</mat-icon>
+                    Preview
                 </button>
-            </div>
+                <button mat-raised-button color="primary" (click)="createListing()"
+                    [disabled]="!listingFormGroup.valid || !selectedFile()" class="publish-btn">
+                    <mat-icon>send</mat-icon>
+                    Publish
+                </button>
+            </mat-card-actions>
+        </mat-card>
+        } @else {
+        <!-- PREVIEW MODE -->
+        <mat-card class="preview-card">
+            <mat-card-header>
+                <mat-card-title>Preview</mat-card-title>
+                <mat-card-subtitle>Review your listing before publishing</mat-card-subtitle>
+            </mat-card-header>
 
-            <!-- Form Section -->
-            <form [formGroup]="listingFormGroup" class="listing-form">
-                <mat-form-field appearance="outline">
-                    <mat-label>Title</mat-label>
-                    <input matInput formControlName="title" placeholder="Product title" />
-                    @if (listingFormGroup.controls['title'].hasError('required')) {
-                    <mat-error>Title is required</mat-error>
+            <mat-card-content>
+                <div class="preview-content">
+                    @if (imagePreviewUrl()) {
+                    <div class="preview-image-container">
+                        <img [src]="imagePreviewUrl()" alt="Product" class="preview-image" />
+                    </div>
                     }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                    <mat-label>Description</mat-label>
-                    <textarea matInput formControlName="description" placeholder="Describe your product..."
-                        rows="4"></textarea>
-                    @if (listingFormGroup.controls['description'].hasError('required')) {
-                    <mat-error>Description is required</mat-error>
-                    }
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                    <mat-label>Category</mat-label>
-                    <mat-select formControlName="category_id">
-                        <mat-option [value]="null">-- No Category --</mat-option>
-                        @for (category of categories(); track category.id) {
-                        <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                    <div class="preview-details">
+                        <h2 class="preview-title">{{ listingFormGroup.value.title }}</h2>
+                        <p class="preview-price">€{{ listingFormGroup.value.price }}</p>
+                        <p class="preview-description">{{ listingFormGroup.value.description }}</p>
+                        @if (listingFormGroup.value.category_id) {
+                        <span class="preview-category">
+                            <mat-icon>sell</mat-icon>
+                            @for (cat of categories(); track cat.id) {
+                            @if (cat.id === listingFormGroup.value.category_id) {
+                            {{ cat.name }}
+                            }
+                            }
+                        </span>
                         }
-                    </mat-select>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                    <mat-label>Price (€)</mat-label>
-                    <input matInput type="number" formControlName="price" placeholder="0.00" />
-                    @if (listingFormGroup.controls['price'].hasError('required')) {
-                    <mat-error>Price is required</mat-error>
-                    }
-                    @if (listingFormGroup.controls['price'].hasError('min')) {
-                    <mat-error>Price must be positive</mat-error>
-                    }
-                </mat-form-field>
-
-                @if (priceMin() !== null && priceMax() !== null) {
-                <div class="price-suggestion">
-                    <mat-icon>lightbulb</mat-icon>
-                    <span>AI suggested price range: €{{ priceMin() }} - €{{ priceMax() }}</span>
+                    </div>
                 </div>
-                }
-            </form>
-        </mat-card-content>
+            </mat-card-content>
 
-        <mat-card-actions align="end">
-            <button mat-button (click)="togglePreview()" [disabled]="!listingFormGroup.valid">
-                Preview
-            </button>
-            <button mat-raised-button color="primary" (click)="createListing()"
-                [disabled]="!listingFormGroup.valid || !selectedFile()">
-                Publish Listing
-            </button>
-        </mat-card-actions>
-    </mat-card>
-    } @else {
-    <!-- PREVIEW MODE -->
-    <mat-card class="preview-card">
-        <mat-card-header>
-            <mat-card-title>Preview</mat-card-title>
-            <mat-card-subtitle>This is how your listing will appear</mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-            <div class="preview-content">
-                @if (imagePreviewUrl()) {
-                <img [src]="imagePreviewUrl()" alt="Product" class="preview-image" />
-                }
-                <div class="preview-details">
-                    <h2>{{ listingFormGroup.value.title }}</h2>
-                    <p class="preview-price">€{{ listingFormGroup.value.price }}</p>
-                    <p class="preview-description">{{ listingFormGroup.value.description }}</p>
-                    @if (listingFormGroup.value.category_id) {
-                    <p class="preview-category">
-                        Category:
-                        @for (cat of categories(); track cat.id) {
-                        @if (cat.id === listingFormGroup.value.category_id) {
-                        {{ cat.name }}
-                        }
-                        }
-                    </p>
-                    }
-                </div>
-            </div>
-        </mat-card-content>
-
-        <mat-card-actions align="end">
-            <button mat-button (click)="togglePreview()">Back to Edit</button>
-            <button mat-raised-button color="primary" (click)="createListing()">
-                Publish Listing
-            </button>
-        </mat-card-actions>
-    </mat-card>
-    }
+            <mat-card-actions align="end">
+                <button mat-button (click)="togglePreview()" class="back-btn">
+                    <mat-icon>arrow_back</mat-icon>
+                    Back to Edit
+                </button>
+                <button mat-raised-button color="primary" (click)="createListing()" class="publish-btn">
+                    <mat-icon>send</mat-icon>
+                    Publish
+                </button>
+            </mat-card-actions>
+        </mat-card>
+        }
+    </div>
 </div>
