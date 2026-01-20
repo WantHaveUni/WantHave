@@ -12,11 +12,12 @@ RUN npm run build --configuration=production
 
 # STAGE 2: Run
 FROM nginx:stable-alpine
-# Kopiere das Build-Ergebnis in das Nginx-Verzeichnis
-COPY --from=build /app/dist/want-have/browser /usr/share/nginx/html
+# KORREKTUR: Der Pfad muss mit der tatsächlichen Angular-Ausgabe übereinstimmen
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
-# Eigene Nginx-Konfiguration für Angular-Routing
+# Falls Angular bei dir keinen "browser"-Unterordner erstellt, probiere:
+# COPY --from=build /app/dist/frontend /usr/share/nginx/html
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
