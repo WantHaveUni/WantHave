@@ -5,24 +5,26 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  # STAGE 1: Frontend Tests (Nativ im Container)
   test-frontend:
     runs-on: [self-hosted, Linux, k8s]
-    container:
-      image: trion/ng-cli-karma:latest
-      options: --user root
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run Angular Tests
+      - name: Run Angular Tests (via Temp-Image)
         run: |
           cd wantHave_frontend
-          npm install
-          # --no-sandbox ist im Container-Kontext zwingend erforderlich
-          npm run test -- --watch=false --browsers=ChromeHeadless --no-sandbox
+          # Wir bauen ein winziges Test-Image basierend auf dem Karma-Image
+          # Das kopiert deinen Code direkt hinein, damit wir keine Mounts brauchen
+          echo "FROM trion/ng-cli-karma:latest
+          WORKDIR /app
+          COPY . .
+          RUN npm install" > Test.Dockerfile
+          
+          docker build -t frontend-test -f Test.Dockerfile .
+          # Ausführung der Tests
+          docker run --rm frontend-test npm run test -- --watch=false --browsers=ChromeHeadless --no-sandbox
 
-  # STAGE 1: Backend Tests
   test-backend:
     runs-on: [self-hosted, Linux, k8s]
     steps:
@@ -38,7 +40,6 @@ jobs:
           pip install -r requirements.txt
           python manage.py test
 
-  # STAGE 2: Build & Push
   build-and-push:
     needs: [test-frontend, test-backend]
     runs-on: [self-hosted, Linux, k8s]
