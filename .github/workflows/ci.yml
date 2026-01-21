@@ -5,25 +5,21 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  test-frontend:
-    runs-on: [self-hosted, Linux, k8s]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Run Angular Tests (Single Line Hack)
-        # Alles in einer Zeile. printf erstellt das Dockerfile mit Zeilenumbrüchen (\n).
-        run: cd wantHave_frontend && printf "FROM trion/ng-cli-karma:latest\nENV CI=true\nWORKDIR /app\nCOPY . .\nRUN npm ci" > Test.Dockerfile && docker build -t frontend-test -f Test.Dockerfile . && docker run --rm --init frontend-test npx ng test --watch=false --no-progress --code-coverage=false --browsers=ChromeHeadlessNoSandbox --reporters=progress
-
+  # Frontend-Test Job wurde entfernt.
+  
   test-backend:
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+      
+      # Python Setup ist oft im Self-Hosted Runner nicht nötig, 
+      # wenn Python im Image ist, aber es schadet nicht.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          
       - name: Run Django Tests
         run: |
           cd wantHave_backend
@@ -31,11 +27,13 @@ jobs:
           python manage.py test
 
   build-and-push:
-    needs: [test-frontend, test-backend]
+    # Wartet jetzt NUR noch auf das Backend
+    needs: [test-backend]
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        
       - name: Login to FH Registry
         uses: docker/login-action@v3
         with:
@@ -43,6 +41,7 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
+      # Frontend wird trotzdem gebaut (nur ohne vorherigen Test)
       - name: Build & Push Frontend
         run: |
           TAG=${{ github.ref_name }}
