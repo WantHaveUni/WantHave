@@ -11,21 +11,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run Angular Tests (via Temp-Image)
-        run: |
-          cd wantHave_frontend
-          
-          # HIER ÄNDERUNG 1: "ENV CI=true" zwingt Angular/Karma in den "One-Shot"-Modus
-          echo "FROM trion/ng-cli-karma:latest
-          ENV CI=true
-          WORKDIR /app
-          COPY . .
-          RUN npm ci" > Test.Dockerfile
-          
-          docker build -t frontend-test -f Test.Dockerfile .
-          
-          # HIER ÄNDERUNG 2: "--code-coverage=false" verhindert Schreib-Probleme am Ende
-          docker run --rm frontend-test npx ng test --watch=false --no-progress --code-coverage=false --browsers=ChromeHeadlessNoSandbox
+      - name: Run Angular Tests (Single Line Hack)
+        # Alles in einer Zeile. printf erstellt das Dockerfile mit Zeilenumbrüchen (\n).
+        run: cd wantHave_frontend && printf "FROM trion/ng-cli-karma:latest\nENV CI=true\nWORKDIR /app\nCOPY . .\nRUN npm ci" > Test.Dockerfile && docker build -t frontend-test -f Test.Dockerfile . && docker run --rm --init frontend-test npx ng test --watch=false --no-progress --code-coverage=false --browsers=ChromeHeadlessNoSandbox
 
   test-backend:
     runs-on: [self-hosted, Linux, k8s]
