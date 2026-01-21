@@ -30,7 +30,13 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$eus48tu_r&zbbbrdseu+0(uf0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'wanthave.kub2.fh-joanneum.at',
+    'wanthave-api.kub2.fh-joanneum.at',
+    'wanthave-backend',  # Kubernetes service name
+]
 
 # Stripe Configuration
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
@@ -68,6 +74,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "http://127.0.0.1:4200",
+    "https://wanthave.kub2.fh-joanneum.at",
 ]
 
 ROOT_URLCONF = 'wantHave_com.urls'
