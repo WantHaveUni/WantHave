@@ -1,25 +1,9 @@
-import { Component, OnInit, inject, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ProfileService } from '../../services/profile.service';
 import { UserProfile } from '../../interfaces/user-profile';
-import * as L from 'leaflet';
 
-// Fix for default marker icons
-const iconRetinaUrl = 'assets/marker-icon-2x.png';
-const iconUrl = 'assets/marker-icon.png';
-const shadowUrl = 'assets/marker-shadow.png';
-const iconDefault = L.icon({
-  iconRetinaUrl,
-  iconUrl,
-  shadowUrl,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  tooltipAnchor: [16, -28],
-  shadowSize: [41, 41],
-});
-L.Marker.prototype.options.icon = iconDefault;
 
 @Component({
   selector: 'app-profile',
@@ -28,7 +12,7 @@ L.Marker.prototype.options.icon = iconDefault;
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
-export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ProfileComponent implements OnInit {
   private profileService = inject(ProfileService);
   private fb = inject(FormBuilder);
 
@@ -40,10 +24,13 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedFile: File | null = null;
   selectedFileName: string = '';
 
-  private map: L.Map | undefined;
-  private marker: L.Marker | undefined;
+
 
   profileForm: FormGroup = this.fb.group({
+    username: [''],
+    email: [''],
+    first_name: [''],
+    last_name: [''],
     bio: [''],
     city: [''],
     country: [''],
@@ -67,6 +54,10 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (data) => {
         this.profile = data;
         this.profileForm.patchValue({
+          username: data.user?.username || '',
+          email: data.user?.email || '',
+          first_name: data.user?.first_name || '',
+          last_name: data.user?.last_name || '',
           bio: data.bio || '',
           city: data.city || '',
           country: data.country || '',
@@ -133,52 +124,9 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
   enableEditMode() {
     this.isEditMode = true;
-    setTimeout(() => {
-      this.initMap();
-    }, 100);
   }
 
-  ngAfterViewInit(): void {}
 
-  ngOnDestroy(): void {
-    if (this.map) {
-      this.map.remove();
-    }
-  }
-
-  private initMap(): void {
-    const lat = this.profileForm.get('latitude')?.value || 47.0707; // Default to Graz
-    const lng = this.profileForm.get('longitude')?.value || 15.4395;
-
-    if (this.map) {
-      this.map.remove();
-    }
-
-    this.map = L.map('map').setView([lat, lng], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(this.map);
-
-    this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
-
-    this.marker.on('dragend', (e) => {
-      const position = this.marker!.getLatLng();
-      this.profileForm.patchValue({
-        latitude: position.lat,
-        longitude: position.lng,
-      });
-    });
-
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      this.marker!.setLatLng(e.latlng);
-      this.profileForm.patchValue({
-        latitude: e.latlng.lat,
-        longitude: e.latlng.lng,
-      });
-    });
-  }
 
   cancelEdit() {
     this.isEditMode = false;
@@ -186,6 +134,10 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedFileName = '';
     if (this.profile) {
       this.profileForm.patchValue({
+        username: this.profile.user?.username || '',
+        email: this.profile.user?.email || '',
+        first_name: this.profile.user?.first_name || '',
+        last_name: this.profile.user?.last_name || '',
         bio: this.profile.bio || '',
         city: this.profile.city || '',
         country: this.profile.country || '',
@@ -241,6 +193,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         this.saving = false;
         this.selectedFile = null;
         this.selectedFileName = '';
+        // Scroll to top after saving
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err) => {
         console.error(err);

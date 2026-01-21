@@ -229,7 +229,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             )
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
+                # Return full profile data using UserProfileSerializer
+                return Response(UserProfileSerializer(profile).data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         elif request.method == 'DELETE':
