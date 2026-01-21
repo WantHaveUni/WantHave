@@ -10,7 +10,6 @@ module.exports = function (config) {
       require('karma-coverage'),
       // HINWEIS: Das '@angular-devkit/build-angular/plugins/karma' Plugin 
       // wird von neueren Angular-Buildern automatisch geladen. 
-      // Ein explizites require führt hier oft zu Fehlern und wurde daher entfernt.
     ],
     client: {
       jasmine: {
@@ -33,7 +32,7 @@ module.exports = function (config) {
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
-    autoWatch: true,
+    autoWatch: false,
     // Konfiguration für die CI-Umgebung
     browsers: ['ChromeHeadlessNoSandbox'],
     customLaunchers: {
@@ -48,6 +47,6 @@ module.exports = function (config) {
       }
     },
     singleRun: true, // Wichtig für CI: Karma beendet sich nach den Tests
-    restartOnFileChange: true
+    restartOnFileChange: false
   });
 };
