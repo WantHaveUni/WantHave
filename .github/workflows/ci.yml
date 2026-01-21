@@ -70,7 +70,7 @@ jobs:
           docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG
           docker push $IMAGE_NAME:$BRANCH_TAG
 
-  trigger-gitlab-cd:
+  trigger-gitlab-cd: #Fixing credentials issue
     needs: [build-and-push]
     runs-on: [self-hosted, Linux, k8s]
     steps:
