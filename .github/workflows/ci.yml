@@ -14,14 +14,19 @@ jobs:
       - name: Run Angular Tests (via Temp-Image)
         run: |
           cd wantHave_frontend
-          # Änderung: npm ci statt npm install
+          # Wir nutzen 'npm ci' für den Speicher und bauen das Test-Image
           echo "FROM trion/ng-cli-karma:latest
           WORKDIR /app
           COPY . .
           RUN npm ci" > Test.Dockerfile
           
           docker build -t frontend-test -f Test.Dockerfile .
-          docker run --rm frontend-test npm run test -- --watch=false --browsers=ChromeHeadlessNoSandbox
+          
+          # HIER IST DIE ÄNDERUNG:
+          # 1. --watch=false: Zwingt zum Beenden (das ist --no-watch)
+          # 2. --no-progress: Weniger Logs, schneller
+          # 3. ChromeHeadlessNoSandbox: Wichtig für Docker!
+          docker run --rm frontend-test npx ng test --watch=false --no-progress --browsers=ChromeHeadlessNoSandbox
 
   test-backend:
     runs-on: [self-hosted, Linux, k8s]
