@@ -83,5 +83,11 @@ jobs:
         env:
           GITLAB_REMOTE_URL: ${{ secrets.GITLAB_REMOTE_URL }} 
         run: |
+          # 1. Remove the remote if it already exists (ignore error if it doesn't)
+          git remote remove gitlab || true
+          
+          # 2. Add the remote again with the fresh token/URL
           git remote add gitlab $GITLAB_REMOTE_URL
+          
+          # 3. Push
           git push gitlab ${GITHUB_REF_NAME} --force
