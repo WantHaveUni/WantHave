@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: 
+      app: {{ .Chart.Name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels: 
+        app: {{ .Chart.Name }}
+    spec:
+      terminationGracePeriodSeconds: 30
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecret }}
+      
+      # --- DJANGO SPECIFIC: MIGRATIONS ---
+      initContainers:
+        - name: run-migrations
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "manage.py", "migrate"]
+          env: {{- toYaml .Values.appEnv | nindent 12 }}
+          volumeMounts:
+            - name: app-data
+              mountPath: {{ .Values.persistence.mountPath }}
+
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+              name: http
+          env: {{- toYaml .Values.appEnv | nindent 12 }}
+          volumeMounts:
+            - name: app-data
+              mountPath: {{ .Values.persistence.mountPath }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh","-c","sleep 5"]
+
+      # --- VOLUMES (Only if persistence is enabled) ---
+      volumes:
+        - name: app-data
+{{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Chart.Name }}-pvc
+{{- else }}
+          emptyDir: {}
+{{- end }}

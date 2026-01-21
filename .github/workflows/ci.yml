@@ -5,16 +5,12 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  # Frontend-Test Job wurde entfernt.
-  
   test-backend:
     runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      # Python Setup ist oft im Self-Hosted Runner nicht nötig, 
-      # wenn Python im Image ist, aber es schadet nicht.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -27,9 +23,10 @@ jobs:
           python manage.py test
 
   build-and-push:
-    # Wartet jetzt NUR noch auf das Backend
     needs: [test-backend]
     runs-on: [self-hosted, Linux, k8s]
+    outputs:
+      short_sha: ${{ steps.vars.outputs.short_sha }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -41,15 +38,52 @@ jobs:
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      # Frontend wird trotzdem gebaut (nur ohne vorherigen Test)
+      - name: Generate Short SHA
+        id: vars
+        run: echo "short_sha=$(git rev-parse --short=8 HEAD)" >> $GITHUB_OUTPUT
+
+      # --- BUILD FRONTEND ---
       - name: Build & Push Frontend
         run: |
-          TAG=${{ github.ref_name }}
-          docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG -f wantHave_frontend/Dockerfile wantHave_frontend/
-          docker push registry.kub2.fh-joanneum.at/k8s/wanthave/frontend:$TAG
+          SHORT_SHA=${{ steps.vars.outputs.short_sha }}
+          BRANCH_TAG=${{ github.ref_name }}
+          IMAGE_NAME=registry.kub2.fh-joanneum.at/k8s/wanthave/frontend
+          
+          # Build with SHA tag (for Deployment)
+          docker build -t $IMAGE_NAME:$SHORT_SHA -f wantHave_frontend/Dockerfile wantHave_frontend/
+          docker push $IMAGE_NAME:$SHORT_SHA
+          
+          # Build/Tag with Branch name (for Dev convenience)
+          docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG
+          docker push $IMAGE_NAME:$BRANCH_TAG
 
+      # --- BUILD BACKEND ---
       - name: Build & Push Backend
         run: |
-          TAG=${{ github.ref_name }}
-          docker build -t registry.kub2.fh-joanneum.at/k8s/wanthave/backend:$TAG -f wantHave_backend/Dockerfile wantHave_backend/
-          docker push registry.kub2.fh-joanneum.at/k8s/wanthave/backend:$TAG
+          SHORT_SHA=${{ steps.vars.outputs.short_sha }}
+          BRANCH_TAG=${{ github.ref_name }}
+          IMAGE_NAME=registry.kub2.fh-joanneum.at/k8s/wanthave/backend
+          
+          docker build -t $IMAGE_NAME:$SHORT_SHA -f wantHave_backend/Dockerfile wantHave_backend/
+          docker push $IMAGE_NAME:$SHORT_SHA
+          
+          docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG
+          docker push $IMAGE_NAME:$BRANCH_TAG
+
+  # TRIGGER THE GITLAB MIRROR (Required for Deployment)
+  trigger-gitlab-cd:
+    needs: [build-and-push]
+    runs-on: ubuntu-latest # Can run on standard runner to save self-hosted resources
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to push full history
+
+      - name: Push to GitLab Mirror
+        env:
+          # You need to add this secret in GitHub repo settings
+          GITLAB_REMOTE_URL: ${{ secrets.GITLAB_REMOTE_URL }} 
+        run: |
+          git remote add gitlab $GITLAB_REMOTE_URL
+          git push gitlab ${GITHUB_REF_NAME} --force

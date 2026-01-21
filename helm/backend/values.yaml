@@ -1,0 +1,40 @@
+namespace: wanthave  # Adjust if you use a different namespace
+
+image:
+  repository: registry.kub2.fh-joanneum.at/k8s/wanthave/backend
+  tag: "latest" # This gets overwritten by the CI pipeline
+  pullPolicy: Always
+  imagePullSecret: wanthave-argotoken # Ensure this secret exists in your new namespace
+
+service:
+  port: 8000
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: nginx
+  # CHANGE THIS: Use a unique domain for the API
+  host: wanthave-api.kub2.fh-joanneum.at 
+  tls:
+    enabled: true
+    secretName: wanthave-api-tls
+    clusterIssuer: ""
+
+replicaCount: 1
+
+# Environment variables for Django
+appEnv:
+  - name: DJANGO_ALLOWED_HOSTS
+    value: "*"
+  - name: DEBUG
+    value: "True"
+  - name: SECRET_KEY
+    value: "topsecret"
+  - name: SQLITE_DB_PATH
+    value: "/data/db.sqlite3"
+
+# SQLite storage (Keep this for Backend)
+persistence:
+  enabled: true
+  size: 1Gi
+  mountPath: /data

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # DYNAMIC NAME: Becomes "wanthave-backend" or "wanthave-frontend"
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  # CRITICAL MATCH: This must match the labels in your deployment.yaml
+  selector:
+    app: {{ .Chart.Name }}
+  
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP

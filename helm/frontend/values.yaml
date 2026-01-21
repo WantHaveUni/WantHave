@@ -1,0 +1,29 @@
+namespace: wanthave
+
+image:
+  repository: registry.kub2.fh-joanneum.at/k8s/wanthave/frontend
+  tag: "latest" # This gets overwritten by the CI pipeline
+  pullPolicy: Always
+  imagePullSecret: wanthave-argotoken
+
+service:
+  port: 80      # Angular/Nginx usually serves on 80
+  targetPort: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  # CHANGE THIS: Use a unique domain for the User Interface
+  host: wanthave.kub2.fh-joanneum.at 
+  tls:
+    enabled: true
+    secretName: wanthave-ui-tls
+    clusterIssuer: ""
+
+replicaCount: 1
+
+# Frontend usually doesn't need Django Env vars or Database persistence
+appEnv: [] 
+
+persistence:
+  enabled: false
