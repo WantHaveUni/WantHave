@@ -42,7 +42,8 @@ module.exports = function (config) {
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu'
+          '--disable-gpu',
+          '--headless=new'
         ]
       }
     },
