@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -24,6 +24,7 @@ interface DetailItem {
 })
 export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private productService = inject(ProductService);
   private paymentService = inject(PaymentService);
   readonly auth = inject(AuthService);
@@ -78,7 +79,14 @@ export class ProductDetailComponent implements OnInit {
   }
 
   messageSeller() {
-    console.info('Message seller is not implemented yet.');
+    if (!this.product?.seller?.id) {
+      console.error('Seller ID not available');
+      return;
+    }
+    // Navigate to chat page with seller's user ID
+    this.router.navigate(['/chat'], {
+      queryParams: { userId: this.product.seller.id }
+    });
   }
 
   async startCheckout() {

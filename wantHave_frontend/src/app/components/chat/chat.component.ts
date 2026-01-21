@@ -55,11 +55,19 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatService.getConversations().subscribe(convos => {
             this.conversations = convos;
 
-            // Check for conversationId in query params
+            // Check for query params
             this.route.queryParams.subscribe(params => {
-                const id = params['conversationId'];
-                if (id) {
-                    const target = this.conversations.find(c => c.id == id);
+                // If userId is provided, start a new chat with that user
+                const userId = params['userId'];
+                if (userId) {
+                    this.startNewChat(userId);
+                    return;
+                }
+
+                // If conversationId is provided, select that conversation
+                const conversationId = params['conversationId'];
+                if (conversationId) {
+                    const target = this.conversations.find(c => c.id == conversationId);
                     if (target) {
                         this.selectConversation(target);
                     }
