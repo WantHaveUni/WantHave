@@ -70,19 +70,17 @@ jobs:
           docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG
           docker push $IMAGE_NAME:$BRANCH_TAG
 
-  # TRIGGER THE GITLAB MIRROR (Required for Deployment)
   trigger-gitlab-cd:
     needs: [build-and-push]
-    runs-on: ubuntu-latest # Can run on standard runner to save self-hosted resources
+    runs-on: [self-hosted, Linux, k8s]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required to push full history
+          fetch-depth: 0 
 
       - name: Push to GitLab Mirror
         env:
-          # You need to add this secret in GitHub repo settings
           GITLAB_REMOTE_URL: ${{ secrets.GITLAB_REMOTE_URL }} 
         run: |
           git remote add gitlab $GITLAB_REMOTE_URL
