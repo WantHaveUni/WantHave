@@ -46,7 +46,7 @@ module.exports = function (config) {
         ]
       }
     },
-    singleRun: true, // Wichtig für CI: Karma beendet sich nach den Tests
+    singleRun: true,
     restartOnFileChange: false
   });
 };
