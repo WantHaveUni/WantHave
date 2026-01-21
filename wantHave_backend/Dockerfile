@@ -10,7 +10,8 @@ WORKDIR /app
 # System-Abhängigkeiten (z.B. für Postgres-Treiber)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libpq-dev \
+    default-libmysqlclient-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Abhängigkeiten installieren
