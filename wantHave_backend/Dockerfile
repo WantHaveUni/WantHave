@@ -25,4 +25,4 @@ COPY . .
 EXPOSE 8000
 
 # Start-Befehl (Gunicorn als produktiver WSGI-Server)
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "wanthave_com.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "wantHave_com.wsgi:application"]
