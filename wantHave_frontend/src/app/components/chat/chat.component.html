@@ -22,6 +22,9 @@
                             <span *ngIf="p.id !== currentUser?.id">{{ p.username }}</span>
                         </span>
                     </span>
+                    <span class="convo-product" *ngIf="convo.product">
+                        Re: {{ convo.product.title }}
+                    </span>
                     <span class="convo-last-msg" *ngIf="convo.last_message">
                         {{ convo.last_message.content | slice:0:30 }}...
                     </span>
@@ -35,6 +38,9 @@
         <div class="chat-header">
             <span *ngFor="let p of selectedConversation.participants">
                 <span *ngIf="p.id !== currentUser?.id">{{ p.username }}</span>
+            </span>
+            <span class="product-badge" *ngIf="selectedConversation.product">
+                | {{ selectedConversation.product.title }}
             </span>
         </div>
 

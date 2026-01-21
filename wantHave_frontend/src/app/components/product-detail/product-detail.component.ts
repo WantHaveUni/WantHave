@@ -83,9 +83,12 @@ export class ProductDetailComponent implements OnInit {
       console.error('Seller ID not available');
       return;
     }
-    // Navigate to chat page with seller's user ID
+    // Navigate to chat page with seller's user ID and product ID
     this.router.navigate(['/chat'], {
-      queryParams: { userId: this.product.seller_id }
+      queryParams: {
+        userId: this.product.seller_id,
+        productId: this.product.id
+      }
     });
   }
 

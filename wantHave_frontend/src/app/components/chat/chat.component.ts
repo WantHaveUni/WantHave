@@ -18,6 +18,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     messages: Message[] = [];
     newMessage: string = '';
     currentUser: any = null;
+    private pendingProductId: number | null = null;
 
     constructor(
         private chatService: ChatService,
@@ -57,10 +58,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 
             // Check for query params
             this.route.queryParams.subscribe(params => {
-                // If userId is provided, start a new chat with that user
+                // If userId is provided, start a new chat with that user (and optional product)
                 const userId = params['userId'];
+                const productId = params['productId'];
                 if (userId) {
-                    this.startNewChat(userId);
+                    this.startNewChat(userId, productId ? Number(productId) : undefined);
                     return;
                 }
 
@@ -96,11 +98,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.newMessage = '';
     }
 
-    startNewChat(userIdStr: string) {
+    startNewChat(userIdStr: string, productId?: number) {
         const userId = Number(userIdStr);
         if (!userId) return;
 
-        this.chatService.startConversation(userId).subscribe({
+        this.chatService.startConversation(userId, productId).subscribe({
             next: (conversation) => {
                 this.loadConversations();
                 this.selectConversation(conversation);
