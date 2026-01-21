@@ -32,6 +32,8 @@ appEnv:
     value: "topsecret"
   - name: SQLITE_DB_PATH
     value: "/data/db.sqlite3"
+  - name: REDIS_HOST
+    value: "redis"  # Kubernetes service name for Redis
 
 # SQLite storage (Keep this for Backend)
 persistence:

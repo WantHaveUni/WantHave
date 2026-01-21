@@ -96,11 +96,12 @@ TEMPLATES = [
 ]
 
 ASGI_APPLICATION = 'wantHave_com.asgi.application'
+# Redis config - use REDIS_HOST env var for Kubernetes, fallback to localhost for dev
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(os.getenv("REDIS_HOST", "127.0.0.1"), 6379)],
         },
     },
 }

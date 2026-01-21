@@ -21,8 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Quellcode kopieren ci start forcen
 COPY . .
 
-# Port für Django/Gunicorn
+# Port für Django/Daphne
 EXPOSE 8000
 
-# Start-Befehl (Gunicorn als produktiver WSGI-Server)
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "wantHave_com.wsgi:application"]
+# Start-Befehl (Daphne als ASGI-Server für WebSocket-Support)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "wantHave_com.asgi:application"]
