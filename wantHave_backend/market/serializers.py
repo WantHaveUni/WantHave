@@ -92,6 +92,7 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class ProductSerializer(serializers.ModelSerializer):
+    seller_id = serializers.IntegerField(source='seller.id', read_only=True)
     seller_username = serializers.CharField(source='seller.username', read_only=True)
     category = CategorySerializer(read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(
@@ -112,13 +113,14 @@ class ProductSerializer(serializers.ModelSerializer):
             'image',
             'status',
             'created_at',
+            'seller_id',
             'seller_username',
             'category',
             'category_id',
             'buyer',
             'sold_at',
         ]
-        read_only_fields = ['id', 'created_at', 'seller_username', 'category', 'buyer', 'sold_at']
+        read_only_fields = ['id', 'created_at', 'seller_id', 'seller_username', 'category', 'buyer', 'sold_at']
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     pass

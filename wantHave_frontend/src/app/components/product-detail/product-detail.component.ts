@@ -79,13 +79,13 @@ export class ProductDetailComponent implements OnInit {
   }
 
   messageSeller() {
-    if (!this.product?.seller?.id) {
+    if (!this.product?.seller_id) {
       console.error('Seller ID not available');
       return;
     }
     // Navigate to chat page with seller's user ID
     this.router.navigate(['/chat'], {
-      queryParams: { userId: this.product.seller.id }
+      queryParams: { userId: this.product.seller_id }
     });
   }
 
