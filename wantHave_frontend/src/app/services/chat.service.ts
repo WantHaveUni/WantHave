@@ -22,7 +22,13 @@ export interface Conversation {
 })
 export class ChatService {
     private apiUrl = '/api/chat';
-    private wsUrl = 'ws://127.0.0.1:8000/ws/chat';
+
+    // Dynamically determine WebSocket URL based on current location
+    private getWsUrl(): string {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        return `${protocol}//${host}/ws/chat`;
+    }
 
     private socket: WebSocket | null = null;
     private messageSubject = new Subject<Message>();
@@ -49,7 +55,7 @@ export class ChatService {
 
         // Connect to WebSocket
         // Note: In production, you might want to pass the JWT token here if needed for custom auth middleware
-        this.socket = new WebSocket(`${this.wsUrl}/${conversationId}/`);
+        this.socket = new WebSocket(`${this.getWsUrl()}/${conversationId}/`);
 
         this.socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
