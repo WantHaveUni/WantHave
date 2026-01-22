@@ -16,16 +16,28 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'conversation', 'sender', 'content', 'timestamp']
 
+class ProductSummarySerializer(serializers.Serializer):
+    """Lightweight product info for conversations"""
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+
 class ConversationSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True, read_only=True)
     last_message = serializers.SerializerMethodField()
+    product = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
-        fields = ['id', 'participants', 'last_message', 'created_at']
+        fields = ['id', 'participants', 'product', 'last_message', 'created_at']
 
     def get_last_message(self, obj):
         last_msg = obj.messages.order_by('-timestamp').first()
         if last_msg:
             return MessageSerializer(last_msg).data
         return None
+
+    def get_product(self, obj):
+        if obj.product:
+            return {'id': obj.product.id, 'title': obj.product.title}
+        return None
+

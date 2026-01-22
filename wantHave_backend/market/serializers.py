@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.models import User
 from .models import UserProfile, Product, Category, Order, Payment
+import re
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -13,8 +14,28 @@ class RegisterSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def validate_username(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError('Username must be at least 3 characters long.')
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError('This username is already taken.')
+        return value
+
+    def validate_password(self, value):
+        if len(value) < 6:
+            raise serializers.ValidationError('Password must be at least 6 characters long.')
+
+        # Check for uppercase letter
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError('Password must contain at least one uppercase letter.')
+
+        # Check for lowercase letter
+        if not re.search(r'[a-z]', value):
+            raise serializers.ValidationError('Password must contain at least one lowercase letter.')
+
+        # Check for number
+        if not re.search(r'[0-9]', value):
+            raise serializers.ValidationError('Password must contain at least one number.')
+
         return value
 
     def create(self, validated_data):

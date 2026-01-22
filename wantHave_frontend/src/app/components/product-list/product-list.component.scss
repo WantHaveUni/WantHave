@@ -7,6 +7,55 @@
   flex-wrap: wrap;
 }
 
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sidebar .search-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.price-filter {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mat-sys-surface-variant) 45%, transparent);
+}
+
+.price-filter h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.price-field {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.separator {
+  color: var(--mat-sys-on-surface-variant);
+  margin-top: -0.5rem;
+}
+
+.clear-price {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.sort-field {
+  min-width: 200px;
+}
+
 .headline h1 {
   margin: 0 0 0.35rem;
 }

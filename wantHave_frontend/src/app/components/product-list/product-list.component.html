@@ -3,12 +3,50 @@
     <p class="eyebrow">Browse WantHave</p>
     <h1>Products listed:</h1>
   </div>
-  <button mat-stroked-button color="primary" (click)="fetchProducts()">Refresh list</button>
+  <div class="hero-actions">
+    <mat-form-field appearance="outline" class="sort-field">
+      <mat-label>Sort by</mat-label>
+      <mat-select [(value)]="sortBy" (selectionChange)="onSortChange()">
+        <mat-option value="newest">Newest first</mat-option>
+        <mat-option value="price_asc">Price: Low to High</mat-option>
+        <mat-option value="price_desc">Price: High to Low</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-stroked-button color="primary" (click)="fetchProducts()">Refresh list</button>
+  </div>
 </section>
 
 <section class="content">
   <div class="layout">
     <aside class="sidebar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search products</mat-label>
+        <input matInput [(ngModel)]="searchQuery" placeholder="Search by name..." />
+        @if (searchQuery) {
+          <button matSuffix mat-icon-button (click)="clearSearch()" aria-label="Clear">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <div class="price-filter">
+        <h3>Price Range</h3>
+        <div class="price-inputs">
+          <mat-form-field appearance="outline" class="price-field">
+            <mat-label>Min Price</mat-label>
+            <input matInput type="number" [(ngModel)]="minPrice" placeholder="0" min="0" />
+          </mat-form-field>
+          <span class="separator">-</span>
+          <mat-form-field appearance="outline" class="price-field">
+            <mat-label>Max Price</mat-label>
+            <input matInput type="number" [(ngModel)]="maxPrice" placeholder="∞" min="0" />
+          </mat-form-field>
+        </div>
+        @if (minPrice !== null || maxPrice !== null) {
+          <button mat-button (click)="clearPriceFilter()" class="clear-price">Clear price filter</button>
+        }
+      </div>
+
       @if (categoryLoading) {
       <div class="loading-state">
         <mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
@@ -39,11 +77,13 @@
         <p>{{ error }}</p>
         <button mat-flat-button color="primary" (click)="fetchProducts()">Try again</button>
       </div>
-      } @else if (products.length === 0) {
+      } @else if (filteredProducts.length === 0 && !searchQuery) {
       <p class="empty">No products yet.</p>
+      } @else if (filteredProducts.length === 0 && searchQuery) {
+      <p class="empty">No products found matching "{{ searchQuery }}".</p>
       } @else {
       <div class="product-grid">
-        @for (product of products; track product.id) {
+        @for (product of filteredProducts; track product.id) {
         <a
           class="product-link"
           [routerLink]="['/products', product.id]"

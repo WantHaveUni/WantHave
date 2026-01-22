@@ -14,6 +14,7 @@ export interface Message {
 export interface Conversation {
     id: number;
     participants: any[];
+    product?: { id: number; title: string };
     last_message?: Message;
 }
 
@@ -44,8 +45,12 @@ export class ChatService {
         return this.http.get<Message[]>(`${this.apiUrl}/conversations/${conversationId}/messages/`);
     }
 
-    startConversation(userId: number): Observable<Conversation> {
-        return this.http.post<Conversation>(`${this.apiUrl}/conversations/start/`, { user_id: userId });
+    startConversation(userId: number, productId?: number): Observable<Conversation> {
+        const payload: any = { user_id: userId };
+        if (productId) {
+            payload.product_id = productId;
+        }
+        return this.http.post<Conversation>(`${this.apiUrl}/conversations/start/`, payload);
     }
 
     connect(conversationId: number) {

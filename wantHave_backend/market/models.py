@@ -78,6 +78,7 @@ class Product(models.Model):
 # Chat Models
 class Conversation(models.Model):
     participants = models.ManyToManyField(User, related_name='conversations')
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='conversations')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
