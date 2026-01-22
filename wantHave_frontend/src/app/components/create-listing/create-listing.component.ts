@@ -79,6 +79,7 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
     private positions: Float32Array;
     private velocities: Float32Array;
     private originalPositions: Float32Array;
+    private tunnelPositions: Float32Array; // Target positions for warp tunnel
     private shockwaveVelocities: Float32Array;
 
     // Hyperspace State
@@ -117,6 +118,7 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
         this.positions = new Float32Array(this.count * 3);
         this.velocities = new Float32Array(this.count * 3);
         this.originalPositions = new Float32Array(this.count * 3);
+        this.tunnelPositions = new Float32Array(this.count * 3);
         this.shockwaveVelocities = new Float32Array(this.count * 3);
 
         this.categoryService.list().subscribe({
@@ -211,6 +213,15 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
             this.originalPositions[i * 3 + 1] = this.dummy.position.y;
             this.originalPositions[i * 3 + 2] = this.dummy.position.z;
 
+            // PRE-CALCULATE TUNNEL POSITIONS (Ring Formation)
+            // Distribute points in a ring/cylinder around Z axis
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 25 + Math.random() * 20; // Tunnel radius 25-45
+
+            this.tunnelPositions[i * 3] = Math.cos(angle) * radius;
+            this.tunnelPositions[i * 3 + 1] = Math.sin(angle) * radius;
+            this.tunnelPositions[i * 3 + 2] = (Math.random() - 0.5) * 100; // Spread along length
+
             this.velocities[i * 3] = (Math.random() - 0.5) * 0.04;
             this.velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
             this.velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.04;
@@ -265,18 +276,16 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
 
         // --- HYPERSPACE LOGIC ---
         const targetWarp = this.isAnalyzing() ? 1.0 : 0.0;
-        // Smooth transition
-        this.warpSpeed += (targetWarp - this.warpSpeed) * 0.03;
+        // Smooth transition (slightly faster for snap)
+        this.warpSpeed += (targetWarp - this.warpSpeed) * 0.04;
 
         // 1. Modulate Bloom
         if (this.bloomEffect) {
-            // Base intensity 1.5, scales up to 4.0 during warp
-            this.bloomEffect.intensity = 1.5 + this.warpSpeed * 2.5;
+            this.bloomEffect.intensity = 1.5 + this.warpSpeed * 3.0; // Max 4.5
         }
 
-        // 2. Modulate FOV (Warp Effect)
-        // Base 60, goes up to 100
-        const targetFOV = this.fovBase + this.warpSpeed * 40;
+        // 2. Modulate FOV
+        const targetFOV = this.fovBase + this.warpSpeed * 50; // Widen to 110
         if (Math.abs(this.camera.fov - targetFOV) > 0.1) {
             this.camera.fov += (targetFOV - this.camera.fov) * 0.05;
             this.camera.updateProjectionMatrix();
@@ -291,9 +300,15 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
             this.mesh.getMatrixAt(i, this.dummy.matrix);
             this.dummy.matrix.decompose(this.dummy.position, this.dummy.quaternion, this.dummy.scale);
 
-            let opx = this.originalPositions[i * 3];
-            let opy = this.originalPositions[i * 3 + 1];
-            let opz = this.originalPositions[i * 3 + 2];
+            // Start (Random Cloud)
+            const opx = this.originalPositions[i * 3];
+            const opy = this.originalPositions[i * 3 + 1];
+            const opz = this.originalPositions[i * 3 + 2];
+
+            // Target (Tunnel Ring)
+            const tpx = this.tunnelPositions[i * 3];
+            const tpy = this.tunnelPositions[i * 3 + 1];
+            // Tunnel Z is dynamic
 
             let px = this.dummy.position.x;
             let py = this.dummy.position.y;
@@ -301,43 +316,44 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
 
             // WARP VS NORMAL
             if (this.warpSpeed > 0.01) {
-                // High speed Z movement
+                // FORMATION BLEND: Interpolate X/Y to tunnel positions
+                // As warpSpeed goes 0->1, positions mix from Random(op) to Tunnel(tp)
+                const formationStrength = Math.min(1.0, this.warpSpeed * 1.5);
+
+                const targetX = opx * (1 - formationStrength) + tpx * formationStrength;
+                const targetY = opy * (1 - formationStrength) + tpy * formationStrength;
+
+                // Move towards target formation
+                px += (targetX - px) * 0.1;
+                py += (targetY - py) * 0.1;
+
+                // Z MOVEMENT (Speed Tunnel)
                 const speed = 2.0 * this.warpSpeed + Math.abs(this.shockwaveVelocities[i * 3 + 2]) + 0.5;
                 pz += speed;
 
-                // Infinite Tunnel Loop
+                // Infinite Loop
                 if (pz > 60) {
-                    pz = -120; // Respawn far back
-                    px = (Math.random() - 0.5) * 120; // Scramble X/Y slightly for variety
-                    py = (Math.random() - 0.5) * 80;
-                    // Update 'original' so spring doesn't pull it back weirdly
-                    this.originalPositions[i * 3] = px;
-                    this.originalPositions[i * 3 + 1] = py;
-                    this.originalPositions[i * 3 + 2] = pz;
+                    pz = -120; // Respawn
+                    // Don't scramble X/Y during tunnel, keep ring
                 }
 
                 // STRETCH EFFECT
-                const stretch = 1.0 + (this.warpSpeed * 20.0);
-                const thin = 1.0 - (this.warpSpeed * 0.6);
+                const stretch = 1.0 + (this.warpSpeed * 30.0);
+                const thin = 1.0 - (this.warpSpeed * 0.7);
                 this.dummy.scale.set(thin * 0.5, thin * 0.5, stretch);
 
-                // Color Shift to White/Blue at high speed
+                // COLOR (White/Blue)
                 if (this.warpSpeed > 0.5) {
-                    this.color.setHSL(0.6, 1.0, 0.8 + Math.random() * 0.2); // Bright Blue/White
+                    this.color.setHSL(0.6, 1.0, 0.9); // Bright White-Blue
                     this.mesh.setColorAt(i, this.color);
                 } else {
-                    // Transition colors
                     const isCyan = i % 2 === 0;
                     this.color.setHex(isCyan ? 0x00f3ff : 0xbc13fe);
                     this.mesh.setColorAt(i, this.color);
                 }
 
-                // Update Pos
-                this.originalPositions[i * 3] = px; // Keep updating 'original' so it flows
-                this.originalPositions[i * 3 + 1] = py;
-                this.originalPositions[i * 3 + 2] = pz;
             } else {
-                // Return to normal
+                // NORMAL MODE
                 this.dummy.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
 
                 // Velocity drift
@@ -349,7 +365,6 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
                 this.shockwaveVelocities[i * 3] *= 0.95;
                 this.shockwaveVelocities[i * 3 + 1] *= 0.95;
                 this.shockwaveVelocities[i * 3 + 2] *= 0.95;
-
                 px += this.shockwaveVelocities[i * 3];
                 py += this.shockwaveVelocities[i * 3 + 1];
                 pz += this.shockwaveVelocities[i * 3 + 2];
@@ -370,10 +385,9 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
 
                     this.color.setHSL(0.15, 1.0, 0.5 + force * 0.5);
                     this.mesh.setColorAt(i, this.color);
-
                     this.dummy.rotation.x += force * 0.1;
                 } else {
-                    // Spring Back
+                    // Spring Back to ORIGINAL (Random)
                     px += (opx - px) * returnForce;
                     py += (opy - py) * returnForce;
                     pz += (opz - pz) * returnForce;
@@ -401,31 +415,29 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
         this.mesh.instanceMatrix.needsUpdate = true;
         this.mesh.instanceColor!.needsUpdate = true;
 
-        // Lines Logic (Fade out during warp)
-        (this.linesMesh.material as THREE.LineBasicMaterial).opacity = 0.4 * (1.0 - this.warpSpeed);
+        // Lines Logic (Quick Fade)
+        (this.linesMesh.material as THREE.LineBasicMaterial).opacity = 0.4 * Math.max(0, (1.0 - this.warpSpeed * 2.0));
 
-        if (this.warpSpeed < 0.5) {
+        if (this.warpSpeed < 0.1) {
+            // ... (Network logic same as before, only run when slow)
+            // Copying existing logic here would be redundant if we just skip it
+            // Implementing basic loop again for safety
             let lineIdx = 0;
             const connectDistSq = 8 * 8;
-
             for (let i = 0; i < this.count; i++) {
                 if (lineIdx >= this.maxConnections) break;
                 const ix = this.positions[i * 3];
                 const iy = this.positions[i * 3 + 1];
                 const iz = this.positions[i * 3 + 2];
-                const dmx = ix - this.mouse3D.x;
-                const dmy = iy - this.mouse3D.y;
-                if (dmx * dmx + dmy * dmy > 30 * 30) continue;
+                // Optimization: only calculate near mouse
+                if ((ix - this.mouse3D.x) ** 2 + (iy - this.mouse3D.y) ** 2 > 900) continue;
 
                 for (let j = i + 1; j < this.count; j++) {
                     if (lineIdx >= this.maxConnections) break;
                     const jx = this.positions[j * 3];
                     const jy = this.positions[j * 3 + 1];
                     const jz = this.positions[j * 3 + 2];
-                    const dx = ix - jx;
-                    const dy = iy - jy;
-                    const dz = iz - jz;
-                    if (dx * dx + dy * dy + dz * dz < connectDistSq) {
+                    if ((ix - jx) ** 2 + (iy - jy) ** 2 + (iz - jz) ** 2 < connectDistSq) {
                         this.linePositions[lineIdx * 6] = ix;
                         this.linePositions[lineIdx * 6 + 1] = iy;
                         this.linePositions[lineIdx * 6 + 2] = iz;
@@ -449,19 +461,15 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
             this.linesMesh.geometry.setDrawRange(0, 0);
         }
 
-        // Camera Shake + Parallax
-        const parallaxStrength = 1.0 - this.warpSpeed;
-        this.camera.position.x += (this.mouseX * 0.3 - this.camera.position.x) * 0.05 * parallaxStrength;
-        this.camera.position.y += (this.mouseY * 0.3 - this.camera.position.y) * 0.05 * parallaxStrength;
-
-        // Intense Shake during Warp
+        // Camera Shake (Less when tunneling, more focused)
         if (this.warpSpeed > 0.1) {
-            const shake = this.warpSpeed * 0.3;
-            this.camera.position.x += (Math.random() - 0.5) * shake;
-            this.camera.position.y += (Math.random() - 0.5) * shake;
-            this.camera.position.z = 40 + (Math.random() - 0.5) * shake; // Z-shake too
+            const shake = this.warpSpeed * 0.1; // Reduced shake for smoother tunnel
+            this.camera.position.x = (Math.random() - 0.5) * shake;
+            this.camera.position.y = (Math.random() - 0.5) * shake;
         } else {
-            this.camera.position.z = 40;
+            // Normal parallax
+            this.camera.position.x += (this.mouseX * 0.3 - this.camera.position.x) * 0.05;
+            this.camera.position.y += (this.mouseY * 0.3 - this.camera.position.y) * 0.05;
         }
 
         this.camera.lookAt(0, 0, 0);
