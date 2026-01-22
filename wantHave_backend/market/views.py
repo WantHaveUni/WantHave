@@ -84,42 +84,6 @@ class ProductViewSet(viewsets.ModelViewSet):
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class UserViewSet(viewsets.ModelViewSet):
-    """
-    Admin-only viewset for managing users.
-    Only allows listing and destroying users.
-    """
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer # Reuse existing serializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_serializer_class(self):
-        # We need a serializer for User model, not UserProfile
-        from .serializers import UserSerializer
-        return UserSerializer
-
-    def get_queryset(self):
-        # Only admin (ID 1) can see all users
-        if self.request.user.id == 1:
-            return User.objects.all().order_by('id')
-        return User.objects.none()
-
-    def list(self, request, *args, **kwargs):
-        if request.user.id != 1:
-            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        return super().list(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.id != 1:
-            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        
-        user_to_delete = self.get_object()
-        if user_to_delete.id == 1:
-             return Response({'detail': 'Cannot delete generic admin'}, status=status.HTTP_400_BAD_REQUEST)
-
-        return super().destroy(request, *args, **kwargs)
-
-
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def create_checkout_session(self, request, pk=None):
         """
@@ -178,6 +142,44 @@ class UserViewSet(viewsets.ModelViewSet):
                 {'detail': f'Payment service error: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only viewset for managing users.
+    Only allows listing and destroying users.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer # Reuse existing serializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        # We need a serializer for User model, not UserProfile
+        from .serializers import UserSerializer
+        return UserSerializer
+
+    def get_queryset(self):
+        # Only admin (ID 1) can see all users
+        if self.request.user.id == 1:
+            return User.objects.all().order_by('id')
+        return User.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        user_to_delete = self.get_object()
+        if user_to_delete.id == 1:
+             return Response({'detail': 'Cannot delete generic admin'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().destroy(request, *args, **kwargs)
+
+
+
 
 class AIAutofillView(views.APIView):
     """
