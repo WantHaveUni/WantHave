@@ -39,7 +39,8 @@
 
         <div class="actions">
           <button mat-stroked-button (click)="messageSeller()" [disabled]="!canInteract">Message seller</button>
-          <button mat-flat-button color="primary" (click)="startCheckout()" [disabled]="processingCheckout || !canInteract || product.status !== 'AVAILABLE'">
+          <button mat-flat-button color="primary" (click)="startCheckout()"
+            [disabled]="processingCheckout || !canInteract || product.status !== 'AVAILABLE'">
             {{ processingCheckout ? 'Processing...' : 'Buy now' }}
           </button>
         </div>
@@ -47,10 +48,47 @@
         @if (!auth.isAuthenticated()) {
         <p class="hint">Log in to message or buy this product.</p>
         } @else if (isOwner) {
-        <p class="hint">You own this listing, so buying is disabled.</p>
+        <div class="owner-actions">
+          <button mat-stroked-button color="primary" (click)="openEditModal()">✏️ Edit</button>
+          <button mat-stroked-button color="warn" (click)="deleteProduct()">🗑️ Delete</button>
+        </div>
+        <p class="hint">You own this listing.</p>
         }
       </div>
     </div>
   </mat-card>
   }
 </section>
+
+<!-- Edit Modal -->
+@if (showEditModal && product) {
+<div class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit Product</h3>
+      <button class="modal-close" (click)="closeEditModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="editTitle">Title</label>
+        <input type="text" id="editTitle" [(ngModel)]="editData.title" />
+      </div>
+      <div class="form-group">
+        <label for="editDescription">Description</label>
+        <textarea id="editDescription" [(ngModel)]="editData.description" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="editPrice">Price (EUR)</label>
+        <input type="number" id="editPrice" [(ngModel)]="editData.price" min="0" step="0.01" />
+      </div>
+      <div class="error-message" *ngIf="editError">{{ editError }}</div>
+    </div>
+    <div class="modal-footer">
+      <button mat-stroked-button (click)="closeEditModal()">Cancel</button>
+      <button mat-flat-button color="primary" (click)="saveEdit()" [disabled]="editLoading">
+        {{ editLoading ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+  </div>
+</div>
+}

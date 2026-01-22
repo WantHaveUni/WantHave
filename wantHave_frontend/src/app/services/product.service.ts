@@ -29,4 +29,14 @@ export class ProductService {
   buy(id: number): Observable<Product> {
     return this.http.post<Product>(`${this.baseUrl}${id}/buy/`, {});
   }
+
+  // updates a product (partial update)
+  update(id: number, data: Partial<Product>): Observable<Product> {
+    return this.http.patch<Product>(`${this.baseUrl}${id}/`, data);
+  }
+
+  // deletes a product
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}${id}/`);
+  }
 }

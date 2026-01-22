@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -18,7 +19,7 @@ interface DetailItem {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatCardModule, MatProgressSpinnerModule],
+  imports: [CommonModule, RouterLink, FormsModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss',
 })
@@ -34,6 +35,12 @@ export class ProductDetailComponent implements OnInit {
   error = '';
   details: DetailItem[] = [];
   processingCheckout = false;
+
+  // Edit Modal State
+  showEditModal = false;
+  editLoading = false;
+  editError = '';
+  editData: Partial<Product> = {};
 
   // on component initialization, fetch the product based on the route parameter
   ngOnInit() {
@@ -125,6 +132,67 @@ export class ProductDetailComponent implements OnInit {
           this.processingCheckout = false;
         },
       });
+  }
+
+  // Edit Functions
+  openEditModal() {
+    if (!this.product) return;
+    this.editData = {
+      title: this.product.title,
+      description: this.product.description,
+      price: this.product.price
+    };
+    this.showEditModal = true;
+    this.editError = '';
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.editData = {};
+    this.editError = '';
+  }
+
+  saveEdit() {
+    if (!this.product || !this.editData.title || !this.editData.price) {
+      this.editError = 'Title and price are required.';
+      return;
+    }
+
+    this.editLoading = true;
+    this.editError = '';
+
+    this.productService.update(this.product.id, this.editData).subscribe({
+      next: (updatedProduct) => {
+        this.product = updatedProduct;
+        this.details = this.buildDetails(updatedProduct);
+        this.closeEditModal();
+        this.editLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to update product', err);
+        this.editError = err.error?.detail || 'Failed to update product.';
+        this.editLoading = false;
+      }
+    });
+  }
+
+  deleteProduct() {
+    if (!this.product) return;
+
+    if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+      return;
+    }
+
+    this.productService.delete(this.product.id).subscribe({
+      next: () => {
+        alert('Product deleted successfully.');
+        this.router.navigate(['/products']);
+      },
+      error: (err) => {
+        console.error('Failed to delete product', err);
+        alert('Failed to delete product: ' + (err.error?.detail || 'Unknown error'));
+      }
+    });
   }
 
   // fetches the product details from the service and handles loading and error states

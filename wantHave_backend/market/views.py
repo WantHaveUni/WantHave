@@ -48,6 +48,27 @@ class ProductViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
 
+    def update(self, request, *args, **kwargs):
+        """Only the seller can update their product"""
+        product = self.get_object()
+        if product.seller != request.user:
+            return Response(
+                {'detail': 'You do not have permission to edit this product.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Only the seller can delete their product"""
+        product = self.get_object()
+        if product.seller != request.user:
+            return Response(
+                {'detail': 'You do not have permission to delete this product.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        product.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=False, methods=['post'], url_path='ai-autofill')
     def ai_autofill(self, request):
         """
