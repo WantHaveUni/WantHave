@@ -4,6 +4,9 @@
   @if (auth.isAuthenticated()) {
   <a mat-button routerLink="/create-listing" routerLinkActive="active">+ Add product</a>
   <a mat-button routerLink="/chat" routerLinkActive="active">Chat</a>
+  @if (auth.isAdmin()) {
+  <a mat-button routerLink="/admin" routerLinkActive="active">Admin</a>
+  }
   } @if (!auth.isAuthenticated()) {
   <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
   } @if (auth.isAuthenticated()) {

@@ -59,15 +59,55 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Only the seller can delete their product"""
+        """Only the seller or admin can delete their product"""
         product = self.get_object()
-        if product.seller != request.user:
+        
+        # Admin Override: User ID 1 can delete anything
+        is_admin = request.user.id == 1
+        
+        if not is_admin and product.seller != request.user:
             return Response(
                 {'detail': 'You do not have permission to delete this product.'},
                 status=status.HTTP_403_FORBIDDEN
             )
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only viewset for managing users.
+    Only allows listing and destroying users.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer # Reuse existing serializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        # We need a serializer for User model, not UserProfile
+        from .serializers import UserSerializer
+        return UserSerializer
+
+    def get_queryset(self):
+        # Only admin (ID 1) can see all users
+        if self.request.user.id == 1:
+            return User.objects.all().order_by('id')
+        return User.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        user_to_delete = self.get_object()
+        if user_to_delete.id == 1:
+             return Response({'detail': 'Cannot delete generic admin'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().destroy(request, *args, **kwargs)
+
 
     @action(detail=False, methods=['post'], url_path='ai-autofill')
     def ai_autofill(self, request):

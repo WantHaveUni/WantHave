@@ -18,5 +18,6 @@ export const routes: Routes = [
   { path: 'create-listing', component: CreateListingComponent, canActivate: [authGuard] },
   { path: 'checkout/success', component: CheckoutSuccessComponent, canActivate: [authGuard] },
   { path: 'checkout/cancel', component: CheckoutCancelComponent },
+  { path: 'admin', loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent), canActivate: [authGuard] },
   { path: '**', redirectTo: '/products' },
 ];
