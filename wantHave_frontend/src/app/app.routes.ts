@@ -6,16 +6,17 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { CreateListingComponent } from './components/create-listing/create-listing.component';
 import { CheckoutSuccessComponent } from './components/checkout-success/checkout-success.component';
 import { CheckoutCancelComponent } from './components/checkout-cancel/checkout-cancel.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/products', pathMatch: 'full' },
   { path: 'products', component: ProductListComponent },
   { path: 'products/:id', component: ProductDetailComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'profile', component: ProfileComponent },
-  { path: 'chat', loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent) },
-  { path: 'create-listing', component: CreateListingComponent },
-  { path: 'checkout/success', component: CheckoutSuccessComponent },
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { path: 'chat', loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent), canActivate: [authGuard] },
+  { path: 'create-listing', component: CreateListingComponent, canActivate: [authGuard] },
+  { path: 'checkout/success', component: CheckoutSuccessComponent, canActivate: [authGuard] },
   { path: 'checkout/cancel', component: CheckoutCancelComponent },
   { path: '**', redirectTo: '/products' },
 ];

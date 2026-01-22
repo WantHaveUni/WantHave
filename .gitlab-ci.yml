@@ -1,0 +1,46 @@
+stages:
+  - deploy
+
+# Define the image tag based on the commit SHA that GitHub just pushed
+variables:
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+
+deploy_dev:
+  stage: deploy
+  image: argoproj/argocd:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+  script:
+    # Update Backend Application
+    - |
+      echo "Deploying Backend with tag: $IMAGE_TAG"
+      argocd app set wanthave-backend-dev \
+        --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN" \
+        -p image.tag="$IMAGE_TAG"
+      argocd app sync wanthave-backend-dev \
+        --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN" \
+        --prune
+    
+    # Update Frontend Application
+    - |
+      echo "Deploying Frontend with tag: $IMAGE_TAG"
+      argocd app set wanthave-frontend-dev \
+        --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN" \
+        -p image.tag="$IMAGE_TAG"
+      argocd app sync wanthave-frontend-dev \
+        --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN" \
+        --prune
+        
+    # Wait for health (Optional, keeps pipeline honest)
+    - argocd app wait wanthave-backend-dev --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN" --health --timeout 180
+    - argocd app wait wanthave-frontend-dev --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN" --health --timeout 180
+
+deploy_main:
+  stage: deploy
+  image: argoproj/argocd:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    # Logic for production/main deployment
+    - echo "Deploying to Production..."
+    # (Repeat similar argocd commands for your prod apps here)

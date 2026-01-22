@@ -11,6 +11,7 @@ import { Category } from './category';
 export interface Product {
   id: number;
   seller?: UserSummary;
+  seller_id?: number;
   seller_username?: string;
   category?: Category | null;
   title: string;

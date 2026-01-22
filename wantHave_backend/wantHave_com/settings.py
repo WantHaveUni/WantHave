@@ -30,7 +30,13 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-$eus48tu_r&zbbbrdseu+0(uf0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'wanthave.kub2.fh-joanneum.at',
+    'wanthave-api.kub2.fh-joanneum.at',
+    'wanthave-backend',  # Kubernetes service name
+]
 
 # Stripe Configuration
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
@@ -68,6 +74,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "http://127.0.0.1:4200",
+    "https://wanthave.kub2.fh-joanneum.at",
 ]
 
 ROOT_URLCONF = 'wantHave_com.urls'
@@ -89,11 +96,12 @@ TEMPLATES = [
 ]
 
 ASGI_APPLICATION = 'wantHave_com.asgi.application'
+# Redis config - use REDIS_HOST env var for Kubernetes, fallback to localhost for dev
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(os.getenv("REDIS_HOST", "127.0.0.1"), 6379)],
         },
     },
 }
@@ -102,10 +110,11 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# Use SQLITE_DB_PATH env var for Kubernetes, fallback to local path for development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.getenv('SQLITE_DB_PATH', BASE_DIR / 'db.sqlite3'),
     }
 }
 

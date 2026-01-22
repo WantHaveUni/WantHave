@@ -1,0 +1,20 @@
+namespace: wanthave
+
+image:
+  repository: redis
+  tag: "7.2-alpine"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 6379
+  targetPort: 6379
+
+replicaCount: 1
+
+resources:
+  limits:
+    memory: "128Mi"
+    cpu: "200m"
+  requests:
+    memory: "64Mi"
+    cpu: "100m"

@@ -32,9 +32,9 @@ export class LoginComponent {
 
   registerForm = this.fb.nonNullable.group(
     {
-      username: ['', Validators.required],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', Validators.email],
-      password: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(6), this.passwordStrengthValidator]],
       confirmPassword: ['', Validators.required],
     },
     { validators: [this.passwordMatchValidator] }
@@ -134,5 +134,38 @@ export class LoginComponent {
       return null;
     }
     return password === confirm ? null : { passwordMismatch: true };
+  }
+
+  private passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) {
+      return null;
+    }
+
+    const hasUpperCase = /[A-Z]/.test(value);
+    const hasLowerCase = /[a-z]/.test(value);
+    const hasNumeric = /[0-9]/.test(value);
+
+    const valid = hasUpperCase && hasLowerCase && hasNumeric;
+
+    if (!valid) {
+      return {
+        passwordStrength: {
+          hasUpperCase,
+          hasLowerCase,
+          hasNumeric,
+        },
+      };
+    }
+
+    return null;
+  }
+
+  get passwordControl() {
+    return this.registerForm.get('password');
+  }
+
+  get usernameControl() {
+    return this.registerForm.get('username');
   }
 }
