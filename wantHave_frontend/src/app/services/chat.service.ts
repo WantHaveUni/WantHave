@@ -14,8 +14,21 @@ export interface Message {
 export interface Conversation {
     id: number;
     participants: any[];
-    product?: { id: number; title: string };
+    product?: { id: number; title: string; price: string; seller_id: number };
     last_message?: Message;
+}
+
+export interface Offer {
+    id: number;
+    conversation: number;
+    product: number;
+    product_title: string;
+    buyer: any;
+    seller: any;
+    amount: string;
+    status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'PAID' | 'CANCELLED';
+    created_at: string;
+    responded_at?: string;
 }
 
 @Injectable({
@@ -33,7 +46,9 @@ export class ChatService {
 
     private socket: WebSocket | null = null;
     private messageSubject = new Subject<Message>();
+    private offerSubject = new Subject<Offer>();
     public messages$ = this.messageSubject.asObservable();
+    public offers$ = this.offerSubject.asObservable();
 
     constructor(private http: HttpClient) { }
 
@@ -53,6 +68,39 @@ export class ChatService {
         return this.http.post<Conversation>(`${this.apiUrl}/conversations/start/`, payload);
     }
 
+    deleteConversation(conversationId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/conversations/${conversationId}/`);
+    }
+
+    // Offer-related methods
+    getConversationOffers(conversationId: number): Observable<Offer[]> {
+        return this.http.get<Offer[]>(`${this.apiUrl}/offers/by_conversation/?conversation_id=${conversationId}`);
+    }
+
+    createOffer(conversationId: number, amount: number): Observable<Offer> {
+        return this.http.post<Offer>(`${this.apiUrl}/offers/`, {
+            conversation_id: conversationId,
+            amount: amount
+        });
+    }
+
+    respondToOffer(offerId: number, accept: boolean): Observable<Offer> {
+        return this.http.post<Offer>(`${this.apiUrl}/offers/${offerId}/respond/`, {
+            action: accept ? 'accept' : 'decline'
+        });
+    }
+
+    payOffer(offerId: number, successUrl: string, cancelUrl: string): Observable<{ url: string; session_id: string; order_id: number }> {
+        return this.http.post<{ url: string; session_id: string; order_id: number }>(`${this.apiUrl}/offers/${offerId}/pay/`, {
+            success_url: successUrl,
+            cancel_url: cancelUrl
+        });
+    }
+
+    cancelOffer(offerId: number): Observable<Offer> {
+        return this.http.post<Offer>(`${this.apiUrl}/offers/${offerId}/cancel/`, {});
+    }
+
     connect(conversationId: number) {
         if (this.socket) {
             this.socket.close();
@@ -64,17 +112,21 @@ export class ChatService {
 
         this.socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            // Transform incoming data to match Message interface if needed
-            // The backend sends: { message: str, sender_id: int, timestamp: str }
-            // We might need to map this to our frontend Message structure locally or trust the backend to send more data
-            // For now, let's construct a partial message
-            const message: Message = {
-                content: data.message,
-                sender: { id: data.sender_id }, // Partial user
-                timestamp: data.timestamp,
-                conversation: data.conversation
-            };
-            this.messageSubject.next(message);
+            const msgType = data.type || 'message';
+
+            if (msgType === 'offer') {
+                // Handle offer event
+                this.offerSubject.next(data.offer);
+            } else {
+                // Handle regular message
+                const message: Message = {
+                    content: data.message,
+                    sender: { id: data.sender_id },
+                    timestamp: data.timestamp,
+                    conversation: data.conversation
+                };
+                this.messageSubject.next(message);
+            }
         };
 
         this.socket.onopen = (event) => {
@@ -93,11 +145,22 @@ export class ChatService {
     sendMessage(message: string, senderId: number) {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify({
+                type: 'message',
                 message: message,
                 sender_id: senderId
             }));
         } else {
             console.error('WebSocket is not open');
+        }
+    }
+
+    // Broadcast offer update via WebSocket
+    broadcastOfferUpdate(offer: Offer) {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify({
+                type: 'offer',
+                offer: offer
+            }));
         }
     }
 

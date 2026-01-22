@@ -22,14 +22,16 @@ ingress:
 
 replicaCount: 1
 
-# Environment variables for Django
+# Name of the Kubernetes secret containing sensitive env vars
+# Create this secret manually or via kubectl before deploying
+secretName: wanthave-secrets
+
+# Environment variables for Django (non-sensitive)
 appEnv:
   - name: DJANGO_ALLOWED_HOSTS
     value: "*"
   - name: DEBUG
-    value: "True"
-  - name: SECRET_KEY
-    value: "topsecret"
+    value: "False"
   - name: SQLITE_DB_PATH
     value: "/data/db.sqlite3"
   - name: REDIS_HOST
@@ -40,3 +42,18 @@ persistence:
   enabled: true
   size: 1Gi
   mountPath: /data
+
+# Payment polling configuration
+# Used in VPN environments where webhooks cannot reach the backend
+paymentPolling:
+  enabled: true
+  schedule: "*/1 * * * *"  # Every minute
+  maxOrders: 100  # Max orders to check per run
+  ageHours: 24    # Only check orders created within 24 hours
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"

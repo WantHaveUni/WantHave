@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from market.models import Conversation, Message
+from market.models import Conversation, Message, Offer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -38,6 +38,20 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     def get_product(self, obj):
         if obj.product:
-            return {'id': obj.product.id, 'title': obj.product.title}
+            return {'id': obj.product.id, 'title': obj.product.title, 'price': str(obj.product.price), 'seller_id': obj.product.seller.id}
         return None
 
+
+class OfferSerializer(serializers.ModelSerializer):
+    buyer = UserSerializer(read_only=True)
+    seller = UserSerializer(read_only=True)
+    product_title = serializers.CharField(source='product.title', read_only=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'conversation', 'product', 'product_title',
+            'buyer', 'seller', 'amount', 'status',
+            'created_at', 'responded_at'
+        ]
+        read_only_fields = ['id', 'buyer', 'seller', 'status', 'created_at', 'responded_at']

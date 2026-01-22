@@ -1,0 +1,81 @@
+{{- if .Values.paymentPolling.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: poll-stripe-payments
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}-poller
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  # Run every minute
+  schedule: {{ .Values.paymentPolling.schedule | quote }}
+
+  # Prevent overlapping runs
+  concurrencyPolicy: Forbid
+
+  # Keep history for debugging
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    spec:
+      # Don't retry failed jobs (next cron cycle will retry)
+      backoffLimit: 0
+
+      # Kill if takes > 50 seconds (before next cron cycle)
+      activeDeadlineSeconds: 50
+
+      template:
+        metadata:
+          labels:
+            app: {{ .Chart.Name }}-poller
+        spec:
+          restartPolicy: Never
+
+          # Use same image pull secret as main backend
+          {{- if .Values.image.imagePullSecret }}
+          imagePullSecrets:
+            - name: {{ .Values.image.imagePullSecret }}
+          {{- end }}
+
+          containers:
+          - name: poll-payments
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+            command:
+            - python
+            - manage.py
+            - poll_stripe_payments
+            - --max-orders={{ .Values.paymentPolling.maxOrders }}
+            - --age-hours={{ .Values.paymentPolling.ageHours }}
+
+            # Load secrets from Kubernetes secret (Stripe keys)
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secretName }}
+
+            # Load environment variables
+            env: {{- toYaml .Values.appEnv | nindent 12 }}
+
+            # Mount SQLite database volume
+            volumeMounts:
+            - name: app-data
+              mountPath: {{ .Values.persistence.mountPath }}
+
+            # Resource limits
+            resources:
+              requests:
+                memory: {{ .Values.paymentPolling.resources.requests.memory }}
+                cpu: {{ .Values.paymentPolling.resources.requests.cpu }}
+              limits:
+                memory: {{ .Values.paymentPolling.resources.limits.memory }}
+                cpu: {{ .Values.paymentPolling.resources.limits.cpu }}
+
+          volumes:
+          - name: app-data
+            persistentVolumeClaim:
+              claimName: {{ .Chart.Name }}-pvc
+{{- end }}

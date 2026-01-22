@@ -28,6 +28,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["python", "manage.py", "migrate"]
+          # Load secrets from Kubernetes secret
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secretName }}
           env: {{- toYaml .Values.appEnv | nindent 12 }}
           volumeMounts:
             - name: app-data
@@ -40,6 +44,10 @@ spec:
           ports:
             - containerPort: {{ .Values.service.targetPort }}
               name: http
+          # Load secrets from Kubernetes secret
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secretName }}
           env: {{- toYaml .Values.appEnv | nindent 12 }}
           volumeMounts:
             - name: app-data

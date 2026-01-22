@@ -220,6 +220,188 @@ class StripeService:
             return None
 
     @staticmethod
+    def poll_checkout_session_status(order: Order) -> Dict[str, Any]:
+        """
+        Poll Stripe API for checkout session status and update order if paid.
+        Used in VPN environments where webhooks cannot reach the backend.
+
+        Args:
+            order: Order object to check
+
+        Returns:
+            Dict with:
+                - order_id: int
+                - previous_status: str
+                - new_status: str
+                - payment_status: str
+                - updated: bool
+                - error: str (optional, if error occurred)
+        """
+        import logging
+        logger = logging.getLogger('market.payment_polling')
+
+        # Update polling metadata
+        previous_status = order.status
+        order.last_polled_at = timezone.now()
+        order.poll_count += 1
+        order.save(update_fields=['last_polled_at', 'poll_count'])
+
+        try:
+            # Retrieve session from Stripe
+            session = stripe.checkout.Session.retrieve(
+                order.stripe_checkout_session_id,
+                expand=['payment_intent']
+            )
+
+            payment_status = session.payment_status  # 'paid', 'unpaid', 'no_payment_required'
+
+            # If paid, use existing handler for idempotent processing
+            if payment_status == 'paid' and order.status == 'PENDING':
+                StripeService.handle_checkout_session_completed(session)
+                return {
+                    'order_id': order.id,
+                    'previous_status': previous_status,
+                    'new_status': 'PAID',
+                    'payment_status': payment_status,
+                    'updated': True
+                }
+
+            # If session expired, mark as failed
+            elif session.status == 'expired' and order.status == 'PENDING':
+                order.status = 'FAILED'
+                order.save(update_fields=['status'])
+                return {
+                    'order_id': order.id,
+                    'previous_status': previous_status,
+                    'new_status': 'FAILED',
+                    'payment_status': payment_status,
+                    'updated': True
+                }
+
+            # No change
+            return {
+                'order_id': order.id,
+                'previous_status': previous_status,
+                'new_status': order.status,
+                'payment_status': payment_status,
+                'updated': False
+            }
+
+        except stripe.error.StripeError as e:
+            # Log error but don't fail the entire polling run
+            logger.error(f"Stripe API error polling order {order.id}: {str(e)}")
+            return {
+                'order_id': order.id,
+                'previous_status': previous_status,
+                'new_status': order.status,
+                'payment_status': 'error',
+                'updated': False,
+                'error': str(e)
+            }
+
+    @staticmethod
+    def create_offer_checkout_session(
+        offer,
+        success_url: str,
+        cancel_url: str
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe Checkout session for an accepted offer.
+        Uses the negotiated offer amount instead of the product's original price.
+
+        Args:
+            offer: Offer object to pay for
+            success_url: URL to redirect after successful payment
+            cancel_url: URL to redirect if checkout is cancelled
+
+        Returns:
+            Dict with 'session_id', 'url', and 'order_id'
+
+        Raises:
+            ValueError: If offer is not eligible for payment
+            stripe.error.StripeError: If Stripe API call fails
+        """
+        from .models import Offer  # Import here to avoid circular import
+
+        product = offer.product
+
+        # Validation
+        if offer.status != 'ACCEPTED':
+            raise ValueError('Offer must be accepted before payment')
+
+        if product.status != 'AVAILABLE':
+            raise ValueError('Product is not available for purchase')
+
+        # Use offer amount for fees calculation
+        amount = offer.amount
+        fees = StripeService.calculate_fees(amount)
+
+        # Create Order record with offer amount
+        order = Order.objects.create(
+            product=product,
+            buyer=offer.buyer,
+            seller=offer.seller,
+            price=amount,  # Use offer amount, not product.price
+            platform_fee=fees['platform_fee'],
+            seller_amount=fees['seller_amount'],
+            status='PENDING'
+        )
+
+        try:
+            # Create Stripe Checkout Session
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'eur',
+                        'unit_amount': int(amount * 100),  # Convert to cents
+                        'product_data': {
+                            'name': product.title,
+                            'description': f'Negotiated price: €{amount} (Original: €{product.price})',
+                        },
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                customer_email=offer.buyer.email if offer.buyer.email else None,
+                metadata={
+                    'order_id': str(order.id),
+                    'product_id': str(product.id),
+                    'offer_id': str(offer.id),
+                    'buyer_id': str(offer.buyer.id),
+                    'seller_id': str(offer.seller.id),
+                },
+                payment_intent_data={
+                    'metadata': {
+                        'order_id': str(order.id),
+                        'product_id': str(product.id),
+                        'offer_id': str(offer.id),
+                    }
+                }
+            )
+
+            # Update order with session ID
+            order.stripe_checkout_session_id = session.id
+            order.save(update_fields=['stripe_checkout_session_id'])
+
+            # Update offer status to PAID will happen in webhook handler
+            # For now, we just return the checkout URL
+
+            return {
+                'session_id': session.id,
+                'url': session.url,
+                'order_id': order.id
+            }
+
+        except stripe.error.StripeError as e:
+            # If Stripe fails, cancel the order
+            order.status = 'FAILED'
+            order.save(update_fields=['status'])
+            raise
+
+    @staticmethod
     def verify_webhook_signature(payload: bytes, sig_header: str) -> Dict[str, Any]:
         """
         Verify Stripe webhook signature and return event data.
@@ -239,3 +421,4 @@ class StripeService:
             sig_header,
             settings.STRIPE_WEBHOOK_SECRET
         )
+
