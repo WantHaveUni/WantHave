@@ -90,6 +90,32 @@ class Message(models.Model):
         return f"Message from {self.sender.username} at {self.timestamp}"
 
 
+# Offer Model for price negotiations
+class Offer(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),      # Waiting for seller response
+        ('ACCEPTED', 'Accepted'),    # Seller accepted
+        ('DECLINED', 'Declined'),    # Seller declined
+        ('PAID', 'Paid'),            # Buyer completed payment
+        ('CANCELLED', 'Cancelled'),  # Buyer cancelled after accept
+    )
+
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='offers')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='offers')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='offers_made')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='offers_received')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Offer #{self.id} - €{self.amount} for {self.product.title} ({self.status})"
+
+
 # Payment Models
 class Order(models.Model):
     """

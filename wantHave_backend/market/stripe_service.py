@@ -220,6 +220,108 @@ class StripeService:
             return None
 
     @staticmethod
+    def create_offer_checkout_session(
+        offer,
+        success_url: str,
+        cancel_url: str
+    ) -> Dict[str, Any]:
+        """
+        Create a Stripe Checkout session for an accepted offer.
+        Uses the negotiated offer amount instead of the product's original price.
+
+        Args:
+            offer: Offer object to pay for
+            success_url: URL to redirect after successful payment
+            cancel_url: URL to redirect if checkout is cancelled
+
+        Returns:
+            Dict with 'session_id', 'url', and 'order_id'
+
+        Raises:
+            ValueError: If offer is not eligible for payment
+            stripe.error.StripeError: If Stripe API call fails
+        """
+        from .models import Offer  # Import here to avoid circular import
+
+        product = offer.product
+
+        # Validation
+        if offer.status != 'ACCEPTED':
+            raise ValueError('Offer must be accepted before payment')
+
+        if product.status != 'AVAILABLE':
+            raise ValueError('Product is not available for purchase')
+
+        # Use offer amount for fees calculation
+        amount = offer.amount
+        fees = StripeService.calculate_fees(amount)
+
+        # Create Order record with offer amount
+        order = Order.objects.create(
+            product=product,
+            buyer=offer.buyer,
+            seller=offer.seller,
+            price=amount,  # Use offer amount, not product.price
+            platform_fee=fees['platform_fee'],
+            seller_amount=fees['seller_amount'],
+            status='PENDING'
+        )
+
+        try:
+            # Create Stripe Checkout Session
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'eur',
+                        'unit_amount': int(amount * 100),  # Convert to cents
+                        'product_data': {
+                            'name': product.title,
+                            'description': f'Negotiated price: €{amount} (Original: €{product.price})',
+                        },
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                customer_email=offer.buyer.email if offer.buyer.email else None,
+                metadata={
+                    'order_id': str(order.id),
+                    'product_id': str(product.id),
+                    'offer_id': str(offer.id),
+                    'buyer_id': str(offer.buyer.id),
+                    'seller_id': str(offer.seller.id),
+                },
+                payment_intent_data={
+                    'metadata': {
+                        'order_id': str(order.id),
+                        'product_id': str(product.id),
+                        'offer_id': str(offer.id),
+                    }
+                }
+            )
+
+            # Update order with session ID
+            order.stripe_checkout_session_id = session.id
+            order.save(update_fields=['stripe_checkout_session_id'])
+
+            # Update offer status to PAID will happen in webhook handler
+            # For now, we just return the checkout URL
+
+            return {
+                'session_id': session.id,
+                'url': session.url,
+                'order_id': order.id
+            }
+
+        except stripe.error.StripeError as e:
+            # If Stripe fails, cancel the order
+            order.status = 'FAILED'
+            order.save(update_fields=['status'])
+            raise
+
+    @staticmethod
     def verify_webhook_signature(payload: bytes, sig_header: str) -> Dict[str, Any]:
         """
         Verify Stripe webhook signature and return event data.
@@ -239,3 +341,4 @@ class StripeService:
             sig_header,
             settings.STRIPE_WEBHOOK_SECRET
         )
+

@@ -29,22 +29,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        sender_id = text_data_json['sender_id']
+        msg_type = text_data_json.get('type', 'message')
 
-        # Save message to database
-        saved_message = await self.save_message(sender_id, message)
+        if msg_type == 'offer':
+            # Broadcast offer event to conversation participants
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'offer_event',
+                    'offer': text_data_json.get('offer', {})
+                }
+            )
+        else:
+            # Handle regular chat message
+            message = text_data_json['message']
+            sender_id = text_data_json['sender_id']
 
-        # Send message to room group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': saved_message.content,
-                'sender_id': saved_message.sender.id,
-                'timestamp': str(saved_message.timestamp)
-            }
-        )
+            # Save message to database
+            saved_message = await self.save_message(sender_id, message)
+
+            # Send message to room group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': saved_message.content,
+                    'sender_id': saved_message.sender.id,
+                    'timestamp': str(saved_message.timestamp)
+                }
+            )
 
     # Receive message from room group
     async def chat_message(self, event):
@@ -54,9 +67,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
+            'type': 'message',
             'message': message,
             'sender_id': sender_id,
             'timestamp': timestamp,
+            'conversation': self.room_name
+        }))
+
+    # Receive offer event from room group
+    async def offer_event(self, event):
+        offer = event['offer']
+
+        # Send offer to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': 'offer',
+            'offer': offer,
             'conversation': self.room_name
         }))
 
@@ -67,3 +92,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
         sender = User.objects.get(id=sender_id)
         conversation = Conversation.objects.get(id=conversation_id)
         return Message.objects.create(conversation=conversation, sender=sender, content=message)
+
