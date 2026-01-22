@@ -18,8 +18,8 @@
 }
 
 .brand {
-  display: flex;
-  align-items: center;
+  display: inline-block;
+  line-height: 0;
   padding: 0;
   border-radius: 0;
   cursor: pointer;
@@ -27,6 +27,8 @@
   color: #f8fafc;
   font-weight: 700;
   letter-spacing: 0.04em;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .brand:hover,
@@ -35,10 +37,14 @@
 }
 
 .brand img {
-  height: 10em;
+  height: 54px;
   width: auto;
   display: block;
-  transition: transform 120ms ease, opacity 120ms ease;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
 }
 
 .brand:active img {
