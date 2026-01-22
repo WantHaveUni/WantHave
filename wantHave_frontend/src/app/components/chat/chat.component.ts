@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -14,7 +14,8 @@ import { take } from 'rxjs/operators';
     templateUrl: './chat.component.html',
     styleUrls: ['./chat.component.scss']
 })
-export class ChatComponent implements OnInit, OnDestroy {
+export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
+    @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
     conversations: Conversation[] = []
     selectedConversation: Conversation | null = null;
     messages: Message[] = [];
@@ -114,6 +115,23 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatService.getConversationOffers(conversation.id).subscribe(offers => {
             this.offers = offers;
         });
+
+        this.scrollToBottom();
+    }
+
+    ngAfterViewChecked() {
+        // Optional: Continuous scrolling if needed, but better controlled via events
+        // this.scrollToBottom(); 
+    }
+
+    private scrollToBottom(): void {
+        try {
+            setTimeout(() => {
+                if (this.messagesContainer) {
+                    this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
+                }
+            }, 100); // Small delay to ensure DOM update
+        } catch (err) { }
     }
 
     sendMessage() {
@@ -144,6 +162,7 @@ export class ChatComponent implements OnInit, OnDestroy {
             // Update messages list if this conversation is selected
             if (this.selectedConversation && this.selectedConversation.id == msg.conversation) {
                 this.messages.push(msg);
+                this.scrollToBottom();
             }
 
             // Update last_message and move conversation to top
