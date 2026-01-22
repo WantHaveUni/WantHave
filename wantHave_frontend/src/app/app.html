@@ -1,12 +1,11 @@
 <mat-toolbar class="app-toolbar" color="primary">
-  <a routerLink="/" class="brand">WantHave</a>
+  <a routerLink="/" class="brand" aria-label="Zur Startseite" title="Zur Startseite">
+    <img src="images/wanthave_logo.png" />
+  </a>
   <span class="spacer"></span>
   @if (auth.isAuthenticated()) {
   <a mat-button routerLink="/create-listing" routerLinkActive="active">+ Add product</a>
   <a mat-button routerLink="/chat" routerLinkActive="active">Chat</a>
-  @if (auth.isAdmin()) {
-  <a mat-button routerLink="/admin" routerLinkActive="active">Admin</a>
-  }
   } @if (!auth.isAuthenticated()) {
   <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
   } @if (auth.isAuthenticated()) {
