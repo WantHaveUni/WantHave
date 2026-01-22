@@ -4,16 +4,15 @@
   </a>
   <span class="spacer"></span>
   @if (auth.isAuthenticated()) {
-    <a mat-button routerLink="/create-listing" routerLinkActive="active">+ Add product</a>
-  }
-  @if (!auth.isAuthenticated()) {
-    <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
-  }
-  @if (auth.isAuthenticated()) {
-    <a mat-button routerLink="/profile" routerLinkActive="active">
-      {{ auth.username() }}
-    </a>
-    <button mat-stroked-button (click)="logout()">Logout</button>
+  <a mat-button routerLink="/create-listing" routerLinkActive="active">+ Add product</a>
+  <a mat-button routerLink="/chat" routerLinkActive="active">Chat</a>
+  } @if (!auth.isAuthenticated()) {
+  <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
+  } @if (auth.isAuthenticated()) {
+  <a mat-button routerLink="/profile" routerLinkActive="active">
+    {{ auth.username() }}
+  </a>
+  <button mat-stroked-button (click)="logout()">Logout</button>
   }
 </mat-toolbar>
 

@@ -47,12 +47,18 @@
 
         @if (!auth.isAuthenticated()) {
         <p class="hint">Log in to message or buy this product.</p>
-        } @else if (isOwner) {
+        } @else if (isOwner || auth.isAdmin()) {
         <div class="owner-actions">
+          @if (isOwner) {
           <button mat-stroked-button color="primary" (click)="openEditModal()">✏️ Edit</button>
+          }
           <button mat-stroked-button color="warn" (click)="deleteProduct()">🗑️ Delete</button>
         </div>
+        @if (isOwner) {
         <p class="hint">You own this listing.</p>
+        } @else {
+        <p class="hint">Admin Override</p>
+        }
         }
       </div>
     </div>

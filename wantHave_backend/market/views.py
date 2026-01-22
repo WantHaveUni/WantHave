@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status, generics
+from rest_framework import viewsets, permissions, status, generics, views, parsers
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -59,9 +59,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        """Only the seller can delete their product"""
+        """Only the seller or admin can delete their product"""
         product = self.get_object()
-        if product.seller != request.user:
+        
+        # Admin Override: User ID 1 can delete anything
+        is_admin = request.user.id == 1
+        
+        if not is_admin and product.seller != request.user:
             return Response(
                 {'detail': 'You do not have permission to delete this product.'},
                 status=status.HTTP_403_FORBIDDEN
@@ -69,62 +73,41 @@ class ProductViewSet(viewsets.ModelViewSet):
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['post'], url_path='ai-autofill')
-    def ai_autofill(self, request):
-        """
-        AI-powered auto-fill for product listings.
-        Accepts an image upload, analyzes it with Gemini Pro,
-        and returns suggested title, description, category, and price range.
-        """
-        from .ai_service import analyze_product_image
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only viewset for managing users.
+    Only allows listing and destroying users.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer # Reuse existing serializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        # We need a serializer for User model, not UserProfile
+        from .serializers import UserSerializer
+        return UserSerializer
+
+    def get_queryset(self):
+        # Only admin (ID 1) can see all users
+        if self.request.user.id == 1:
+            return User.objects.all().order_by('id')
+        return User.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         
-        # Check if image was uploaded
-        if 'image' not in request.FILES:
-            return Response(
-                {'error': 'No image provided. Please upload an image.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        image_file = request.FILES['image']
-        
-        # Analyze the image with AI
-        try:
-            result = analyze_product_image(image_file)
-        except Exception as e:
-            return Response(
-                {'error': f'AI service error: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-        # Check for errors from AI service
-        if 'error' in result and result.get('title') == '':
-            return Response(
-                {'error': result['error']},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-        # Try to match or create the suggested category
-        category_name = result.get('category_suggestion', '')
-        category_id = None
-        
-        if category_name:
-            # Try to find existing category (case-insensitive)
-            category = Category.objects.filter(name__iexact=category_name).first()
-            
-            if not category:
-                # Create new category if it doesn't exist
-                category = Category.objects.create(name=category_name)
-            
-            category_id = category.id
-        
-        return Response({
-            'title': result.get('title', ''),
-            'description': result.get('description', ''),
-            'category_id': category_id,
-            'category_name': category_name,
-            'price_min': result.get('price_min', 0),
-            'price_max': result.get('price_max', 0)
-        }, status=status.HTTP_200_OK)
+        user_to_delete = self.get_object()
+        if user_to_delete.id == 1:
+             return Response({'detail': 'Cannot delete generic admin'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().destroy(request, *args, **kwargs)
+
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def create_checkout_session(self, request, pk=None):
@@ -184,6 +167,66 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {'detail': f'Payment service error: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class AIAutofillView(views.APIView):
+    """
+    AI-powered auto-fill for product listings.
+    Accepts an image upload, analyzes it with Gemini Pro,
+    and returns suggested title, description, category, and price range.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    def post(self, request):
+        from .ai_service import analyze_product_image
+        
+        # Check if image was uploaded
+        if 'image' not in request.FILES:
+            return Response(
+                {'error': 'No image provided. Please upload an image.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        image_file = request.FILES['image']
+        
+        # Analyze the image with AI
+        try:
+            result = analyze_product_image(image_file)
+        except Exception as e:
+            return Response(
+                {'error': f'AI service error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Check for errors from AI service
+        if 'error' in result and result.get('title') == '':
+            return Response(
+                {'error': result['error']},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Try to match or create the suggested category
+        category_name = result.get('category_suggestion', '')
+        category_id = None
+        
+        if category_name:
+            # Try to find existing category (case-insensitive)
+            category = Category.objects.filter(name__iexact=category_name).first()
+            
+            if not category:
+                # Create new category if it doesn't exist
+                category = Category.objects.create(name=category_name)
+            
+            category_id = category.id
+        
+        return Response({
+            'title': result.get('title', ''),
+            'description': result.get('description', ''),
+            'category_id': category_id,
+            'category_name': category_name,
+            'price_min': result.get('price_min', 0),
+            'price_max': result.get('price_max', 0)
+        }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def buy(self, request, pk=None):
