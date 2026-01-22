@@ -14,8 +14,8 @@ router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
+    path('', include(router.urls)),
     path('products/<int:pk>/detail/', ProductDetailView.as_view(), name='product-detail'),
     path('register/', RegisterView.as_view(), name='register'),
     path('webhooks/stripe/', stripe_webhook, name='stripe-webhook'),
-    path('', include(router.urls)),
 ]

@@ -109,7 +109,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-    @action(detail=False, methods=['post'], url_path='ai-autofill')
+    @action(detail=False, methods=['POST'], url_path='ai-autofill')
     def ai_autofill(self, request):
         """
         AI-powered auto-fill for product listings.
