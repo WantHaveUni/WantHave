@@ -70,7 +70,13 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {'detail': 'You do not have permission to delete this product.'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        product.delete()
+        try:
+            product.delete()
+        except django_models.ProtectedError as e:
+            return Response(
+                {'detail': f'Cannot delete this product because it is referenced by other records (e.g. Orders/Conversations). Error: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class UserViewSet(viewsets.ModelViewSet):
