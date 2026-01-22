@@ -151,6 +151,10 @@ class Order(models.Model):
     # Stripe references
     stripe_checkout_session_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
+    # Polling metadata (for VPN environment where webhooks can't reach backend)
+    last_polled_at = models.DateTimeField(null=True, blank=True)
+    poll_count = models.IntegerField(default=0)
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -158,6 +162,7 @@ class Order(models.Model):
             models.Index(fields=['buyer', 'status']),
             models.Index(fields=['seller', 'status']),
             models.Index(fields=['stripe_checkout_session_id']),
+            models.Index(fields=['status', 'created_at']),  # Optimize polling queries
         ]
 
     def __str__(self):

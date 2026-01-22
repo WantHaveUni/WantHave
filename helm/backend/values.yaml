@@ -42,3 +42,18 @@ persistence:
   enabled: true
   size: 1Gi
   mountPath: /data
+
+# Payment polling configuration
+# Used in VPN environments where webhooks cannot reach the backend
+paymentPolling:
+  enabled: true
+  schedule: "*/1 * * * *"  # Every minute
+  maxOrders: 100  # Max orders to check per run
+  ageHours: 24    # Only check orders created within 24 hours
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
