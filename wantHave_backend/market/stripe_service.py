@@ -154,8 +154,11 @@ class StripeService:
         Returns:
             Order object if successful, None if order not found
         """
+        from .models import Offer  # Import here to avoid circular import
+        
         session_id = session_data.get('id')
         payment_intent_id = session_data.get('payment_intent')
+        metadata = session_data.get('metadata', {})
 
         try:
             order = Order.objects.get(stripe_checkout_session_id=session_id)
@@ -177,6 +180,16 @@ class StripeService:
         product.buyer = order.buyer
         product.sold_at = timezone.now()
         product.save(update_fields=['status', 'buyer', 'sold_at'])
+
+        # Update offer status if this was an offer-based purchase
+        offer_id = metadata.get('offer_id')
+        if offer_id:
+            try:
+                offer = Offer.objects.get(id=offer_id)
+                offer.status = 'PAID'
+                offer.save(update_fields=['status'])
+            except Offer.DoesNotExist:
+                pass
 
         # Create payment record
         Payment.objects.create(

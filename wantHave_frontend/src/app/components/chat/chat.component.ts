@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ChatService, Conversation, Message, Offer } from '../../services/chat.service';
 import { ProfileService } from '../../services/profile.service';
 import { ActivatedRoute } from '@angular/router';
@@ -9,7 +10,7 @@ import { take } from 'rxjs/operators';
 @Component({
     selector: 'app-chat',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RouterLink],
     templateUrl: './chat.component.html',
     styleUrls: ['./chat.component.scss']
 })

@@ -39,13 +39,20 @@
 
     <!-- Main Chat Window -->
     <div class="chat-window" *ngIf="selectedConversation; else noSelection">
+        <!-- Product Banner (if conversation is about a product) -->
+        <a *ngIf="selectedConversation.product" class="product-banner"
+            [routerLink]="['/products', selectedConversation.product.id]">
+            <div class="product-banner-info">
+                <span class="product-banner-title">{{ selectedConversation.product.title }}</span>
+                <span class="product-banner-price">€{{ selectedConversation.product.price }}</span>
+            </div>
+            <span class="product-banner-link">View Product →</span>
+        </a>
+
         <div class="chat-header">
             <div class="chat-header-info">
                 <span *ngFor="let p of selectedConversation.participants">
                     <span *ngIf="p.id !== currentUser?.id">{{ p.username }}</span>
-                </span>
-                <span class="product-badge" *ngIf="selectedConversation.product">
-                    | {{ selectedConversation.product.title }} (€{{ selectedConversation.product.price }})
                 </span>
             </div>
             <button *ngIf="canMakeOffer()" class="offer-btn" (click)="openOfferModal()">
@@ -85,6 +92,26 @@
                 <!-- Seller waiting for ACCEPTED offers -->
                 <div class="offer-waiting" *ngIf="offer.status === 'ACCEPTED' && isSeller()">
                     <span>✓ Accepted - Waiting for buyer payment...</span>
+                </div>
+
+                <!-- PAID offer - Success message for buyer -->
+                <div class="offer-success" *ngIf="offer.status === 'PAID' && isBuyer()">
+                    <span>🎉 Payment successful! You purchased this item.</span>
+                </div>
+
+                <!-- PAID offer - Success message for seller -->
+                <div class="offer-success" *ngIf="offer.status === 'PAID' && isSeller()">
+                    <span>🎉 Payment received! Item has been sold.</span>
+                </div>
+
+                <!-- DECLINED offer -->
+                <div class="offer-declined" *ngIf="offer.status === 'DECLINED'">
+                    <span>❌ Offer was declined</span>
+                </div>
+
+                <!-- CANCELLED offer -->
+                <div class="offer-cancelled" *ngIf="offer.status === 'CANCELLED'">
+                    <span>🚫 Offer was cancelled</span>
                 </div>
             </div>
         </div>

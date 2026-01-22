@@ -144,8 +144,51 @@
   flex-direction: column;
 }
 
+// Product Banner at top of chat
+.product-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(1.1);
+
+    .product-banner-link {
+      transform: translateX(5px);
+    }
+  }
+}
+
+.product-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-banner-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.product-banner-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.product-banner-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
 .chat-header {
-  padding: 20px;
+  padding: 15px 20px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
   font-weight: 600;
@@ -345,6 +388,28 @@
 .offer-waiting {
   font-size: 0.85rem;
   color: #888;
+  font-style: italic;
+}
+
+.offer-success {
+  font-size: 0.9rem;
+  color: #28a745;
+  font-weight: 600;
+  padding: 8px 12px;
+  background: #d4edda;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.offer-declined {
+  font-size: 0.85rem;
+  color: #dc3545;
+  font-style: italic;
+}
+
+.offer-cancelled {
+  font-size: 0.85rem;
+  color: #6c757d;
   font-style: italic;
 }
 
