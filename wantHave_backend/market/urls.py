@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     UserProfileViewSet, ProductViewSet, ProductDetailView,
     CategoryViewSet, RegisterView, OrderViewSet, stripe_webhook,
-    UserViewSet
+    UserViewSet, AIAutofillView
 )
 
 router = DefaultRouter()
@@ -14,6 +14,7 @@ router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'users', UserViewSet, basename='user')
 
 urlpatterns = [
+    path('products/ai-autofill/', AIAutofillView.as_view(), name='product-ai-autofill'),
     path('', include(router.urls)),
     path('products/<int:pk>/detail/', ProductDetailView.as_view(), name='product-detail'),
     path('register/', RegisterView.as_view(), name='register'),

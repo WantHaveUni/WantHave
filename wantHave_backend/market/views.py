@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status, generics
+from rest_framework import viewsets, permissions, status, generics, views, parsers
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -109,63 +109,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-    @action(detail=False, methods=['POST'], url_path='ai-autofill')
-    def ai_autofill(self, request):
-        """
-        AI-powered auto-fill for product listings.
-        Accepts an image upload, analyzes it with Gemini Pro,
-        and returns suggested title, description, category, and price range.
-        """
-        from .ai_service import analyze_product_image
-        
-        # Check if image was uploaded
-        if 'image' not in request.FILES:
-            return Response(
-                {'error': 'No image provided. Please upload an image.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        image_file = request.FILES['image']
-        
-        # Analyze the image with AI
-        try:
-            result = analyze_product_image(image_file)
-        except Exception as e:
-            return Response(
-                {'error': f'AI service error: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-        # Check for errors from AI service
-        if 'error' in result and result.get('title') == '':
-            return Response(
-                {'error': result['error']},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-        # Try to match or create the suggested category
-        category_name = result.get('category_suggestion', '')
-        category_id = None
-        
-        if category_name:
-            # Try to find existing category (case-insensitive)
-            category = Category.objects.filter(name__iexact=category_name).first()
-            
-            if not category:
-                # Create new category if it doesn't exist
-                category = Category.objects.create(name=category_name)
-            
-            category_id = category.id
-        
-        return Response({
-            'title': result.get('title', ''),
-            'description': result.get('description', ''),
-            'category_id': category_id,
-            'category_name': category_name,
-            'price_min': result.get('price_min', 0),
-            'price_max': result.get('price_max', 0)
-        }, status=status.HTTP_200_OK)
-
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def create_checkout_session(self, request, pk=None):
         """
@@ -224,6 +167,66 @@ class UserViewSet(viewsets.ModelViewSet):
                 {'detail': f'Payment service error: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class AIAutofillView(views.APIView):
+    """
+    AI-powered auto-fill for product listings.
+    Accepts an image upload, analyzes it with Gemini Pro,
+    and returns suggested title, description, category, and price range.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    def post(self, request):
+        from .ai_service import analyze_product_image
+        
+        # Check if image was uploaded
+        if 'image' not in request.FILES:
+            return Response(
+                {'error': 'No image provided. Please upload an image.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        image_file = request.FILES['image']
+        
+        # Analyze the image with AI
+        try:
+            result = analyze_product_image(image_file)
+        except Exception as e:
+            return Response(
+                {'error': f'AI service error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Check for errors from AI service
+        if 'error' in result and result.get('title') == '':
+            return Response(
+                {'error': result['error']},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Try to match or create the suggested category
+        category_name = result.get('category_suggestion', '')
+        category_id = None
+        
+        if category_name:
+            # Try to find existing category (case-insensitive)
+            category = Category.objects.filter(name__iexact=category_name).first()
+            
+            if not category:
+                # Create new category if it doesn't exist
+                category = Category.objects.create(name=category_name)
+            
+            category_id = category.id
+        
+        return Response({
+            'title': result.get('title', ''),
+            'description': result.get('description', ''),
+            'category_id': category_id,
+            'category_name': category_name,
+            'price_min': result.get('price_min', 0),
+            'price_max': result.get('price_max', 0)
+        }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def buy(self, request, pk=None):
