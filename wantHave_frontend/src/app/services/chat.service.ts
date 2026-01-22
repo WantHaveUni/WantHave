@@ -64,6 +64,10 @@ export class ChatService {
         return this.http.get<{ unread_count: number }>(`${this.apiUrl}/conversations/unread_count/`);
     }
 
+    markAsRead(conversationId: number): Observable<any> {
+        return this.http.post(`${this.apiUrl}/conversations/${conversationId}/mark_read/`, {});
+    }
+
     startConversation(userId: number, productId?: number): Observable<Conversation> {
         const payload: any = { user_id: userId };
         if (productId) {

@@ -54,6 +54,14 @@ class ConversationViewSet(viewsets.ModelViewSet):
         
         return Response({'unread_count': unread_count})
 
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        """Mark all messages in conversation as read for current user"""
+        conversation = self.get_object()
+        # Mark messages sent by others as read
+        conversation.messages.exclude(sender=request.user).update(is_read=True)
+        return Response({'status': 'marked as read'})
+
     @action(detail=False, methods=['post'])
     def start(self, request):
         other_user_id = request.data.get('user_id')

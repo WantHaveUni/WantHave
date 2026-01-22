@@ -99,6 +99,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.messages = [];
         this.offers = [];
 
+        // Mark messages as read
+        this.chatService.markAsRead(conversation.id).subscribe({
+            error: (err) => console.error('Failed to mark as read', err)
+        });
+
         this.chatService.connect(conversation.id);
 
         this.chatService.getHistory(conversation.id).subscribe(msgs => {

@@ -25,4 +25,6 @@
 <main class="app-shell">
   <router-outlet></router-outlet>
 </main>
+@if (router.url !== '/chat') {
 <app-footer></app-footer>
+}

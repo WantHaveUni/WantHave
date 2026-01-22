@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -18,6 +18,7 @@ import { switchMap } from 'rxjs/operators';
 export class App implements OnInit, OnDestroy {
   auth = inject(AuthService);
   chatService = inject(ChatService);
+  router = inject(Router);
   unreadCount = 0;
   private pollSubscription: Subscription | null = null;
 
