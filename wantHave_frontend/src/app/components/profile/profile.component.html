@@ -1,11 +1,4 @@
 <div class="profile-container">
-  <div class="profile-header">
-    <h1>My Profile</h1>
-    @if (profile && !isEditMode) {
-    <button class="edit-button" (click)="enableEditMode()">Edit Profile</button>
-    }
-  </div>
-
   @if (loading) {
   <p>Loading...</p>
   }
@@ -14,208 +7,224 @@
   <p class="error-message">{{ error }}</p>
   }
 
-  @if (profile && !isEditMode) {
-  <div class="profile-view">
-    @if (profile.profile_picture) {
-    <div class="profile-picture-container">
-      <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
-    </div>
-    }
-
-    <div class="profile-section">
-      <h2>Account Information</h2>
-      <div class="profile-field">
-        <strong>Username:</strong>
-        <span>{{ profile.user.username }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Email:</strong>
-        <span>{{ profile.user.email }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>First Name:</strong>
-        <span>{{ profile.user.first_name || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Last Name:</strong>
-        <span>{{ profile.user.last_name || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Member Since:</strong>
-        <span>{{ profile.member_since ? (profile.member_since | date:'mediumDate') : 'Unknown' }}</span>
-      </div>
-    </div>
-
-    <div class="profile-section">
-      <h2>Profile Details</h2>
-      <div class="profile-field">
-        <strong>Bio:</strong>
-        <span>{{ profile.bio || 'No bio provided' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>City:</strong>
-        <span>{{ profile.city || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Country:</strong>
-        <span>{{ profile.country || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Address:</strong>
-        <span>{{ profile.address || 'No address provided' }}</span>
-      </div>
-      @if (profile.latitude && profile.longitude) {
-      <div class="profile-field">
-        <strong>Coordinates:</strong>
-        <span>{{ profile.latitude }}, {{ profile.longitude }}</span>
-      </div>
-      }
-    </div>
-
-    <div class="profile-section">
-      <h2>Marketplace Statistics</h2>
-      <div class="profile-field">
-        <strong>Active Listings:</strong>
-        <span>{{ profile.active_listings_count }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Sold Items:</strong>
-        <span>{{ profile.sold_items_count }}</span>
-      </div>
-    </div>
-
-    <div class="profile-section full-width">
-      <h2>My Listings</h2>
-      @if (listingsLoading) {
-      <p>Loading listings...</p>
-      } @else if (listings.length === 0) {
-      <p class="empty-state">No listings found.</p>
-      } @else {
-      <div class="mini-grid">
-        @for (item of listings; track item.id) {
-        <div class="mini-card">
-          <div class="mini-content">
-            <div class="mini-header">
-              <span class="mini-title">{{ item.title }}</span>
-              <span class="mini-price">{{ item.price }} €</span>
-            </div>
-            <div class="mini-status" [class.sold]="item.status === 'SOLD'">
-              {{ item.status }}
-            </div>
-          </div>
-        </div>
+  <!-- Profile Overview View -->
+  @if (profile && currentView === 'overview') {
+  <div class="profile-overview">
+    <!-- Profile Header -->
+    <div class="profile-header-section">
+      <div class="profile-picture-container">
+        @if (profile.profile_picture) {
+        <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
+        } @else {
+        <div class="profile-picture-placeholder">👤</div>
         }
       </div>
-      }
+      <h2 class="username">{{ profile.user.username }}</h2>
+      <a (click)="viewPublicProfile()" class="public-profile-link">View my public profile ›</a>
     </div>
 
-    <div class="profile-section full-width">
-      <h2>My Purchases</h2>
-      @if (purchasesLoading) {
-      <p>Loading purchases...</p>
-      } @else if (purchases.length === 0) {
-      <p class="empty-state">No purchases made yet.</p>
-      } @else {
-      <div class="mini-grid">
-        @for (item of purchases; track item.id) {
-        <div class="mini-card">
-          <div class="mini-content">
-            <div class="mini-header">
-              <span class="mini-title">{{ item.title }}</span>
-              <span class="mini-price">{{ item.price }} €</span>
-            </div>
-            <div class="mini-meta">
-              Sold on {{ item.sold_at | date }} by {{ item.seller_username }}
-            </div>
-          </div>
-        </div>
+    <!-- Menu Items -->
+    <div class="menu-list">
+      @for (item of menuItems; track item.id) {
+      <button class="menu-item" (click)="navigateTo(item.id)">
+        <span class="menu-icon">{{ item.icon }}</span>
+        <span class="menu-label">{{ item.label }}</span>
+        @if (item.id === 'theme') {
+        <span class="theme-value">{{ currentTheme === 'light' ? 'Light' : 'Dark' }}</span>
         }
-      </div>
+        <span class="menu-arrow">›</span>
+      </button>
       }
     </div>
   </div>
   }
 
-  @if (profile && isEditMode) {
+  <!-- My Listings View -->
+  @if (profile && currentView === 'listings') {
+  <div class="sub-view">
+    <div class="sub-view-header">
+      <button class="back-button" (click)="goBack()">← Back</button>
+      <h2>My Listings</h2>
+    </div>
+    @if (listingsLoading) {
+    <p>Loading listings...</p>
+    } @else if (listings.length === 0) {
+    <p class="empty-state">No listings found.</p>
+    } @else {
+    <div class="listings-grid">
+      @for (item of listings; track item.id) {
+      <div class="listing-card">
+        <div class="listing-content">
+          <div class="listing-header">
+            <span class="listing-title">{{ item.title }}</span>
+            <span class="listing-price">{{ item.price }} €</span>
+          </div>
+          <div class="listing-status" [class.sold]="item.status === 'SOLD'">
+            {{ item.status }}
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Wishlist View -->
+  @if (profile && currentView === 'wishlist') {
+  <div class="sub-view">
+    <div class="sub-view-header">
+      <button class="back-button" (click)="goBack()">← Back</button>
+      <h2>Wishlist</h2>
+    </div>
+    <p class="empty-state">No items in your wishlist yet.</p>
+  </div>
+  }
+
+  <!-- Search History View -->
+  @if (profile && currentView === 'searchHistory') {
+  <div class="sub-view">
+    <div class="sub-view-header">
+      <button class="back-button" (click)="goBack()">← Back</button>
+      <h2>Search History</h2>
+    </div>
+    <p class="empty-state">No search history available.</p>
+  </div>
+  }
+
+  <!-- Profile Settings/Edit View -->
+  @if (profile && currentView === 'settings') {
   <div class="profile-edit">
+    <div class="sub-view-header">
+      <button class="back-button" (click)="cancelEdit()">✕</button>
+      <h2>Edit Profile</h2>
+      <button class="save-icon-button" (click)="saveProfile()" [disabled]="saving">✓</button>
+    </div>
+
+    <!-- Profile Picture Section -->
+    <div class="edit-profile-header">
+      <div class="profile-picture-container">
+        @if (profile.profile_picture) {
+        <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
+        } @else {
+        <div class="profile-picture-placeholder">👤</div>
+        }
+        <label class="camera-button" for="profile_picture">📷</label>
+        <input type="file" id="profile_picture" (change)="onFileSelected($event)" accept="image/*"
+          style="display: none;">
+      </div>
+      <h2 class="username">{{ profile.user.username }}</h2>
+      <a (click)="viewPublicProfile()" class="public-profile-link">View my public profile ›</a>
+      @if (selectedFileName) {
+      <p class="file-selected">Selected: {{ selectedFileName }}</p>
+      }
+    </div>
+
     <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+      <!-- Public Data Section -->
       <div class="form-section">
-        <h2>Account Information</h2>
-
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" formControlName="username">
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" formControlName="email">
-        </div>
+        <h3 class="section-title">Public Data</h3>
 
         <div class="form-row">
           <div class="form-group">
             <label for="first_name">First Name</label>
-            <input type="text" id="first_name" formControlName="first_name">
+            <input type="text" id="first_name" formControlName="first_name" placeholder="First Name">
           </div>
-
           <div class="form-group">
             <label for="last_name">Last Name</label>
-            <input type="text" id="last_name" formControlName="last_name">
+            <input type="text" id="last_name" formControlName="last_name" placeholder="Last Name">
           </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2>Profile Picture</h2>
-        @if (profile.profile_picture) {
-        <div class="current-picture">
-          <img [src]="profile.profile_picture" alt="Current Profile Picture" class="preview-picture">
-        </div>
-        }
-        <div class="form-group">
-          <label for="profile_picture">Upload New Picture</label>
-          <input type="file" id="profile_picture" (change)="onFileSelected($event)" accept="image/*">
-          @if (selectedFileName) {
-          <p class="file-selected">Selected: {{ selectedFileName }}</p>
-          }
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2>Profile Details</h2>
-
-        <div class="form-group">
-          <label for="bio">Bio</label>
-          <textarea id="bio" formControlName="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
         </div>
 
         <div class="form-row">
+          <div class="form-group small">
+            <label for="postal_code">Postal Code</label>
+            <input type="text" id="postal_code" formControlName="postal_code" placeholder="Postal Code">
+          </div>
           <div class="form-group">
             <label for="city">City</label>
-            <input type="text" id="city" formControlName="city" placeholder="e.g., Graz">
-          </div>
-
-          <div class="form-group">
-            <label for="country">Country</label>
-            <input type="text" id="country" formControlName="country" placeholder="e.g., Austria">
+            <input type="text" id="city" formControlName="city" placeholder="City">
           </div>
         </div>
 
         <div class="form-group">
-          <label for="address">Address</label>
-          <input type="text" id="address" formControlName="address" placeholder="Enter your address">
+          <label for="country">Country</label>
+          <select id="country" formControlName="country">
+            <option value="">Select Country</option>
+            <option value="Austria">Austria</option>
+            <option value="Germany">Germany</option>
+            <option value="Switzerland">Switzerland</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Private Data Section -->
+      <div class="form-section">
+        <h3 class="section-title">Private Data <span class="section-subtitle">(only visible to you)</span></h3>
+
+        <div class="form-group with-action">
+          <div class="field-with-icon">
+            <span class="field-icon">✉</span>
+            <span class="field-value">{{ profile.user.email || 'Not set' }}</span>
+          </div>
+          <button type="button" class="change-button" (click)="changeEmail()">CHANGE</button>
         </div>
 
-        <div class="form-row">
-          <div class="form-group full-width">
-            <label>Location (Click on map to set)</label>
-            <div id="map" class="map-container"></div>
-            <input type="hidden" formControlName="latitude">
-            <input type="hidden" formControlName="longitude">
+        <div class="form-group with-action">
+          <div class="field-with-icon">
+            <span class="field-icon">🔒</span>
+            <span class="field-value">Password</span>
+          </div>
+          <button type="button" class="change-button" (click)="changePassword()">CHANGE</button>
+        </div>
+
+        <div class="form-group with-action">
+          <div class="field-with-icon">
+            <span class="field-icon">📞</span>
+            <span class="field-value">
+              {{ profile.phone || 'Not set' }}
+              @if (profile.phone_verified) {
+              <span class="verified-badge">(verified)</span>
+              }
+            </span>
+          </div>
+          <button type="button" class="change-button" (click)="changePhone()">CHANGE</button>
+        </div>
+
+        <div class="form-group">
+          <div class="field-with-icon">
+            <span class="field-icon">🎂</span>
+            <input type="number" id="birth_year" formControlName="birth_year" placeholder="Birth Year" min="1900"
+              max="2020">
           </div>
         </div>
       </div>
 
+      <!-- Gender Section -->
+      <div class="form-section">
+        <h3 class="section-title">I am</h3>
+        <div class="gender-options">
+          <label class="gender-option">
+            <input type="radio" formControlName="gender" value="female">
+            <span class="gender-label">female</span>
+          </label>
+          <label class="gender-option">
+            <input type="radio" formControlName="gender" value="male">
+            <span class="gender-label">male</span>
+          </label>
+          <label class="gender-option">
+            <input type="radio" formControlName="gender" value="diverse">
+            <span class="gender-label">diverse</span>
+          </label>
+          <label class="gender-option">
+            <input type="radio" formControlName="gender" value="none">
+            <span class="gender-label">none</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
       <div class="form-actions">
         <button type="submit" class="save-button" [disabled]="saving || profileForm.invalid">
           {{ saving ? 'Saving...' : 'Save Changes' }}
