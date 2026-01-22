@@ -1,8 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { Category } from '../../interfaces/category';
 import { Product } from '../../interfaces/product';
@@ -15,9 +20,14 @@ import { CategorySidebarComponent } from '../category-sidebar/category-sidebar.c
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatButtonModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
     RouterLink,
     CategorySidebarComponent,
   ],
@@ -32,6 +42,10 @@ export class ProductListComponent implements OnInit {
   categoryLoading = true;
   categoryError = '';
   selectedCategoryId: number | null = null;
+  sortBy: 'newest' | 'price_asc' | 'price_desc' = 'newest';
+  searchQuery = '';
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
 
   constructor(private productService: ProductService, private categoryService: CategoryService) {}
 
@@ -47,6 +61,7 @@ export class ProductListComponent implements OnInit {
     this.productService.list(categoryId).subscribe({
       next: (products) => {
         this.products = products;
+        this.sortProducts();
         this.loading = false;
       },
       error: (err) => {
@@ -55,6 +70,28 @@ export class ProductListComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  sortProducts() {
+    switch (this.sortBy) {
+      case 'newest':
+        this.products.sort((a, b) => {
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
+          return dateB - dateA; // Newest first
+        });
+        break;
+      case 'price_asc':
+        this.products.sort((a, b) => Number(a.price) - Number(b.price));
+        break;
+      case 'price_desc':
+        this.products.sort((a, b) => Number(b.price) - Number(a.price));
+        break;
+    }
+  }
+
+  onSortChange() {
+    this.sortProducts();
   }
 
   fetchCategories() {
@@ -87,5 +124,37 @@ export class ProductListComponent implements OnInit {
       return product.image;
     }
     return product.image.startsWith('/') ? product.image : `/${product.image}`;
+  }
+
+  get filteredProducts(): Product[] {
+    let filtered = this.products;
+
+    // Search filter
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(product =>
+        product.title.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Price filter
+    if (this.minPrice !== null && this.minPrice >= 0) {
+      filtered = filtered.filter(product => Number(product.price) >= this.minPrice!);
+    }
+    if (this.maxPrice !== null && this.maxPrice >= 0) {
+      filtered = filtered.filter(product => Number(product.price) <= this.maxPrice!);
+    }
+
+    return filtered;
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+  }
+
+  clearPriceFilter() {
+    this.minPrice = null;
+    this.maxPrice = null;
   }
 }
