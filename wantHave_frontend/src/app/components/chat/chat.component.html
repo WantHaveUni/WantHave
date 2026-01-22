@@ -115,8 +115,8 @@
         </div>
         <div class="modal-body">
             <p class="product-info" *ngIf="selectedConversation?.product">
-                Product: <strong>{{ selectedConversation.product.title }}</strong><br>
-                Listed Price: <strong>€{{ selectedConversation.product.price }}</strong>
+                Product: <strong>{{ selectedConversation?.product?.title }}</strong><br>
+                Listed Price: <strong>€{{ selectedConversation?.product?.price }}</strong>
             </p>
             <div class="form-group">
                 <label for="offerAmount">Your Offer (€)</label>
