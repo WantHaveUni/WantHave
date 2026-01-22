@@ -41,10 +41,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'id', 'user', 'bio', 'profile_picture', 'city', 'country',
-            'latitude', 'longitude', 'address',
+            'latitude', 'longitude', 'address', 'postal_code',
+            'phone', 'phone_verified', 'birth_year', 'gender',
             'active_listings_count', 'sold_items_count', 'member_since', 'updated_at'
         ]
-        read_only_fields = ['id', 'member_since', 'updated_at']
+        read_only_fields = ['id', 'member_since', 'updated_at', 'phone_verified']
 
     def get_active_listings_count(self, obj):
         return obj.user.products.filter(status='AVAILABLE').count()
@@ -62,7 +63,8 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'bio', 'profile_picture', 'city', 'country',
-            'latitude', 'longitude', 'address',
+            'latitude', 'longitude', 'address', 'postal_code',
+            'phone', 'birth_year', 'gender',
             'first_name', 'last_name', 'email', 'username'
         ]
 

@@ -1,0 +1,86 @@
+<div class="public-profile-container">
+    <div class="header">
+        <button class="back-button" (click)="goBack()">← Back to Products</button>
+        @if (isOwnProfile) {
+        <button class="edit-button" (click)="editProfile()">Edit Profile</button>
+        }
+    </div>
+
+    @if (loading) {
+    <p class="loading">Loading profile...</p>
+    }
+
+    @if (error) {
+    <p class="error-message">{{ error }}</p>
+    }
+
+    @if (profile && !loading) {
+    <div class="profile-content">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-picture-container">
+                @if (profile.profile_picture) {
+                <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
+                } @else {
+                <div class="profile-picture-placeholder">👤</div>
+                }
+            </div>
+            <div class="profile-info">
+                <h1 class="username">{{ profile.user.username }}</h1>
+                @if (profile.user.first_name || profile.user.last_name) {
+                <p class="full-name">{{ profile.user.first_name }} {{ profile.user.last_name }}</p>
+                }
+                @if (profile.city || profile.country) {
+                <p class="location">📍 {{ profile.city }}{{ profile.city && profile.country ? ', ' : '' }}{{
+                    profile.country }}</p>
+                }
+                <p class="member-since">Member since {{ profile.member_since | date:'MMMM yyyy' }}</p>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stat-item">
+                <span class="stat-value">{{ profile.active_listings_count }}</span>
+                <span class="stat-label">Active Listings</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">{{ profile.sold_items_count }}</span>
+                <span class="stat-label">Items Sold</span>
+            </div>
+        </div>
+
+        <!-- Bio Section -->
+        @if (profile.bio) {
+        <div class="bio-section">
+            <h2>About</h2>
+            <p>{{ profile.bio }}</p>
+        </div>
+        }
+
+        <!-- Listings Section -->
+        <div class="listings-section">
+            <h2>Active Listings</h2>
+            @if (listingsLoading) {
+            <p>Loading listings...</p>
+            } @else if (listings.length === 0) {
+            <p class="empty-state">No active listings.</p>
+            } @else {
+            <div class="listings-grid">
+                @for (item of listings; track item.id) {
+                <div class="listing-card" (click)="viewListing(item.id)">
+                    @if (item.image) {
+                    <img [src]="item.image" alt="{{ item.title }}" class="listing-image">
+                    }
+                    <div class="listing-content">
+                        <h3 class="listing-title">{{ item.title }}</h3>
+                        <p class="listing-price">{{ item.price }} €</p>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </div>
+    </div>
+    }
+</div>

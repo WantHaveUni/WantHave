@@ -33,4 +33,8 @@ export class ProfileService {
   getListings(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}${userId}/listings/`);
   }
+
+  getPublicProfile(userId: number): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.baseUrl}${userId}/`);
+  }
 }
