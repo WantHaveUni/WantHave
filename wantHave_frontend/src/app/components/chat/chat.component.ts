@@ -43,14 +43,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
 
         // Subscribe to incoming messages
+        // Subscribe to incoming messages
         this.chatService.messages$.subscribe(msg => {
-            this.ngZone.run(() => {
-                if (this.selectedConversation && this.selectedConversation.id == msg.conversation) {
-                    this.messages.push(msg);
-                } else if (!this.selectedConversation || this.selectedConversation.id != msg.conversation) {
-                    this.updateLastMessage(msg);
-                }
-            });
+            this.handleIncomingMessage(msg);
         });
 
         // Subscribe to offer updates
@@ -139,11 +134,26 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
     }
 
-    updateLastMessage(msg: Message) {
-        const convo = this.conversations.find(c => c.id === msg.conversation);
-        if (convo) {
-            convo.last_message = msg;
-        }
+    handleIncomingMessage(msg: Message) {
+        this.ngZone.run(() => {
+            // Update messages list if this conversation is selected
+            if (this.selectedConversation && this.selectedConversation.id == msg.conversation) {
+                this.messages.push(msg);
+            }
+
+            // Update last_message and move conversation to top
+            const index = this.conversations.findIndex(c => c.id === msg.conversation);
+            if (index > -1) {
+                const convo = this.conversations[index];
+                convo.last_message = msg;
+
+                // Move to top if not already there
+                if (index > 0) {
+                    this.conversations.splice(index, 1);
+                    this.conversations.unshift(convo);
+                }
+            }
+        });
     }
 
     deleteConversation(conversation: Conversation, event: Event): void {

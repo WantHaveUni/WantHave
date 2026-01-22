@@ -12,7 +12,10 @@ class ConversationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Conversation.objects.filter(participants=self.request.user)
+        from django.db.models import Max
+        return Conversation.objects.filter(participants=self.request.user).annotate(
+            last_message_time=Max('messages__timestamp')
+        ).order_by('-last_message_time')
 
     def destroy(self, request, pk=None):
         """Delete a conversation - only participants can delete"""
@@ -38,6 +41,18 @@ class ConversationViewSet(viewsets.ModelViewSet):
         messages = conversation.messages.all().order_by('timestamp')
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        """Get total number of unread messages for the current user"""
+        from market.models import Message
+        
+        unread_count = Message.objects.filter(
+            conversation__participants=request.user,
+            is_read=False
+        ).exclude(sender=request.user).count()
+        
+        return Response({'unread_count': unread_count})
 
     @action(detail=False, methods=['post'])
     def start(self, request):
