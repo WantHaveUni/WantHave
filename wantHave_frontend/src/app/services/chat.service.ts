@@ -68,6 +68,10 @@ export class ChatService {
         return this.http.post<Conversation>(`${this.apiUrl}/conversations/start/`, payload);
     }
 
+    deleteConversation(conversationId: number): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/conversations/${conversationId}/`);
+    }
+
     // Offer-related methods
     getConversationOffers(conversationId: number): Observable<Offer[]> {
         return this.http.get<Offer[]>(`${this.apiUrl}/offers/by_conversation/?conversation_id=${conversationId}`);

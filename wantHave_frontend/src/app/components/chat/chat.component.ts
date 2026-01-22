@@ -145,6 +145,33 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
     }
 
+    deleteConversation(conversation: Conversation, event: Event): void {
+        event.stopPropagation(); // Prevent selecting the conversation
+
+        if (!confirm('Are you sure you want to delete this conversation?')) {
+            return;
+        }
+
+        this.chatService.deleteConversation(conversation.id).subscribe({
+            next: () => {
+                // Remove from list
+                this.conversations = this.conversations.filter(c => c.id !== conversation.id);
+
+                // Clear selection if this was selected
+                if (this.selectedConversation?.id === conversation.id) {
+                    this.selectedConversation = null;
+                    this.messages = [];
+                    this.offers = [];
+                    this.chatService.disconnect();
+                }
+            },
+            error: (err) => {
+                alert('Could not delete conversation: ' + (err.error?.error || err.message));
+            }
+        });
+    }
+
+
     // Offer-related methods
     isBuyer(): boolean {
         if (!this.selectedConversation?.product || !this.currentUser) return false;

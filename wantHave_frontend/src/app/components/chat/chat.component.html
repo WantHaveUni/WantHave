@@ -29,6 +29,10 @@
                         {{ convo.last_message.content | slice:0:30 }}...
                     </span>
                 </div>
+                <button class="delete-convo-btn" (click)="deleteConversation(convo, $event)"
+                    title="Delete conversation">
+                    🗑️
+                </button>
             </li>
         </ul>
     </div>

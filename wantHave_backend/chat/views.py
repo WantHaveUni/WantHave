@@ -14,6 +14,24 @@ class ConversationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Conversation.objects.filter(participants=self.request.user)
 
+    def destroy(self, request, pk=None):
+        """Delete a conversation - only participants can delete"""
+        try:
+            conversation = Conversation.objects.get(pk=pk)
+        except Conversation.DoesNotExist:
+            return Response({'error': 'Conversation not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Verify user is a participant
+        if request.user not in conversation.participants.all():
+            return Response(
+                {'error': 'You are not a participant of this conversation'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Delete the conversation (messages will be cascade deleted)
+        conversation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=True, methods=['get'])
     def messages(self, request, pk=None):
         conversation = self.get_object()
