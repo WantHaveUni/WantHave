@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService, Conversation, Message } from '../../services/chat.service';
 import { ProfileService } from '../../services/profile.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { take } from 'rxjs/operators';
 
 @Component({
@@ -14,7 +14,7 @@ import { take } from 'rxjs/operators';
     styleUrls: ['./chat.component.scss']
 })
 export class ChatComponent implements OnInit, OnDestroy {
-    conversations: Conversation[] = [];
+    conversations: Conversation[] = []
     selectedConversation: Conversation | null = null;
     messages: Message[] = [];
     newMessage: string = '';
@@ -25,7 +25,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         private chatService: ChatService,
         private profileService: ProfileService,
         private route: ActivatedRoute,
-        private router: Router,
+        private location: Location,
         private ngZone: NgZone
     ) { }
 
@@ -67,8 +67,8 @@ export class ChatComponent implements OnInit, OnDestroy {
             if (userId) {
                 this.queryParamsProcessed = true;
                 this.startNewChat(userId, productId ? Number(productId) : undefined);
-                // Clear the query params after processing
-                this.router.navigate(['/chat'], { replaceUrl: true });
+                // Clear the query params using location (doesn't trigger router events)
+                this.location.replaceState('/chat');
             } else if (conversationId) {
                 const target = this.conversations.find(c => c.id == conversationId);
                 if (target) {
