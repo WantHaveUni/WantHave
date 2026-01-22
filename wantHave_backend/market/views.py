@@ -32,6 +32,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Product.objects.all().order_by('-created_at')
+
+        # Filter out SOLD products from the main list
+        if self.action == 'list':
+            queryset = queryset.filter(status='AVAILABLE')
+
         category_id = self.request.query_params.get('category')
 
         if category_id:
