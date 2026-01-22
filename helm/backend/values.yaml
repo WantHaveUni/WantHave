@@ -36,6 +36,8 @@ appEnv:
     value: "/data/db.sqlite3"
   - name: REDIS_HOST
     value: "redis"  # Kubernetes service name for Redis
+  - name: MEDIA_ROOT
+    value: "/data/media"
 
 # SQLite storage (Keep this for Backend)
 persistence:

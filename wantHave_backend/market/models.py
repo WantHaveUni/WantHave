@@ -136,9 +136,9 @@ class Order(models.Model):
     )
 
     # Core relationships
-    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orders')
-    buyer = models.ForeignKey(User, on_delete=models.PROTECT, related_name='orders_as_buyer')
-    seller = models.ForeignKey(User, on_delete=models.PROTECT, related_name='orders_as_seller')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='orders')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders_as_buyer')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders_as_seller')
 
     # Financial details
     price = models.DecimalField(max_digits=10, decimal_places=2)  # Snapshot at time of order
