@@ -131,6 +131,29 @@
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+// Add styles for the header row
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  .eyebrow {
+    margin: 0;
+  }
+}
+
+.watch-btn {
+  color: #ef4444; // Red heart
+  margin-top: -8px;
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+  }
+}
+
 // Modal Styles
 .modal-overlay {
   position: fixed;

@@ -70,22 +70,6 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
-
-
-
-class WatchlistItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='watched_by')
-    added_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('user', 'product')
-        ordering = ['-added_at']
-
-    def __str__(self):
-        return f"{self.user.username} watches {self.product.title}"
-
-
 # Chat Models
 class Conversation(models.Model):
     participants = models.ManyToManyField(User, related_name='conversations')

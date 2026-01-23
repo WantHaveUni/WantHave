@@ -1,0 +1,56 @@
+<div class="screen-container">
+    <!-- Header with back button -->
+    <div class="screen-header">
+        <button class="back-button" (click)="goBack.emit()">
+            <span class="back-arrow">←</span>
+            <span>Back</span>
+        </button>
+        <h1 class="screen-title">My Listings</h1>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+    <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading your listings...</p>
+    </div>
+    }
+
+    <!-- Error State -->
+    @if (error) {
+    <div class="error-state">
+        <p>{{ error }}</p>
+    </div>
+    }
+
+    <!-- Content -->
+    @if (!loading && !error) {
+    @if (listings.length === 0) {
+    <div class="empty-state">
+        <span class="empty-icon">📋</span>
+        <h2>No Listings Yet</h2>
+        <p>You haven't created any listings yet.</p>
+        <a routerLink="/create-listing" class="cta-button">Create Your First Listing</a>
+    </div>
+    } @else {
+    <div class="listings-grid">
+        @for (item of listings; track item.id) {
+        <a [routerLink]="['/products', item.id]" class="listing-card">
+            @if (item.image) {
+            <img [src]="item.image" [alt]="item.title" class="listing-image">
+            } @else {
+            <div class="listing-image-placeholder">📦</div>
+            }
+            <div class="listing-content">
+                <h3 class="listing-title">{{ item.title }}</h3>
+                <span class="listing-price">{{ item.price }} €</span>
+                <span class="listing-status" [class.sold]="item.status === 'SOLD'">
+                    {{ item.status }}
+                </span>
+            </div>
+        </a>
+        }
+    </div>
+    }
+    }
+</div>

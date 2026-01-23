@@ -1,0 +1,108 @@
+// Shared styles for profile sub-screens
+
+.screen-container {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0a0a1a 100%);
+}
+
+.screen-header {
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0D47A1 100%);
+    padding: 1.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    font-weight: 500;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .back-arrow {
+        font-size: 1.25rem;
+    }
+}
+
+.screen-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: #94a3b8;
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(139, 92, 246, 0.2);
+        border-top-color: #8b5cf6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error-state {
+    text-align: center;
+    padding: 2rem;
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.1);
+    margin: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #94a3b8;
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1.5rem;
+        color: #f8fafc;
+    }
+
+    p {
+        margin: 0;
+        max-width: 300px;
+    }
+}

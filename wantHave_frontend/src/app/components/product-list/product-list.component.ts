@@ -13,6 +13,8 @@ import { Category } from '../../interfaces/category';
 import { Product } from '../../interfaces/product';
 import { CategoryService } from '../../services/category.service';
 import { ProductService } from '../../services/product.service';
+import { ProfileService } from '../../services/profile.service';
+import { AuthService } from '../../services/auth.service';
 import { CategorySidebarComponent } from '../category-sidebar/category-sidebar.component';
 
 @Component({
@@ -46,12 +48,47 @@ export class ProductListComponent implements OnInit {
   searchQuery = '';
   minPrice: number | null = null;
   maxPrice: number | null = null;
+  watchlistIds: Set<number> = new Set();
+  currentUserId: number | null = null;
 
-  constructor(private productService: ProductService, private categoryService: CategoryService) {}
+  constructor(
+    private productService: ProductService,
+    private categoryService: CategoryService,
+    private profileService: ProfileService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit() {
+    this.currentUserId = this.authService.getUserId();
     this.fetchCategories();
     this.fetchProducts();
+    this.fetchWatchlist();
+  }
+
+  fetchWatchlist() {
+    this.profileService.getWatchlist().subscribe({
+      next: (items) => {
+        this.watchlistIds = new Set(items.map(item => item.product.id));
+      },
+      error: (err) => console.error('Error loading watchlist', err)
+    });
+  }
+
+  toggleWatchlist(event: Event, product: Product) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (this.watchlistIds.has(product.id)) {
+      this.profileService.removeFromWatchlist(product.id).subscribe({
+        next: () => this.watchlistIds.delete(product.id),
+        error: (err) => console.error('Error removing from watchlist', err)
+      });
+    } else {
+      this.profileService.addToWatchlist(product.id).subscribe({
+        next: () => this.watchlistIds.add(product.id),
+        error: (err: any) => console.error('Error adding to watchlist', err)
+      });
+    }
   }
 
   fetchProducts(categoryId: number | null = this.selectedCategoryId) {

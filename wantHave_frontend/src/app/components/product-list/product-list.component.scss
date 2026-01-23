@@ -147,6 +147,21 @@
   background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
 }
 
+.watchlist-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: white !important;
+  color: #ef4444 !important; // Red heart
+  z-index: 10;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
 .image-shell img {
   position: absolute;
   inset: 0;

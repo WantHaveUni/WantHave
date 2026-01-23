@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.models import User
-from .models import UserProfile, Product, Category, Order, Payment
+from .models import UserProfile, Product, Category, Order, Payment, WatchlistItem
 import re
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -61,7 +61,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = [
-            'id', 'user', 'bio', 'profile_picture', 'city', 'country',
+            'id', 'user', 'profile_picture', 'city', 'zip_code', 'country',
             'latitude', 'longitude', 'address',
             'active_listings_count', 'sold_items_count', 'member_since', 'updated_at'
         ]
@@ -82,10 +82,12 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = [
-            'bio', 'profile_picture', 'city', 'country',
+            'profile_picture', 'city', 'zip_code', 'country',
             'latitude', 'longitude', 'address',
             'first_name', 'last_name', 'email', 'username'
         ]
+
+
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', {})
@@ -179,8 +181,22 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+
 class CheckoutSessionSerializer(serializers.Serializer):
     """Serializer for checkout session creation response"""
     session_id = serializers.CharField()
     url = serializers.URLField()
     order_id = serializers.IntegerField()
+
+class WatchlistItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        source='product',
+        write_only=True
+    )
+
+    class Meta:
+        model = WatchlistItem
+        fields = ['id', 'product', 'product_id', 'added_at']
+        read_only_fields = ['id', 'added_at']

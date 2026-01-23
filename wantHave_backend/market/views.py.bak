@@ -9,13 +9,12 @@ from django.db import models as django_models
 from django.utils import timezone
 import stripe
 
+from .models import UserProfile, Product, Category, Order, StripeWebhookEvent
 from .serializers import (
     UserProfileSerializer, UserProfileUpdateSerializer,
     ProductSerializer, MyTokenObtainPairSerializer, CategorySerializer,
-    RegisterSerializer, OrderSerializer, CheckoutSessionSerializer,
-    WatchlistItemSerializer
+    RegisterSerializer, OrderSerializer, CheckoutSessionSerializer
 )
-from .models import UserProfile, Product, Category, Order, StripeWebhookEvent, WatchlistItem
 from .stripe_service import StripeService
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -143,52 +142,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {'detail': f'Payment service error: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-
-
-
-class WatchlistViewSet(viewsets.ModelViewSet):
-    serializer_class = WatchlistItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return WatchlistItem.objects.filter(user=self.request.user).order_by('-added_at')
-
-    def perform_create(self, serializer):
-        # Check if already in watchlist
-        product = serializer.validated_data['product']
-        if WatchlistItem.objects.filter(user=self.request.user, product=product).exists():
-             # Already exists, just return (idempotent) or error? 
-             # DRF CreateModelMixin returns 201. If we do nothing it might fail unique constraint.
-             # We can't easily return OK without creating in perform_create.
-             # Let's handle it by doing nothing or letting unique constraint fail (400).
-             pass 
-        serializer.save(user=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        # Custom create to handle "already exists" gratefully
-        product_id = request.data.get('product_id')
-        if not product_id:
-            return Response({'detail': 'product_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if exists
-        try:
-             # If exists, return the existing item with 200 OK
-             existing = WatchlistItem.objects.get(user=request.user, product_id=product_id)
-             serializer = self.get_serializer(existing)
-             return Response(serializer.data, status=status.HTTP_200_OK)
-        except WatchlistItem.DoesNotExist:
-             return super().create(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        # Treat pk as product_id
-        product_id = kwargs.get('pk')
-        try:
-            item = WatchlistItem.objects.get(user=request.user, product_id=product_id)
-            item.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except WatchlistItem.DoesNotExist:
-            return Response({'detail': 'Not found in watchlist.'}, status=status.HTTP_404_NOT_FOUND)
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -338,8 +291,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         try:
             profile = request.user.profile
         except UserProfile.DoesNotExist:
-            # Auto-repair: Create profile if it didn't get created by signal
-            profile = UserProfile.objects.create(user=request.user)
+            return Response(
+                {'detail': 'Profile not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         
         if request.method == 'GET':
             serializer = UserProfileSerializer(profile)
@@ -553,27 +508,3 @@ class ChangeEmailView(views.APIView):
         user.save()
 
         return Response({'detail': 'Email updated successfully.'}, status=status.HTTP_200_OK)
-
-
-class ChangeUsernameView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        user = request.user
-        new_username = request.data.get('new_username')
-        password = request.data.get('password')
-
-        if not new_username or not password:
-            return Response({'detail': 'New username and current password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not user.check_password(password):
-             return Response({'detail': 'Password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Check if username is taken by another user
-        if User.objects.filter(username=new_username).exclude(id=user.id).exists():
-             return Response({'detail': 'This username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user.username = new_username
-        user.save()
-
-        return Response({'detail': 'Username updated successfully.', 'username': new_username}, status=status.HTTP_200_OK)

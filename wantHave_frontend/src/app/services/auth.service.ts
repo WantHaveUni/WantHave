@@ -62,6 +62,20 @@ export class AuthService {
     return this.usernameSignal();
   }
 
+  updateUsername(newUsername: string) {
+    localStorage.setItem(this.usernameKey, newUsername);
+    this.usernameSignal.set(newUsername);
+  }
+
+  getUserId(): number | null {
+    const token = this.accessToken();
+    if (token) {
+      const payload = this.getPayload(token);
+      return payload ? payload.user_id : null;
+    }
+    return null;
+  }
+
   private checkAdminStatus() {
     const token = this.accessToken();
     if (token) {
