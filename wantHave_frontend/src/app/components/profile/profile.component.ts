@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -88,6 +88,7 @@ export class ProfileComponent implements OnInit {
     this.loadProfile();
   }
 
+
   loadThemePreference() {
     const savedTheme = localStorage.getItem('wanthave_theme');
     this.isDarkTheme = savedTheme !== 'light';
@@ -118,6 +119,7 @@ export class ProfileComponent implements OnInit {
           zip_code: data.zip_code || '',
           country: data.country || '',
         });
+
         this.loading = false;
 
         // Load additional data

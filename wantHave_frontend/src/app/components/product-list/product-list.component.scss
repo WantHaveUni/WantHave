@@ -52,6 +52,29 @@
   font-size: 0.85rem;
 }
 
+.location-filter {
+  margin-top: 1.5rem;
+
+  h3 {
+    font-size: 1rem;
+    margin: 0 0 0.75rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.location-field {
+  width: 100%;
+}
+
+.map-link {
+  width: 100%;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .sort-field {
   min-width: 200px;
 }

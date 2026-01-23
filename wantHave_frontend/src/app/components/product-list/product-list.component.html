@@ -10,6 +10,7 @@
         <mat-option value="newest">Newest first</mat-option>
         <mat-option value="price_asc">Price: Low to High</mat-option>
         <mat-option value="price_desc">Price: High to Low</mat-option>
+        <mat-option value="distance_asc">Distance: Near Me</mat-option>
       </mat-select>
     </mat-form-field>
     <button mat-stroked-button color="primary" (click)="fetchProducts()">Refresh list</button>
@@ -45,6 +46,23 @@
         @if (minPrice !== null || maxPrice !== null) {
         <button mat-button (click)="clearPriceFilter()" class="clear-price">Clear price filter</button>
         }
+      </div>
+
+      <div class="location-filter">
+        <h3>Location</h3>
+        <mat-form-field appearance="outline" class="location-field">
+          <mat-label>Filter by City</mat-label>
+          <input matInput [(ngModel)]="cityFilter" placeholder="e.g. Vienna" />
+          @if (cityFilter) {
+          <button matSuffix mat-icon-button (click)="clearCityFilter()" aria-label="Clear">
+            <mat-icon>close</mat-icon>
+          </button>
+          }
+        </mat-form-field>
+        <a mat-stroked-button routerLink="/map" class="map-link">
+          <mat-icon>map</mat-icon>
+          View on Map
+        </a>
       </div>
 
       @if (categoryLoading) {

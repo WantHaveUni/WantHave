@@ -602,6 +602,26 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
             this.snackbar.open('Select an image', 'OK', { duration: 3000 });
             return;
         }
+
+        // Request browser location
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.submitListing(file, position.coords.latitude, position.coords.longitude);
+                },
+                (error) => {
+                    console.warn('Geolocation error:', error.message);
+                    // Submit without location if permission denied or unavailable
+                    this.submitListing(file, null, null);
+                },
+                { enableHighAccuracy: false, timeout: 10000 }
+            );
+        } else {
+            this.submitListing(file, null, null);
+        }
+    }
+
+    private submitListing(file: File, lat: number | null, lng: number | null): void {
         const formData = new FormData();
         formData.append('title', this.listingFormGroup.value.title || '');
         formData.append('description', this.listingFormGroup.value.description || '');
@@ -609,6 +629,12 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
         formData.append('image', file);
         if (this.listingFormGroup.value.category_id) {
             formData.append('category_id', String(this.listingFormGroup.value.category_id));
+        }
+
+        // Add location if available
+        if (lat !== null && lng !== null) {
+            formData.append('latitude', lat.toString());
+            formData.append('longitude', lng.toString());
         }
 
         this.http.post('/api/market/products/', formData).subscribe({

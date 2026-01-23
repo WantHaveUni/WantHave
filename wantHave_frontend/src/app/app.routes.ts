@@ -15,6 +15,7 @@ export const routes: Routes = [
   { path: '', redirectTo: '/products', pathMatch: 'full' },
   { path: 'products', component: ProductListComponent },
   { path: 'products/:id', component: ProductDetailComponent },
+  { path: 'map', loadComponent: () => import('./components/map-view/map-view.component').then(m => m.MapViewComponent) },
   { path: 'login', component: LoginComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'my-listings', component: MyListingsComponent, canActivate: [authGuard] },

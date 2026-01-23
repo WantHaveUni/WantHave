@@ -142,6 +142,9 @@ class ProductSerializer(serializers.ModelSerializer):
             'category_id',
             'buyer',
             'sold_at',
+            'latitude',
+            'longitude',
+            'city',
         ]
         read_only_fields = ['id', 'created_at', 'seller_id', 'seller_username', 'category', 'buyer', 'sold_at']
 

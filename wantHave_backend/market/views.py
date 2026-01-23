@@ -52,7 +52,23 @@ class ProductViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(seller=self.request.user)
+        # Auto-populate location from seller's profile if not provided
+        user = self.request.user
+        extra_data = {'seller': user}
+        
+        try:
+            profile = user.profile
+            # Only set location if not explicitly provided in request
+            if not self.request.data.get('latitude') and profile.latitude:
+                extra_data['latitude'] = profile.latitude
+            if not self.request.data.get('longitude') and profile.longitude:
+                extra_data['longitude'] = profile.longitude
+            if not self.request.data.get('city') and profile.city:
+                extra_data['city'] = profile.city
+        except UserProfile.DoesNotExist:
+            pass  # No profile, skip location
+        
+        serializer.save(**extra_data)
 
     def update(self, request, *args, **kwargs):
         """Only the seller can update their product"""
