@@ -9,12 +9,13 @@ from django.db import models as django_models
 from django.utils import timezone
 import stripe
 
-from .models import UserProfile, Product, Category, Order, StripeWebhookEvent
 from .serializers import (
     UserProfileSerializer, UserProfileUpdateSerializer,
     ProductSerializer, MyTokenObtainPairSerializer, CategorySerializer,
-    RegisterSerializer, OrderSerializer, CheckoutSessionSerializer
+    RegisterSerializer, OrderSerializer, CheckoutSessionSerializer,
+    WatchlistItemSerializer
 )
+from .models import UserProfile, Product, Category, Order, StripeWebhookEvent, WatchlistItem
 from .stripe_service import StripeService
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -32,6 +33,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Product.objects.all().order_by('-created_at')
+
+        # Filter out SOLD products from the main list
+        if self.action == 'list':
+            queryset = queryset.filter(status='AVAILABLE')
+
         category_id = self.request.query_params.get('category')
 
         if category_id:
@@ -46,7 +52,23 @@ class ProductViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(seller=self.request.user)
+        # Auto-populate location from seller's profile if not provided
+        user = self.request.user
+        extra_data = {'seller': user}
+        
+        try:
+            profile = user.profile
+            # Only set location if not explicitly provided in request
+            if not self.request.data.get('latitude') and profile.latitude:
+                extra_data['latitude'] = profile.latitude
+            if not self.request.data.get('longitude') and profile.longitude:
+                extra_data['longitude'] = profile.longitude
+            if not self.request.data.get('city') and profile.city:
+                extra_data['city'] = profile.city
+        except UserProfile.DoesNotExist:
+            pass  # No profile, skip location
+        
+        serializer.save(**extra_data)
 
     def update(self, request, *args, **kwargs):
         """Only the seller can update their product"""
@@ -78,42 +100,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-class UserViewSet(viewsets.ModelViewSet):
-    """
-    Admin-only viewset for managing users.
-    Only allows listing and destroying users.
-    """
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer # Reuse existing serializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_serializer_class(self):
-        # We need a serializer for User model, not UserProfile
-        from .serializers import UserSerializer
-        return UserSerializer
-
-    def get_queryset(self):
-        # Only admin (ID 1) can see all users
-        if self.request.user.id == 1:
-            return User.objects.all().order_by('id')
-        return User.objects.none()
-
-    def list(self, request, *args, **kwargs):
-        if request.user.id != 1:
-            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        return super().list(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.id != 1:
-            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        
-        user_to_delete = self.get_object()
-        if user_to_delete.id == 1:
-             return Response({'detail': 'Cannot delete generic admin'}, status=status.HTTP_400_BAD_REQUEST)
-
-        return super().destroy(request, *args, **kwargs)
-
 
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def create_checkout_session(self, request, pk=None):
@@ -173,6 +159,90 @@ class UserViewSet(viewsets.ModelViewSet):
                 {'detail': f'Payment service error: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+
+
+class WatchlistViewSet(viewsets.ModelViewSet):
+    serializer_class = WatchlistItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return WatchlistItem.objects.filter(user=self.request.user).order_by('-added_at')
+
+    def perform_create(self, serializer):
+        # Check if already in watchlist
+        product = serializer.validated_data['product']
+        if WatchlistItem.objects.filter(user=self.request.user, product=product).exists():
+             # Already exists, just return (idempotent) or error? 
+             # DRF CreateModelMixin returns 201. If we do nothing it might fail unique constraint.
+             # We can't easily return OK without creating in perform_create.
+             # Let's handle it by doing nothing or letting unique constraint fail (400).
+             pass 
+        serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        # Custom create to handle "already exists" gratefully
+        product_id = request.data.get('product_id')
+        if not product_id:
+            return Response({'detail': 'product_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if exists
+        try:
+             # If exists, return the existing item with 200 OK
+             existing = WatchlistItem.objects.get(user=request.user, product_id=product_id)
+             serializer = self.get_serializer(existing)
+             return Response(serializer.data, status=status.HTTP_200_OK)
+        except WatchlistItem.DoesNotExist:
+             return super().create(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # Treat pk as product_id
+        product_id = kwargs.get('pk')
+        try:
+            item = WatchlistItem.objects.get(user=request.user, product_id=product_id)
+            item.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except WatchlistItem.DoesNotExist:
+            return Response({'detail': 'Not found in watchlist.'}, status=status.HTTP_404_NOT_FOUND)
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only viewset for managing users.
+    Only allows listing and destroying users.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer # Reuse existing serializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        # We need a serializer for User model, not UserProfile
+        from .serializers import UserSerializer
+        return UserSerializer
+
+    def get_queryset(self):
+        # Only admin (ID 1) can see all users
+        if self.request.user.id == 1:
+            return User.objects.all().order_by('id')
+        return User.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        user_to_delete = self.get_object()
+        if user_to_delete.id == 1:
+             return Response({'detail': 'Cannot delete generic admin'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().destroy(request, *args, **kwargs)
+
+
+
 
 class AIAutofillView(views.APIView):
     """
@@ -284,10 +354,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         try:
             profile = request.user.profile
         except UserProfile.DoesNotExist:
-            return Response(
-                {'detail': 'Profile not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            # Auto-repair: Create profile if it didn't get created by signal
+            profile = UserProfile.objects.create(user=request.user)
         
         if request.method == 'GET':
             serializer = UserProfileSerializer(profile)
@@ -298,8 +366,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
                 profile, data=request.data, partial=True
             )
             if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
+                updated_profile = serializer.save()
+                # Return the full profile structure (with nested user) to the frontend
+                read_serializer = UserProfileSerializer(updated_profile)
+                return Response(read_serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         elif request.method == 'DELETE':
@@ -453,3 +523,73 @@ def stripe_webhook(request):
         # Log error but return 200 to prevent Stripe retries
         print(f"Webhook processing error: {e}")
         return HttpResponse('Error processing webhook', status=500)
+
+
+class ChangePasswordView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        if not old_password or not new_password:
+            return Response({'detail': 'Both old and new passwords are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({'detail': 'Old password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 6:
+            return Response({'detail': 'New password must be at least 6 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+
+
+class ChangeEmailView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        new_email = request.data.get('new_email')
+        password = request.data.get('password')
+
+        if not new_email or not password:
+            return Response({'detail': 'New email and current password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(password):
+             return Response({'detail': 'Password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+             return Response({'detail': 'This email is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.email = new_email
+        user.save()
+
+        return Response({'detail': 'Email updated successfully.'}, status=status.HTTP_200_OK)
+
+
+class ChangeUsernameView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        new_username = request.data.get('new_username')
+        password = request.data.get('password')
+
+        if not new_username or not password:
+            return Response({'detail': 'New username and current password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(password):
+             return Response({'detail': 'Password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if username is taken by another user
+        if User.objects.filter(username=new_username).exclude(id=user.id).exists():
+             return Response({'detail': 'This username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.username = new_username
+        user.save()
+
+        return Response({'detail': 'Username updated successfully.', 'username': new_username}, status=status.HTTP_200_OK)

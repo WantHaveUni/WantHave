@@ -9,17 +9,20 @@ import { Product } from '../../interfaces/product';
 import { AuthService } from '../../services/auth.service';
 import { ProductService } from '../../services/product.service';
 import { PaymentService } from '../../services/payment.service';
+import { ProfileService } from '../../services/profile.service';
 
 interface DetailItem {
   label: string;
   value: string;
 }
 
+import { MatIconModule } from '@angular/material/icon';
+
 // this component shows the details of a single product and allows interaction if the user is authenticated
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule],
+  imports: [CommonModule, RouterLink, FormsModule, MatButtonModule, MatCardModule, MatProgressSpinnerModule, MatIconModule],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss',
 })
@@ -35,6 +38,8 @@ export class ProductDetailComponent implements OnInit {
   error = '';
   details: DetailItem[] = [];
   processingCheckout = false;
+  watchlistIds: Set<number> = new Set();
+  private profileService = inject(ProfileService);
 
   // Edit Modal State
   showEditModal = false;
@@ -52,6 +57,37 @@ export class ProductDetailComponent implements OnInit {
     }
 
     this.fetchProduct(id);
+    if (this.auth.isAuthenticated()) {
+      this.fetchWatchlist();
+    }
+  }
+
+  fetchWatchlist() {
+    this.profileService.getWatchlist().subscribe({
+      next: (items) => {
+        this.watchlistIds = new Set(items.map(item => item.product.id));
+      },
+      error: (err) => console.error('Error loading watchlist', err)
+    });
+  }
+
+  toggleWatchlist(event: Event) {
+    if (!this.product) return;
+    const productId = this.product.id;
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (this.watchlistIds.has(productId)) {
+      this.profileService.removeFromWatchlist(productId).subscribe({
+        next: () => this.watchlistIds.delete(productId),
+        error: (err) => console.error('Error removing from watchlist', err)
+      });
+    } else {
+      this.profileService.addToWatchlist(productId).subscribe({
+        next: () => this.watchlistIds.add(productId),
+        error: (err) => console.error('Error adding to watchlist', err)
+      });
+    }
   }
 
   // returns the full image URL for the product, or null if no image is available

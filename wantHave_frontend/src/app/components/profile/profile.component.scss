@@ -1,357 +1,585 @@
+@use '../../../styles/cyberpunk-theme' as cyber;
+@use '../shared-profile-styles.scss';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PROFILE COMPONENT - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Profile Container
 .profile-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  min-height: 100vh;
+  background: cyber.$dark-bg;
+
+  &:not(.edit-mode) {
+
+    // Grid background
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        linear-gradient(rgba(0, 243, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+  }
 }
 
-.profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+// ─────────────────────────────────────────────────────────────────────────────
+// OVERVIEW / MENU STYLES
+// ─────────────────────────────────────────────────────────────────────────────
 
-  h1 {
+.profile-overview-container {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+// Header Section
+.profile-header {
+  position: relative;
+  padding-bottom: 32px;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.header-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(135deg,
+      rgba(0, 243, 255, 0.15) 0%,
+      rgba(188, 19, 254, 0.2) 50%,
+      rgba(0, 243, 255, 0.1) 100%);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+      linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(to top, cyber.$dark-bg, transparent);
+  }
+}
+
+.profile-avatar-section {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 48px;
+}
+
+.avatar-wrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid cyber.$neon-cyan;
+  box-shadow:
+    0 0 30px rgba(0, 243, 255, 0.4),
+    0 0 60px rgba(188, 19, 254, 0.2);
+  background: cyber.$glass-panel;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(188, 19, 254, 0.2));
+
+  .avatar-icon {
+    font-size: 48px;
+    filter: grayscale(1) brightness(2);
+  }
+}
+
+.username {
+  margin: 16px 0 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: 600;
+  color: cyber.$text-main;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+}
+
+// Menu Sections
+.menu-section {
+  @include cyber.glass-card;
+  margin: 20px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+  overflow: hidden;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  text-decoration: none;
+  color: cyber.$text-main;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(0, 243, 255, 0.05);
+
+    .menu-icon {
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    }
+
+    .menu-label {
+      color: cyber.$neon-cyan;
+    }
+
+    .menu-arrow {
+      color: cyber.$neon-cyan;
+      transform: translateX(4px);
+    }
+  }
+}
+
+.menu-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  margin-right: 16px;
+  transition: all 0.3s ease;
+}
+
+.menu-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+}
+
+.menu-badge {
+  background: cyber.$neon-purple;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 4px 8px;
+  margin-right: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+}
+
+.menu-arrow {
+  font-size: 20px;
+  color: cyber.$text-muted;
+  font-weight: 300;
+  transition: all 0.3s ease;
+}
+
+.menu-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
+  margin: 8px auto;
+  max-width: 600px;
+  width: 90%;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EDIT FORM STYLES
+// ─────────────────────────────────────────────────────────────────────────────
+
+.profile-edit-container {
+  max-width: 800px;
+  margin: 32px auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.edit-header {
+  margin-bottom: 32px;
+
+  h2 {
+    @include cyber.section-title;
     margin: 0;
   }
 }
 
-.edit-button {
-  padding: 0.75rem 1.5rem;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-}
-
-.error-message {
-  color: #dc3545;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.profile-view {
-  .profile-picture-container {
-    text-align: center;
-    margin-bottom: 2rem;
-
-    .profile-picture {
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #007bff;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-  }
-
-  .profile-section {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-
-    h2 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-      color: #333;
-    }
-  }
-
-  .profile-field {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-
-    strong {
-      min-width: 150px;
-      color: #666;
-    }
-
-    span {
-      color: #333;
-    }
-  }
-}
-
-.profile-edit {
-  .current-picture {
-    text-align: center;
-    margin-bottom: 1rem;
-
-    .preview-picture {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #007bff;
-    }
-  }
-
-  .file-selected {
-    margin-top: 0.5rem;
-    color: #28a745;
-    font-size: 0.9rem;
-    font-style: italic;
-  }
-
-  .form-section {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-
-    h2 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      font-size: 1.25rem;
-      color: #333;
-    }
-  }
-
-  .info-text {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    font-style: italic;
-  }
-
-  .profile-field.readonly {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-
-    strong {
-      min-width: 120px;
-      color: #666;
-    }
-
-    span {
-      color: #999;
-    }
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: #333;
-    }
-
-    input,
-    textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ced4da;
-      border-radius: 4px;
-      font-size: 1rem;
-      font-family: inherit;
-
-      &:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-      }
-    }
-
-    input[type="file"] {
-      padding: 0.5rem;
-      border: 1px dashed #ced4da;
-      background-color: white;
-
-      &::-webkit-file-upload-button {
-        padding: 0.5rem 1rem;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-right: 1rem;
-
-        &:hover {
-          background-color: #0056b3;
-        }
-      }
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-
-    button {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-    }
-
-    .save-button {
-      background-color: #28a745;
-      color: white;
-
-      &:hover:not(:disabled) {
-        background-color: #218838;
-      }
-    }
-
-    .cancel-button {
-      background-color: #6c757d;
-      color: white;
-
-      &:hover:not(:disabled) {
-        background-color: #5a6268;
-      }
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .profile-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .profile-edit .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.full-width {
-  grid-column: 1 / -1;
-}
-
-.mini-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.mini-card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-
-  .mini-content {
-    padding: 1rem;
-  }
-
-  .mini-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-  }
-
-  .mini-title {
-    font-size: 1rem;
-    color: #333;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .mini-price {
-    font-size: 1rem;
-    color: #007bff;
-  }
-
-  .mini-status {
-    font-size: 0.8rem;
-    color: #28a745;
-    font-weight: bold;
-    text-transform: uppercase;
-
-    &.sold {
-      color: #dc3545;
-    }
-  }
-
-  .mini-meta {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 0.5rem;
-  }
-}
-
-.empty-state {
-  color: #666;
-  font-style: italic;
-  padding: 1rem;
-  text-align: center;
-  background: white;
-  border-radius: 4px;
-}
-
-.danger-zone {
-  margin-top: 3rem;
-  padding: 1.5rem;
-  border: 1px solid #dc3545;
-  border-radius: 8px;
-  background-color: #fff5f5;
+.form-section {
+  @include cyber.glass-card;
+  padding: 24px;
+  margin-bottom: 24px;
 
   h3 {
     margin-top: 0;
-    color: #dc3545;
+    margin-bottom: 20px;
+    font-size: 11px;
+    color: cyber.$neon-cyan;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+  }
+}
+
+.profile-picture-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: transparent !important;
+  border: none !important;
+  padding-bottom: 0 !important;
+
+  // Remove corner decorations
+  &::before,
+  &::after {
+    display: none;
+  }
+}
+
+.picture-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.edit-picture {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid cyber.$neon-cyan;
+  box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+}
+
+.camera-icon-label {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: cyber.$neon-purple;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(188, 19, 254, 0.5);
+  transition: all 0.3s ease;
+  border: 2px solid cyber.$dark-bg;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(188, 19, 254, 0.7);
+  }
+}
+
+.hidden-input {
+  display: none;
+}
+
+.form-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: cyber.$neon-cyan;
+    font-family: 'Courier New', monospace;
   }
 
-  .delete-button {
-    background-color: #dc3545;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    font-size: 14px;
+    color: cyber.$text-main;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
 
-    &:hover {
-      background-color: #c82333;
+    &:focus {
+      outline: none;
+      border-color: cyber.$neon-cyan;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    &[readonly] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.small-col {
+  max-width: 120px;
+}
+
+.private-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .input-wrapper {
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: cyber.$neon-cyan;
+      font-family: 'Courier New', monospace;
+    }
+
+    input {
+      width: 100%;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      padding: 0 18px;
+      color: cyber.$text-main;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+
+      &[readonly] {
+        opacity: 0.6;
+      }
     }
   }
 }
 
-.map-container {
-  height: 400px;
-  width: 100%;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  z-index: 1;
-  /* Ensure map controls are clickable */
+.change-btn {
+  @include cyber.neon-button(cyber.$neon-purple);
+  height: 48px;
+  min-width: 100px;
+  padding: 0 16px !important;
+  font-size: 10px !important;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  margin-bottom: 48px;
+
+  .save-button {
+    @include cyber.neon-button(cyber.$neon-cyan);
+    background: rgba(0, 243, 255, 0.1) !important;
+  }
+
+  .cancel-button {
+    @include cyber.neon-button(cyber.$text-muted);
+  }
+}
+
+.center-actions {
+  justify-content: center;
+}
+
+// Security Change Panel
+.security-change-panel {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 24px;
+  border: 1px solid rgba(0, 243, 255, 0.1);
+  margin-bottom: 20px;
+  animation: fade-in-up 0.4s ease;
+
+  h4 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: cyber.$text-main;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
+  }
+}
+
+.small-actions {
+  margin-top: 16px;
+  margin-bottom: 0;
+  justify-content: flex-end;
+
+  button {
+    padding: 10px 20px !important;
+    font-size: 10px !important;
+  }
+}
+
+// Alerts
+.edit-error-alert {
+  background: rgba(255, 71, 87, 0.1);
+  border-left: 2px solid #ff4757;
+  color: #ff4757;
+  padding: 16px;
+  margin-bottom: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+
+  &::before {
+    content: '⚠ ';
+  }
+}
+
+.edit-success-alert {
+  background: rgba(0, 243, 255, 0.1);
+  border-left: 2px solid cyber.$neon-cyan;
+  color: cyber.$neon-cyan;
+  padding: 16px;
+  margin-bottom: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+
+  &::before {
+    content: '✓ ';
+  }
+}
+
+.small-alert {
+  padding: 12px;
+  font-size: 11px;
+}
+
+// Danger Zone
+.danger-zone {
+  margin-top: 48px;
+  padding: 24px;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  background: rgba(255, 71, 87, 0.05);
+
+  h3 {
+    margin-top: 0;
+    color: #ff4757;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+  }
+
+  .delete-button {
+    @include cyber.neon-button(#ff4757);
+    background: rgba(255, 71, 87, 0.1) !important;
+  }
+}
+
+// Loading/Error States
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  @include cyber.glass-card;
+  max-width: 400px;
+  margin: 20px auto;
+
+  p {
+    margin: 0;
+    color: cyber.$text-muted;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
+
+.error-state p {
+  color: #ff4757;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE
+// ─────────────────────────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .private-row {
+    grid-template-columns: 1fr;
+
+    .change-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .form-actions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 }

@@ -8,7 +8,10 @@
   }
   @if (auth.isAuthenticated()) {
   <a mat-button routerLink="/create-listing" routerLinkActive="active">+ Add product</a>
-  <a mat-button routerLink="/chat" routerLinkActive="active">Chat</a>
+  <a mat-button routerLink="/chat" routerLinkActive="active" [matBadge]="unreadCount"
+    [matBadgeHidden]="unreadCount === 0" matBadgeColor="warn">
+    Chat
+  </a>
   } @if (!auth.isAuthenticated()) {
   <a mat-button routerLink="/login" routerLinkActive="active">Login</a>
   } @if (auth.isAuthenticated()) {
@@ -22,3 +25,6 @@
 <main class="app-shell">
   <router-outlet></router-outlet>
 </main>
+@if (router.url !== '/chat') {
+<app-footer></app-footer>
+}

@@ -1,0 +1,53 @@
+<div class="screen-container">
+    <!-- Header with back button -->
+    <div class="screen-header">
+        <button class="back-button" (click)="goBack.emit()">
+            <span class="back-arrow">←</span>
+            <span>Back</span>
+        </button>
+        <h1 class="screen-title">My Transactions</h1>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+    <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading your transactions...</p>
+    </div>
+    }
+
+    <!-- Error State -->
+    @if (error) {
+    <div class="error-state">
+        <p>{{ error }}</p>
+    </div>
+    }
+
+    <!-- Content -->
+    @if (!loading && !error) {
+    @if (transactions.length === 0) {
+    <div class="empty-state">
+        <span class="empty-icon">💳</span>
+        <h2>No Transactions Yet</h2>
+        <p>You haven't made any purchases yet. Browse products to find something you like!</p>
+        <a routerLink="/products" class="cta-button">Browse Products</a>
+    </div>
+    } @else {
+    <div class="transactions-list">
+        @for (item of transactions; track item.id) {
+        <a [routerLink]="['/products', item.id]" class="transaction-card">
+            <div class="transaction-icon">💳</div>
+            <div class="transaction-content">
+                <h3 class="transaction-title">{{ item.title }}</h3>
+                <div class="transaction-meta">
+                    <span class="transaction-seller">From: {{ item.seller_username }}</span>
+                    <span class="transaction-date">{{ item.sold_at | date:'mediumDate' }}</span>
+                </div>
+            </div>
+            <div class="transaction-price">{{ item.price }} €</div>
+        </a>
+        }
+    </div>
+    }
+    }
+</div>

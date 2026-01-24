@@ -1,52 +1,103 @@
+@use '../../../styles/cyberpunk-theme' as cyber;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CATEGORY SIDEBAR - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
+
 .category-shell {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--mat-sys-surface-variant) 45%, transparent);
+  gap: 12px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: cyber.$neon-cyan;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .breadcrumbs {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.85rem;
-  color: var(--mat-sys-on-surface-variant);
+  gap: 4px;
+  font-size: 10px;
+  color: cyber.$text-muted;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.crumb.active {
-  font-weight: 600;
-  color: var(--mat-sys-on-surface);
+.crumb {
+  cursor: pointer;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: cyber.$neon-cyan;
+  }
+
+  &.active {
+    font-weight: 600;
+    color: cyber.$text-main;
+  }
 }
 
 .sep {
-  opacity: 0.7;
+  opacity: 0.5;
+  color: cyber.$neon-cyan;
 }
 
 .category-list {
   display: grid;
-  gap: 0.5rem;
+  gap: 4px;
 }
 
 .category-item {
   justify-content: flex-start;
+  padding: 12px 16px !important;
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+  font-family: 'Courier New', monospace !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  color: cyber.$text-muted !important;
+  transition: all 0.3s ease !important;
+  border-radius: 0 !important;
+
+  &:hover {
+    background: rgba(0, 243, 255, 0.05) !important;
+    border-color: rgba(0, 243, 255, 0.2) !important;
+    color: cyber.$neon-cyan !important;
+  }
+
+  &.mat-mdc-button-disabled {
+    opacity: 0.4;
+  }
 }
 
 .empty {
   margin: 0;
-  color: var(--mat-sys-on-surface-variant);
+  color: cyber.$text-muted;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 0;
 }

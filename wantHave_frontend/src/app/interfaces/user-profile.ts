@@ -6,7 +6,9 @@ export interface UserProfile {
   bio: string;
   profile_picture: string | null;
   city: string;
+  zip_code?: string;
   country: string;
+  phone_number?: string;
   latitude: number | null;
   longitude: number | null;
   address: string;

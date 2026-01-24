@@ -1,0 +1,76 @@
+@use '../../../styles/cyberpunk-theme' as cyber;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FOOTER - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
+
+.app-footer {
+    background: cyber.$dark-bg;
+    border-top: 1px solid rgba(0, 243, 255, 0.1);
+    padding: 32px 0;
+    margin-top: auto;
+    width: 100%;
+    position: relative;
+
+    // Grid pattern
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+            linear-gradient(rgba(0, 243, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.02) 1px, transparent 1px);
+        background-size: 30px 30px;
+        pointer-events: none;
+    }
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.footer-links {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.footer-link {
+    color: cyber.$text-muted;
+    text-decoration: none;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    padding: 8px 0;
+
+    &:hover {
+        color: cyber.$neon-cyan;
+        text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+    }
+}
+
+.divider {
+    color: rgba(0, 243, 255, 0.3);
+    font-size: 6px;
+}
+
+.copyright {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: cyber.$text-muted;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}

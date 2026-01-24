@@ -13,6 +13,8 @@ import { Category } from '../../interfaces/category';
 import { Product } from '../../interfaces/product';
 import { CategoryService } from '../../services/category.service';
 import { ProductService } from '../../services/product.service';
+import { ProfileService } from '../../services/profile.service';
+import { AuthService } from '../../services/auth.service';
 import { CategorySidebarComponent } from '../category-sidebar/category-sidebar.component';
 
 @Component({
@@ -46,12 +48,50 @@ export class ProductListComponent implements OnInit {
   searchQuery = '';
   minPrice: number | null = null;
   maxPrice: number | null = null;
+  cityFilter = '';
+  watchlistIds: Set<number> = new Set();
+  currentUserId: number | null = null;
 
-  constructor(private productService: ProductService, private categoryService: CategoryService) {}
+  constructor(
+    private productService: ProductService,
+    private categoryService: CategoryService,
+    private profileService: ProfileService,
+    private authService: AuthService
+  ) { }
 
   ngOnInit() {
+    this.currentUserId = this.authService.getUserId();
     this.fetchCategories();
     this.fetchProducts();
+    if (this.authService.isAuthenticated()) {
+      this.fetchWatchlist();
+    }
+  }
+
+  fetchWatchlist() {
+    this.profileService.getWatchlist().subscribe({
+      next: (items) => {
+        this.watchlistIds = new Set(items.map(item => item.product.id));
+      },
+      error: (err) => console.error('Error loading watchlist', err)
+    });
+  }
+
+  toggleWatchlist(event: Event, product: Product) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (this.watchlistIds.has(product.id)) {
+      this.profileService.removeFromWatchlist(product.id).subscribe({
+        next: () => this.watchlistIds.delete(product.id),
+        error: (err) => console.error('Error removing from watchlist', err)
+      });
+    } else {
+      this.profileService.addToWatchlist(product.id).subscribe({
+        next: () => this.watchlistIds.add(product.id),
+        error: (err: any) => console.error('Error adding to watchlist', err)
+      });
+    }
   }
 
   fetchProducts(categoryId: number | null = this.selectedCategoryId) {
@@ -72,6 +112,10 @@ export class ProductListComponent implements OnInit {
     });
   }
 
+  userLat: number | null = null;
+  userLng: number | null = null;
+  locationError = '';
+
   sortProducts() {
     switch (this.sortBy) {
       case 'newest':
@@ -87,11 +131,71 @@ export class ProductListComponent implements OnInit {
       case 'price_desc':
         this.products.sort((a, b) => Number(b.price) - Number(a.price));
         break;
+      case 'distance_asc' as any:
+        if (this.userLat && this.userLng) {
+          this.products.sort((a, b) => {
+            const distA = this.calculateDistance(this.userLat!, this.userLng!, a.latitude ?? 0, a.longitude ?? 0);
+            const distB = this.calculateDistance(this.userLat!, this.userLng!, b.latitude ?? 0, b.longitude ?? 0);
+            return distA - distB;
+          });
+        }
+        break;
     }
   }
 
   onSortChange() {
-    this.sortProducts();
+    if (this.sortBy === 'distance_asc' as any) {
+      this.requestUserLocation();
+    } else {
+      this.sortProducts();
+    }
+  }
+
+  requestUserLocation() {
+    if (!navigator.geolocation) {
+      this.locationError = 'Geolocation is not supported by your browser.';
+      alert(this.locationError);
+      return;
+    }
+
+    this.loading = true; // Show loading while getting location
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.userLat = position.coords.latitude;
+        this.userLng = position.coords.longitude;
+        this.loading = false;
+        this.sortProducts();
+      },
+      (error) => {
+        this.loading = false;
+        console.warn('Geolocation denied or failed', error);
+        this.locationError = 'Could not get your location. Please enable location access.';
+        alert(this.locationError);
+        // Fallback or just keep current order
+        this.sortBy = 'newest'; // Revert to default
+        this.sortProducts();
+      }
+    );
+  }
+
+  // Haversine formula to calculate distance in km
+  calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    if (!lat2 || !lon2) return Infinity; // Put items without location at the end
+
+    const R = 6371; // Radius of the earth in km
+    const dLat = this.deg2rad(lat2 - lat1);
+    const dLon = this.deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+  }
+
+  deg2rad(deg: number): number {
+    return deg * (Math.PI / 180);
   }
 
   fetchCategories() {
@@ -146,6 +250,14 @@ export class ProductListComponent implements OnInit {
       filtered = filtered.filter(product => Number(product.price) <= this.maxPrice!);
     }
 
+    // City/Location filter
+    if (this.cityFilter.trim()) {
+      const city = this.cityFilter.toLowerCase();
+      filtered = filtered.filter(product =>
+        product.city?.toLowerCase().includes(city)
+      );
+    }
+
     return filtered;
   }
 
@@ -156,5 +268,9 @@ export class ProductListComponent implements OnInit {
   clearPriceFilter() {
     this.minPrice = null;
     this.maxPrice = null;
+  }
+
+  clearCityFilter() {
+    this.cityFilter = '';
   }
 }

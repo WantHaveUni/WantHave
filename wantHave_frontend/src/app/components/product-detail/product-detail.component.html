@@ -23,7 +23,14 @@
       }
 
       <div class="detail-body">
-        <p class="eyebrow">Listing</p>
+        <div class="header-row">
+          <p class="eyebrow">Listing</p>
+          @if (!isOwner) {
+          <button mat-icon-button (click)="toggleWatchlist($event)" class="watch-btn">
+            <mat-icon>{{ product && watchlistIds.has(product.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
+          </button>
+          }
+        </div>
         <h1>{{ product.title }}</h1>
         <p class="price">{{ product.price }} EUR</p>
         <p class="description">{{ product.description }}</p>
@@ -50,9 +57,9 @@
         } @else if (isOwner || auth.isAdmin()) {
         <div class="owner-actions">
           @if (isOwner) {
-          <button mat-stroked-button color="primary" (click)="openEditModal()">✏️ Edit</button>
+          <button mat-stroked-button color="primary" (click)="openEditModal()">Edit</button>
           }
-          <button mat-stroked-button color="warn" (click)="deleteProduct()">🗑️ Delete</button>
+          <button mat-stroked-button color="warn" (click)="deleteProduct()">Delete</button>
         </div>
         @if (isOwner) {
         <p class="hint">You own this listing.</p>

@@ -1,0 +1,510 @@
+from rest_framework import viewsets, permissions, status, generics, views, parsers
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from django.db import models as django_models
+from django.utils import timezone
+import stripe
+
+from .models import UserProfile, Product, Category, Order, StripeWebhookEvent
+from .serializers import (
+    UserProfileSerializer, UserProfileUpdateSerializer,
+    ProductSerializer, MyTokenObtainPairSerializer, CategorySerializer,
+    RegisterSerializer, OrderSerializer, CheckoutSessionSerializer
+)
+from .stripe_service import StripeService
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all().order_by('-created_at')
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Product.objects.all().order_by('-created_at')
+
+        # Filter out SOLD products from the main list
+        if self.action == 'list':
+            queryset = queryset.filter(status='AVAILABLE')
+
+        category_id = self.request.query_params.get('category')
+
+        if category_id:
+            try:
+                category = Category.objects.get(pk=category_id)
+            except Category.DoesNotExist:
+                return queryset.none()
+
+            category_ids = category.descendant_ids(include_self=True)
+            queryset = queryset.filter(category_id__in=category_ids)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(seller=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """Only the seller can update their product"""
+        product = self.get_object()
+        if product.seller != request.user:
+            return Response(
+                {'detail': 'You do not have permission to edit this product.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Only the seller or admin can delete their product"""
+        product = self.get_object()
+        
+        # Admin Override: User ID 1 can delete anything
+        is_admin = request.user.id == 1
+        
+        if not is_admin and product.seller != request.user:
+            return Response(
+                {'detail': 'You do not have permission to delete this product.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            product.delete()
+        except django_models.ProtectedError as e:
+            return Response(
+                {'detail': f'Cannot delete this product because it is referenced by other records (e.g. Orders/Conversations). Error: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def create_checkout_session(self, request, pk=None):
+        """
+        Create a Stripe Checkout session for purchasing this product.
+
+        Expected request body:
+        {
+            "success_url": "http://localhost:4200/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+            "cancel_url": "http://localhost:4200/checkout/cancel"
+        }
+        """
+        product = self.get_object()
+
+        # Validate product availability
+        if product.status != 'AVAILABLE':
+            return Response(
+                {'detail': 'This product is no longer available.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if product.seller == request.user:
+            return Response(
+                {'detail': 'You cannot buy your own product.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get redirect URLs
+        success_url = request.data.get('success_url')
+        cancel_url = request.data.get('cancel_url')
+
+        if not success_url or not cancel_url:
+            return Response(
+                {'detail': 'success_url and cancel_url are required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Create checkout session via Stripe service
+            session_data = StripeService.create_checkout_session(
+                product=product,
+                buyer_user=request.user,
+                success_url=success_url,
+                cancel_url=cancel_url
+            )
+
+            serializer = CheckoutSessionSerializer(session_data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except stripe.error.StripeError as e:
+            return Response(
+                {'detail': f'Payment service error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only viewset for managing users.
+    Only allows listing and destroying users.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer # Reuse existing serializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        # We need a serializer for User model, not UserProfile
+        from .serializers import UserSerializer
+        return UserSerializer
+
+    def get_queryset(self):
+        # Only admin (ID 1) can see all users
+        if self.request.user.id == 1:
+            return User.objects.all().order_by('id')
+        return User.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if request.user.id != 1:
+            return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        user_to_delete = self.get_object()
+        if user_to_delete.id == 1:
+             return Response({'detail': 'Cannot delete generic admin'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().destroy(request, *args, **kwargs)
+
+
+
+
+class AIAutofillView(views.APIView):
+    """
+    AI-powered auto-fill for product listings.
+    Accepts an image upload, analyzes it with Gemini Pro,
+    and returns suggested title, description, category, and price range.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    def post(self, request):
+        from .ai_service import analyze_product_image
+        
+        # Check if image was uploaded
+        if 'image' not in request.FILES:
+            return Response(
+                {'error': 'No image provided. Please upload an image.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        image_file = request.FILES['image']
+        
+        # Analyze the image with AI
+        try:
+            result = analyze_product_image(image_file)
+        except Exception as e:
+            return Response(
+                {'error': f'AI service error: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Check for errors from AI service
+        if 'error' in result and result.get('title') == '':
+            return Response(
+                {'error': result['error']},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Try to match or create the suggested category
+        category_name = result.get('category_suggestion', '')
+        category_id = None
+        
+        if category_name:
+            # Try to find existing category (case-insensitive)
+            category = Category.objects.filter(name__iexact=category_name).first()
+            
+            if not category:
+                # Create new category if it doesn't exist
+                category = Category.objects.create(name=category_name)
+            
+            category_id = category.id
+        
+        return Response({
+            'title': result.get('title', ''),
+            'description': result.get('description', ''),
+            'category_id': category_id,
+            'category_name': category_name,
+            'price_min': result.get('price_min', 0),
+            'price_max': result.get('price_max', 0)
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def buy(self, request, pk=None):
+        """Allow a user to buy a product (legacy endpoint - kept for backwards compatibility)"""
+        product = self.get_object()
+
+        if product.status == 'SOLD':
+             return Response(
+                {'detail': 'This product is already sold.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if product.seller == request.user:
+            return Response(
+                {'detail': 'You cannot buy your own product.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Mark as sold
+        product.status = 'SOLD'
+        product.buyer = request.user
+        product.sold_at = timezone.now()
+        product.save()
+
+        return Response(ProductSerializer(product).data)
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.AllowAny]
+
+class ProductDetailView(generics.RetrieveAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update', 'me']:
+            return UserProfileUpdateSerializer
+        return UserProfileSerializer
+
+    @action(detail=False, methods=['get', 'patch', 'delete'], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        """Get, update, or delete current user's profile"""
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            return Response(
+                {'detail': 'Profile not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        if request.method == 'GET':
+            serializer = UserProfileSerializer(profile)
+            return Response(serializer.data)
+        
+        elif request.method in ['PATCH', 'PUT']:
+            serializer = UserProfileUpdateSerializer(
+                profile, data=request.data, partial=True
+            )
+            if serializer.is_valid():
+                updated_profile = serializer.save()
+                # Return the full profile structure (with nested user) to the frontend
+                read_serializer = UserProfileSerializer(updated_profile)
+                return Response(read_serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif request.method == 'DELETE':
+            user = request.user
+            username = user.username
+            user.delete()
+            return Response(
+                {'detail': f'Account {username} and all associated data has been deleted.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+
+    @action(detail=True, methods=['get'])
+    def listings(self, request, pk=None):
+        """Get all listings by a user"""
+        try:
+            profile = self.get_object()
+            # Show all products (sold and available) for the profile owner
+            products = Product.objects.filter(seller=profile.user).order_by('-created_at')
+            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data)
+        except UserProfile.DoesNotExist:
+            return Response(
+                {'detail': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def purchases(self, request):
+        """Get all products bought by the current user"""
+        products = Product.objects.filter(buyer=request.user).order_by('-sold_at')
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+    def perform_create(self, serializer):
+        """Prevent direct profile creation via API"""
+        pass
+
+    def create(self, request, *args, **kwargs):
+        """Profiles should be created automatically with user registration"""
+        return Response(
+            {'detail': 'Profile creation is automatic upon user registration'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+
+# Order ViewSet
+class OrderViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for viewing orders"""
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """Return orders where user is buyer or seller"""
+        user = self.request.user
+        return Order.objects.filter(
+            django_models.Q(buyer=user) | django_models.Q(seller=user)
+        ).select_related('product', 'buyer', 'seller', 'payment').order_by('-created_at')
+
+    @action(detail=False, methods=['get'])
+    def my_purchases(self, request):
+        """Get all orders where user is the buyer"""
+        orders = Order.objects.filter(buyer=request.user).select_related(
+            'product', 'seller', 'payment'
+        ).order_by('-created_at')
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def my_sales(self, request):
+        """Get all orders where user is the seller"""
+        orders = Order.objects.filter(seller=request.user).select_related(
+            'product', 'buyer', 'payment'
+        ).order_by('-created_at')
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
+
+
+# Stripe Webhook Handler
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def stripe_webhook(request):
+    """
+    Handle Stripe webhook events.
+    This endpoint receives events from Stripe and processes them.
+    """
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+
+    if not sig_header:
+        return HttpResponse('Missing signature', status=400)
+
+    try:
+        # Verify webhook signature
+        event = StripeService.verify_webhook_signature(payload, sig_header)
+    except ValueError:
+        # Invalid payload
+        return HttpResponse('Invalid payload', status=400)
+    except stripe.error.SignatureVerificationError:
+        # Invalid signature
+        return HttpResponse('Invalid signature', status=400)
+
+    # Log webhook event
+    webhook_event, created = StripeWebhookEvent.objects.get_or_create(
+        event_id=event['id'],
+        defaults={
+            'event_type': event['type'],
+            'event_data': event['data']['object']
+        }
+    )
+
+    # Skip if already processed
+    if not created and webhook_event.processed:
+        return HttpResponse('Already processed', status=200)
+
+    # Handle different event types
+    event_type = event['type']
+    event_data = event['data']['object']
+
+    try:
+        if event_type == 'checkout.session.completed':
+            # Handle successful checkout
+            order = StripeService.handle_checkout_session_completed(event_data)
+            if order:
+                webhook_event.related_order = order
+
+        elif event_type == 'payment_intent.succeeded':
+            # Handle successful payment intent
+            StripeService.handle_payment_intent_succeeded(event_data)
+
+        elif event_type == 'payment_intent.payment_failed':
+            # Handle failed payment
+            order_id = event_data.get('metadata', {}).get('order_id')
+            if order_id:
+                try:
+                    order = Order.objects.get(id=order_id)
+                    order.status = 'FAILED'
+                    order.save(update_fields=['status'])
+                    webhook_event.related_order = order
+                except Order.DoesNotExist:
+                    pass
+
+        # Mark as processed
+        webhook_event.processed = True
+        webhook_event.processed_at = timezone.now()
+        webhook_event.save()
+
+        return HttpResponse('Success', status=200)
+
+    except Exception as e:
+        # Log error but return 200 to prevent Stripe retries
+        print(f"Webhook processing error: {e}")
+        return HttpResponse('Error processing webhook', status=500)
+
+
+class ChangePasswordView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        if not old_password or not new_password:
+            return Response({'detail': 'Both old and new passwords are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({'detail': 'Old password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 6:
+            return Response({'detail': 'New password must be at least 6 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+
+
+class ChangeEmailView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        new_email = request.data.get('new_email')
+        password = request.data.get('password')
+
+        if not new_email or not password:
+            return Response({'detail': 'New email and current password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(password):
+             return Response({'detail': 'Password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+             return Response({'detail': 'This email is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.email = new_email
+        user.save()
+
+        return Response({'detail': 'Email updated successfully.'}, status=status.HTTP_200_OK)

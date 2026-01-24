@@ -1,48 +1,65 @@
+@use '../../../styles/cyberpunk-theme' as cyber;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHAT COMPONENT - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
+
 .chat-container {
   display: flex;
   height: calc(100vh - 64px);
-  /* Adjust based on navbar height */
-  background-color: #f5f7fb;
+  background: cyber.$dark-bg;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SIDEBAR
+// ─────────────────────────────────────────────────────────────────────────────
+
 .chat-sidebar {
-  width: 300px;
-  background: white;
-  border-right: 1px solid #e0e0e0;
+  width: 320px;
+  background: cyber.$glass-panel;
+  border-right: 1px solid rgba(0, 243, 255, 0.1);
   display: flex;
   flex-direction: column;
+  backdrop-filter: blur(20px);
 }
 
 .sidebar-header {
-  padding: 20px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
   h3 {
-    margin: 0 0 10px 0;
-    font-size: 1.2rem;
-    color: #333;
+    margin: 0 0 16px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: cyber.$text-main;
+    text-transform: uppercase;
+    letter-spacing: 2px;
   }
 
   .new-chat {
     display: flex;
-    gap: 5px;
+    gap: 8px;
 
     input {
       flex: 1;
-      padding: 5px 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 0.9rem;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      color: cyber.$text-main;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+
+      &:focus {
+        outline: none;
+        border-color: cyber.$neon-cyan;
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+      }
     }
 
     button {
-      padding: 5px 10px;
-      background: #3f51b5;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
+      @include cyber.neon-button(cyber.$neon-cyan);
+      padding: 12px 16px !important;
+      font-size: 11px !important;
     }
   }
 }
@@ -54,16 +71,16 @@
   overflow-y: auto;
 
   li {
-    padding: 15px 20px;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
     cursor: pointer;
-    transition: background 0.2s;
-    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     position: relative;
 
     &:hover {
-      background-color: #f9f9f9;
+      background: rgba(0, 243, 255, 0.05);
 
       .delete-convo-btn {
         opacity: 1;
@@ -71,42 +88,50 @@
     }
 
     &.active {
-      background-color: #e3f2fd;
+      background: rgba(0, 243, 255, 0.1);
+      border-left: 2px solid cyber.$neon-cyan;
     }
   }
 }
 
 .delete-convo-btn {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 1rem;
+  background: transparent;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  color: #ff4757;
+  font-size: 12px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s, transform 0.2s;
-  padding: 5px;
-  border-radius: 4px;
+  transition: all 0.3s ease;
+  padding: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    background-color: #ffebee;
+    background: rgba(255, 71, 87, 0.1);
+    border-color: #ff4757;
     transform: translateY(-50%) scale(1.1);
   }
 }
 
 .convo-avatar .avatar-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #3f51b5;
-  color: white;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  margin-right: 15px;
+  margin-right: 16px;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  color: cyber.$neon-cyan;
+  font-family: 'Courier New', monospace;
 }
 
 .convo-details {
@@ -116,52 +141,50 @@
 
 .convo-name {
   font-weight: 600;
-  color: #333;
+  color: cyber.$text-main;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .convo-last-msg {
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 12px;
+  color: cyber.$text-muted;
   margin-top: 4px;
 }
 
 .convo-product {
-  font-size: 0.8rem;
-  color: #3f51b5;
-  font-style: italic;
-  margin-top: 2px;
+  font-size: 11px;
+  color: cyber.$neon-purple;
+  margin-top: 4px;
+  font-family: 'Courier New', monospace;
 }
 
-.product-badge {
-  font-size: 0.9rem;
-  color: #666;
-  font-weight: normal;
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// CHAT WINDOW
+// ─────────────────────────────────────────────────────────────────────────────
 
 .chat-window {
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: cyber.$dark-bg;
 }
 
-// Product Banner at top of chat
 .product-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(188, 19, 254, 0.1));
+  border-bottom: 1px solid rgba(0, 243, 255, 0.1);
   text-decoration: none;
   transition: all 0.3s ease;
   cursor: pointer;
 
   &:hover {
-    filter: brightness(1.1);
-
-    .product-banner-link {
-      transform: translateX(5px);
-    }
+    background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(188, 19, 254, 0.15));
   }
 }
 
@@ -172,98 +195,125 @@
 }
 
 .product-banner-title {
+  font-family: 'Courier New', monospace;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 13px;
+  color: cyber.$text-main;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .product-banner-price {
-  font-size: 1.2rem;
+  font-size: 18px;
   font-weight: 700;
+  color: cyber.$neon-cyan;
+  text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+  font-family: 'Courier New', monospace;
 }
 
 .product-banner-link {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 11px;
+  color: cyber.$neon-purple;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   transition: transform 0.2s ease;
 }
 
 .chat-header {
-  padding: 15px 20px;
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 16px 24px;
+  background: cyber.$glass-panel;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Courier New', monospace;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 14px;
+  color: cyber.$text-main;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
+
+.offer-btn {
+  @include cyber.neon-button(cyber.$neon-purple);
+  padding: 10px 20px !important;
+  font-size: 10px !important;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MESSAGES
+// ─────────────────────────────────────────────────────────────────────────────
 
 .messages-area {
   flex: 1;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .message-bubble {
   max-width: 70%;
-  padding: 10px 15px;
-  border-radius: 12px;
+  padding: 14px 18px;
   position: relative;
+  font-size: 14px;
+  line-height: 1.5;
 
   &.sent {
     align-self: flex-end;
-    background-color: #3f51b5;
-    color: white;
-    border-bottom-right-radius: 2px;
+    background: rgba(0, 243, 255, 0.15);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    color: cyber.$text-main;
   }
 
   &.received {
     align-self: flex-start;
-    background-color: #f8bbd9;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    border-bottom-left-radius: 2px;
+    background: rgba(188, 19, 254, 0.1);
+    border: 1px solid rgba(188, 19, 254, 0.2);
+    color: cyber.$text-main;
   }
 }
 
 .message-time {
-  font-size: 0.7rem;
-  margin-top: 5px;
-  opacity: 0.7;
+  font-size: 10px;
+  margin-top: 8px;
+  opacity: 0.6;
   text-align: right;
+  font-family: 'Courier New', monospace;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT
+// ─────────────────────────────────────────────────────────────────────────────
+
 .chat-input {
-  padding: 20px;
-  background: white;
-  border-top: 1px solid #e0e0e0;
+  padding: 20px 24px;
+  background: cyber.$glass-panel;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
-  gap: 10px;
+  gap: 12px;
 
   input {
     flex: 1;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 24px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    color: cyber.$text-main;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
     outline: none;
 
     &:focus {
-      border-color: #3f51b5;
+      border-color: cyber.$neon-cyan;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
     }
   }
 
   button {
-    padding: 0 25px;
-    background-color: #3f51b5;
-    color: white;
-    border: none;
-    border-radius: 24px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s;
-
-    &:hover {
-      background-color: #303f9f;
-    }
+    @include cyber.neon-button(cyber.$neon-cyan);
+    padding: 14px 28px !important;
   }
 }
 
@@ -272,80 +322,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
+  color: cyber.$text-muted;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 12px;
 }
 
-// Offer Button in header
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+// ─────────────────────────────────────────────────────────────────────────────
+// OFFERS
+// ─────────────────────────────────────────────────────────────────────────────
 
-  .chat-header-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-}
-
-.offer-btn {
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-}
-
-// Offer Cards Section
 .offers-section {
-  padding: 15px 20px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 16px 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   max-height: 200px;
   overflow-y: auto;
 }
 
 .offer-card {
-  background: white;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid #ddd;
+  @include cyber.glass-card;
+  padding: 16px;
+  margin-bottom: 12px;
 
   &.status-pending {
-    border-left-color: #ffc107;
-    background: linear-gradient(to right, #fffef5, white);
+    border-left: 2px solid cyber.$neon-purple;
   }
 
   &.status-accepted {
-    border-left-color: #28a745;
-    background: linear-gradient(to right, #f0fff4, white);
+    border-left: 2px solid cyber.$neon-cyan;
   }
 
   &.status-declined {
-    border-left-color: #dc3545;
-    background: linear-gradient(to right, #fff5f5, white);
-    opacity: 0.7;
-  }
-
-  &.status-cancelled {
-    border-left-color: #6c757d;
+    border-left: 2px solid #ff4757;
     opacity: 0.6;
   }
 
+  &.status-cancelled {
+    border-left: 2px solid cyber.$text-muted;
+    opacity: 0.5;
+  }
+
   &.status-paid {
-    border-left-color: #17a2b8;
-    background: linear-gradient(to right, #f0f9ff, white);
+    border-left: 2px solid cyber.$neon-cyan;
   }
 }
 
@@ -353,187 +373,138 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .offer-amount {
-  font-size: 1.3rem;
+  font-size: 20px;
   font-weight: 700;
-  color: #333;
+  color: cyber.$neon-cyan;
+  text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+  font-family: 'Courier New', monospace;
 }
 
 .offer-status {
-  font-size: 0.75rem;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: #e9ecef;
-  color: #666;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  background: rgba(0, 243, 255, 0.1);
+  color: cyber.$neon-cyan;
+  font-family: 'Courier New', monospace;
 }
 
 .offer-details {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 10px;
+  font-size: 11px;
+  color: cyber.$text-muted;
+  margin-bottom: 12px;
+  font-family: 'Courier New', monospace;
 }
 
 .offer-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
-.offer-waiting {
-  font-size: 0.85rem;
-  color: #888;
+.btn-accept {
+  @include cyber.neon-button(cyber.$neon-cyan);
+  padding: 10px 20px !important;
+  font-size: 10px !important;
+}
+
+.btn-decline,
+.btn-cancel {
+  @include cyber.neon-button(#ff4757);
+  padding: 10px 20px !important;
+  font-size: 10px !important;
+}
+
+.btn-pay {
+  @include cyber.neon-button(cyber.$neon-purple);
+  padding: 10px 24px !important;
+  font-size: 10px !important;
+  background: rgba(188, 19, 254, 0.1) !important;
+}
+
+.offer-waiting,
+.offer-declined,
+.offer-cancelled {
+  font-size: 11px;
+  color: cyber.$text-muted;
+  font-family: 'Courier New', monospace;
   font-style: italic;
 }
 
 .offer-success {
-  font-size: 0.9rem;
-  color: #28a745;
+  font-size: 12px;
+  color: cyber.$neon-cyan;
   font-weight: 600;
-  padding: 8px 12px;
-  background: #d4edda;
-  border-radius: 6px;
+  padding: 12px 16px;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.2);
   text-align: center;
+  font-family: 'Courier New', monospace;
 }
 
-.offer-declined {
-  font-size: 0.85rem;
-  color: #dc3545;
-  font-style: italic;
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────────────────────────────────────────
 
-.offer-cancelled {
-  font-size: 0.85rem;
-  color: #6c757d;
-  font-style: italic;
-}
-
-.btn-accept {
-  padding: 8px 16px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #218838;
-  }
-}
-
-.btn-decline {
-  padding: 8px 16px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #c82333;
-  }
-}
-
-.btn-pay {
-  padding: 8px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-}
-
-.btn-cancel {
-  padding: 8px 16px;
-  background: #f8f9fa;
-  color: #666;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #e9ecef;
-  }
-}
-
-// Modal Styles
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(5, 5, 5, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(20px);
 }
 
 .modal-content {
-  background: white;
-  border-radius: 16px;
+  @include cyber.glass-card;
   width: 100%;
-  max-width: 420px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  max-width: 450px;
+  overflow: hidden;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #eee;
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
   h3 {
     margin: 0;
-    font-size: 1.25rem;
-    color: #333;
+    @include cyber.section-title;
+    font-size: 14px;
   }
 }
 
 .modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #888;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 18px;
+  color: cyber.$text-muted;
   cursor: pointer;
   padding: 0;
-  line-height: 1;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 
   &:hover {
-    color: #333;
+    color: cyber.$neon-cyan;
+    border-color: cyber.$neon-cyan;
   }
 }
 
@@ -542,15 +513,16 @@
 }
 
 .product-info {
-  background: #f8f9fa;
-  padding: 15px;
-  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   margin-bottom: 20px;
+  font-size: 13px;
+  color: cyber.$text-muted;
   line-height: 1.6;
-  color: #555;
 
   strong {
-    color: #333;
+    color: cyber.$text-main;
   }
 }
 
@@ -558,64 +530,52 @@
   label {
     display: block;
     margin-bottom: 8px;
-    font-weight: 600;
-    color: #333;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: cyber.$neon-cyan;
+    font-family: 'Courier New', monospace;
   }
 
   input {
     width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    transition: border-color 0.2s;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    font-size: 16px;
+    color: cyber.$text-main;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s ease;
     box-sizing: border-box;
 
     &:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: cyber.$neon-cyan;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
     }
   }
 }
 
 .error-message {
-  margin-top: 10px;
-  padding: 10px;
-  background: #fff5f5;
-  border: 1px solid #dc3545;
-  border-radius: 6px;
-  color: #dc3545;
-  font-size: 0.9rem;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 71, 87, 0.1);
+  border-left: 2px solid #ff4757;
+  color: #ff4757;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 16px 24px;
-  border-top: 1px solid #eee;
-  background: #f8f9fa;
-  border-radius: 0 0 16px 16px;
+  padding: 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .btn-submit {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.2s;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  @include cyber.neon-button(cyber.$neon-cyan);
+  background: rgba(0, 243, 255, 0.1) !important;
 }

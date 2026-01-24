@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -14,7 +14,8 @@ import { take } from 'rxjs/operators';
     templateUrl: './chat.component.html',
     styleUrls: ['./chat.component.scss']
 })
-export class ChatComponent implements OnInit, OnDestroy {
+export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
+    @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
     conversations: Conversation[] = []
     selectedConversation: Conversation | null = null;
     messages: Message[] = [];
@@ -43,14 +44,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
 
         // Subscribe to incoming messages
+        // Subscribe to incoming messages
         this.chatService.messages$.subscribe(msg => {
-            this.ngZone.run(() => {
-                if (this.selectedConversation && this.selectedConversation.id == msg.conversation) {
-                    this.messages.push(msg);
-                } else if (!this.selectedConversation || this.selectedConversation.id != msg.conversation) {
-                    this.updateLastMessage(msg);
-                }
-            });
+            this.handleIncomingMessage(msg);
         });
 
         // Subscribe to offer updates
@@ -104,6 +100,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.messages = [];
         this.offers = [];
 
+        // Mark messages as read
+        this.chatService.markAsRead(conversation.id).subscribe({
+            error: (err) => console.error('Failed to mark as read', err)
+        });
+
         this.chatService.connect(conversation.id);
 
         this.chatService.getHistory(conversation.id).subscribe(msgs => {
@@ -114,6 +115,23 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatService.getConversationOffers(conversation.id).subscribe(offers => {
             this.offers = offers;
         });
+
+        this.scrollToBottom();
+    }
+
+    ngAfterViewChecked() {
+        // Optional: Continuous scrolling if needed, but better controlled via events
+        // this.scrollToBottom(); 
+    }
+
+    private scrollToBottom(): void {
+        try {
+            setTimeout(() => {
+                if (this.messagesContainer) {
+                    this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
+                }
+            }, 100); // Small delay to ensure DOM update
+        } catch (err) { }
     }
 
     sendMessage() {
@@ -139,11 +157,27 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
     }
 
-    updateLastMessage(msg: Message) {
-        const convo = this.conversations.find(c => c.id === msg.conversation);
-        if (convo) {
-            convo.last_message = msg;
-        }
+    handleIncomingMessage(msg: Message) {
+        this.ngZone.run(() => {
+            // Update messages list if this conversation is selected
+            if (this.selectedConversation && this.selectedConversation.id == msg.conversation) {
+                this.messages.push(msg);
+                this.scrollToBottom();
+            }
+
+            // Update last_message and move conversation to top
+            const index = this.conversations.findIndex(c => c.id === msg.conversation);
+            if (index > -1) {
+                const convo = this.conversations[index];
+                convo.last_message = msg;
+
+                // Move to top if not already there
+                if (index > 0) {
+                    this.conversations.splice(index, 1);
+                    this.conversations.unshift(convo);
+                }
+            }
+        });
     }
 
     deleteConversation(conversation: Conversation, event: Event): void {

@@ -10,17 +10,19 @@
             </div>
         </div>
         <ul class="conversation-list">
-            <li *ngFor="let convo of conversations" [class.active]="convo.id === selectedConversation?.id"
-                (click)="selectConversation(convo)">
+            @for (convo of conversations; track convo.id) {
+            <li [class.active]="convo.id === selectedConversation?.id" (click)="selectConversation(convo)">
                 <div class="convo-avatar">
                     <!-- Placeholder avatar -->
                     <div class="avatar-circle">{{ convo.participants[0]?.username?.charAt(0) | uppercase }}</div>
                 </div>
                 <div class="convo-details">
                     <span class="convo-name">
-                        <span *ngFor="let p of convo.participants">
+                        @for (p of convo.participants; track p.id) {
+                        <span>
                             <span *ngIf="p.id !== currentUser?.id">{{ p.username }}</span>
                         </span>
+                        }
                     </span>
                     <span class="convo-product" *ngIf="convo.product">
                         Re: {{ convo.product.title }}
@@ -34,6 +36,7 @@
                     🗑️
                 </button>
             </li>
+            }
         </ul>
     </div>
 
@@ -51,9 +54,11 @@
 
         <div class="chat-header">
             <div class="chat-header-info">
-                <span *ngFor="let p of selectedConversation.participants">
+                @for (p of selectedConversation.participants; track p.id) {
+                <span>
                     <span *ngIf="p.id !== currentUser?.id">{{ p.username }}</span>
                 </span>
+                }
             </div>
             <button *ngIf="canMakeOffer()" class="offer-btn" (click)="openOfferModal()">
                 💰 Make Offer
@@ -62,7 +67,8 @@
 
         <!-- Offer Cards Section -->
         <div class="offers-section" *ngIf="offers.length > 0">
-            <div *ngFor="let offer of offers" class="offer-card" [ngClass]="'status-' + offer.status.toLowerCase()">
+            @for (offer of offers; track offer.id) {
+            <div class="offer-card" [ngClass]="'status-' + offer.status.toLowerCase()">
                 <div class="offer-header">
                     <span class="offer-amount">€{{ offer.amount }}</span>
                     <span class="offer-status">{{ offer.status }}</span>
@@ -114,14 +120,17 @@
                     <span>🚫 Offer was cancelled</span>
                 </div>
             </div>
+            }
         </div>
 
-        <div class="messages-area">
-            <div *ngFor="let msg of messages" class="message-bubble" [class.sent]="msg.sender.id === currentUser?.id"
+        <div class="messages-area" #messagesContainer>
+            @for (msg of messages; track msg.id || msg.timestamp) {
+            <div class="message-bubble" [class.sent]="msg.sender.id === currentUser?.id"
                 [class.received]="msg.sender.id !== currentUser?.id">
                 <div class="message-content">{{ msg.content }}</div>
                 <div class="message-time">{{ msg.timestamp | date:'shortTime' }}</div>
             </div>
+            }
         </div>
 
         <div class="chat-input">
