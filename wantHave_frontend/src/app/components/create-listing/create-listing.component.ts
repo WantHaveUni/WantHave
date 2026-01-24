@@ -44,8 +44,6 @@ import { Category } from '../../interfaces/category';
 })
 export class CreateListingComponent implements AfterViewInit, OnDestroy {
     @ViewChild('spaceCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
-    @ViewChild('cursorDot') cursorDotRef!: ElementRef<HTMLDivElement>;
-    @ViewChild('cursorOutline') cursorOutlineRef!: ElementRef<HTMLDivElement>;
 
     // Dependency injection
     private http = inject(HttpClient);
@@ -90,8 +88,6 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
     private mouse3D = new THREE.Vector3();
     private mouseX = 0;
     private mouseY = 0;
-    private cursorX = 0;
-    private cursorY = 0;
     private raycaster = new THREE.Raycaster();
     private plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
     private clickPulse = 0;
@@ -474,35 +470,12 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
 
         this.camera.lookAt(0, 0, 0);
 
-        this.updateCursor();
         this.composer.render();
     };
-
-    private updateCursor(): void {
-        if (!this.cursorDotRef?.nativeElement || !this.cursorOutlineRef?.nativeElement) return;
-        const dot = this.cursorDotRef.nativeElement;
-        const outline = this.cursorOutlineRef.nativeElement;
-        dot.style.left = `${this.cursorX}px`;
-        dot.style.top = `${this.cursorY}px`;
-        const outlineX = parseFloat(outline.style.left || '0') || 0;
-        const outlineY = parseFloat(outline.style.top || '0') || 0;
-        outline.style.left = `${outlineX + (this.cursorX - outlineX) * 0.2}px`;
-        outline.style.top = `${outlineY + (this.cursorY - outlineY) * 0.2}px`;
-
-        if (this.clickPulse > 0.1) {
-            outline.style.width = `${40 + this.clickPulse * 50}px`;
-            outline.style.height = `${40 + this.clickPulse * 50}px`;
-        } else {
-            outline.style.width = '40px';
-            outline.style.height = '40px';
-        }
-    }
 
     private onMouseMove(event: MouseEvent): void {
         this.mouseX = event.clientX - window.innerWidth / 2;
         this.mouseY = event.clientY - window.innerHeight / 2;
-        this.cursorX = event.clientX;
-        this.cursorY = event.clientY;
 
         const x = (event.clientX / window.innerWidth) * 2 - 1;
         const y = -(event.clientY / window.innerHeight) * 2 + 1;

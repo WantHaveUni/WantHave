@@ -1,29 +1,51 @@
+@use '../../../styles/cyberpunk-theme' as cyber;
 @use '../shared-profile-styles.scss';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PROFILE COMPONENT - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
 
 // Profile Container
 .profile-container {
   min-height: 100vh;
+  background: cyber.$dark-bg;
 
-  // Use profile overview background when not in edit mode
   &:not(.edit-mode) {
-    background: linear-gradient(180deg, #1a1a2e 0%, #0a0a1a 100%);
+
+    // Grid background
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        linear-gradient(rgba(0, 243, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.02) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
   }
 }
 
-// ----------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 // OVERVIEW / MENU STYLES
-// ----------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 
 .profile-overview-container {
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 // Header Section
 .profile-header {
   position: relative;
-  padding-bottom: 2rem;
+  padding-bottom: 32px;
   overflow: hidden;
-  margin-bottom: 0; // Override default
+  margin-bottom: 0;
 }
 
 .header-pattern {
@@ -32,9 +54,11 @@
   left: 0;
   right: 0;
   height: 200px;
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 50%, #0D47A1 100%);
+  background: linear-gradient(135deg,
+      rgba(0, 243, 255, 0.15) 0%,
+      rgba(188, 19, 254, 0.2) 50%,
+      rgba(0, 243, 255, 0.1) 100%);
 
-  // Decorative pattern overlay
   &::before {
     content: '';
     position: absolute;
@@ -43,8 +67,19 @@
     right: 0;
     bottom: 0;
     background-image:
-      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.3;
+      linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(to top, cyber.$dark-bg, transparent);
   }
 }
 
@@ -54,7 +89,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 3rem;
+  padding-top: 48px;
 }
 
 .avatar-wrapper {
@@ -62,9 +97,12 @@
   height: 120px;
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 3px solid cyber.$neon-cyan;
+  box-shadow:
+    0 0 30px rgba(0, 243, 255, 0.4),
+    0 0 60px rgba(188, 19, 254, 0.2);
+  background: cyber.$glass-panel;
+  animation: pulse-glow 3s ease-in-out infinite;
 }
 
 .avatar-image {
@@ -79,357 +117,171 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(188, 19, 254, 0.2));
 
   .avatar-icon {
-    font-size: 3rem;
-    filter: brightness(0) invert(1);
+    font-size: 48px;
+    filter: grayscale(1) brightness(2);
   }
 }
 
 .username {
-  margin: 1rem 0 0.5rem;
-  font-size: 1.5rem;
+  margin: 16px 0 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 24px;
   font-weight: 600;
-  color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.view-public-profile {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.9rem;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-  }
+  color: cyber.$text-main;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
 }
 
 // Menu Sections
 .menu-section {
-  background: rgba(30, 30, 50, 0.6);
-  margin: 1rem;
-  border-radius: 16px;
-  overflow: hidden;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  @include cyber.glass-card;
+  margin: 20px;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  padding: 0;
+  overflow: hidden;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 1rem 1.25rem;
+  padding: 16px 20px;
   text-decoration: none;
-  color: #f8fafc;
-  transition: all 0.2s ease;
+  color: cyber.$text-main;
+  transition: all 0.3s ease;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 
   &:last-child {
     border-bottom: none;
   }
 
   &:hover {
-    background: rgba(139, 92, 246, 0.1);
-  }
+    background: rgba(0, 243, 255, 0.05);
 
-  &:active {
-    background: rgba(139, 92, 246, 0.2);
+    .menu-icon {
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+    }
+
+    .menu-label {
+      color: cyber.$neon-cyan;
+    }
+
+    .menu-arrow {
+      color: cyber.$neon-cyan;
+      transform: translateX(4px);
+    }
   }
 }
 
 .menu-icon {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(59, 130, 246, 0.3) 100%);
-  border-radius: 12px;
-  margin-right: 1rem;
+  font-size: 20px;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  margin-right: 16px;
+  transition: all 0.3s ease;
 }
 
 .menu-label {
   flex: 1;
-  font-size: 1rem;
+  font-size: 14px;
   font-weight: 500;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
 }
 
 .menu-badge {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  background: cyber.$neon-purple;
   color: white;
-  font-size: 0.7rem;
+  font-size: 9px;
   font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: 6px;
-  margin-right: 0.5rem;
+  padding: 4px 8px;
+  margin-right: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
 }
 
 .menu-arrow {
-  font-size: 1.5rem;
-  color: #64748b;
+  font-size: 20px;
+  color: cyber.$text-muted;
   font-weight: 300;
+  transition: all 0.3s ease;
 }
 
 .menu-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-  margin: 0.5rem auto;
+  background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
+  margin: 8px auto;
   max-width: 600px;
   width: 90%;
 }
 
-// Theme Toggle
-.theme-toggle {
-  .menu-arrow {
-    display: none;
-  }
-}
-
-.theme-switch {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 0.25rem;
-  border-radius: 20px;
-}
-
-.theme-option {
-  padding: 0.35rem 0.5rem;
-  border-radius: 16px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  opacity: 0.5;
-
-  &.active {
-    background: rgba(139, 92, 246, 0.5);
-    opacity: 1;
-  }
-}
-
-// ----------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 // EDIT FORM STYLES
-// ----------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 
 .profile-edit-container {
   max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 32px auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .edit-header {
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
 
   h2 {
-    color: #f8fafc;
+    @include cyber.section-title;
     margin: 0;
   }
 }
 
-.current-picture {
-  text-align: center;
-  margin-bottom: 1rem;
-
-  .preview-picture {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #007bff;
-  }
-}
-
-.file-selected {
-  margin-top: 0.5rem;
-  color: #28a745;
-  font-size: 0.9rem;
-  font-style: italic;
-}
-
 .form-section {
-  background: rgba(30, 30, 50, 0.8);
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  @include cyber.glass-card;
+  padding: 24px;
+  margin-bottom: 24px;
 
   h3 {
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
-    color: #f8fafc;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 0.5rem;
+    margin-bottom: 20px;
+    font-size: 11px;
+    color: cyber.$neon-cyan;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
   }
 }
-
-
-
-.form-group {
-  margin-bottom: 1.5rem;
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #cbd5e1;
-  }
-
-  input[type="text"],
-  input[type="email"],
-  textarea {
-    width: 100%;
-    padding: 0.75rem;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    font-size: 1rem;
-    font-family: inherit;
-    color: white;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: none;
-      border-color: #8b5cf6;
-      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
-    }
-
-    &.disabled-input {
-      background: rgba(255, 255, 255, 0.05);
-      color: #94a3b8;
-      cursor: not-allowed;
-    }
-  }
-
-  input[type="file"] {
-    color: #cbd5e1;
-  }
-
-  textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-}
-
-.field-note {
-  font-size: 0.85rem;
-  color: #94a3b8;
-  font-style: italic;
-  margin-top: -1rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  margin-bottom: 3rem;
-
-  button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-  }
-
-  .save-button {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    color: white;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-    }
-  }
-
-  .cancel-button {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.2);
-    }
-  }
-}
-
-.danger-zone {
-  margin-top: 3rem;
-  padding: 1.5rem;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  background-color: rgba(239, 68, 68, 0.05);
-
-  h3 {
-    margin-top: 0;
-    color: #ef4444;
-  }
-
-  .delete-button {
-    background-color: #dc3545;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s;
-
-    &:hover {
-      background-color: #c82333;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .profile-header {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-// ----------------------------------------
-// NEW EDIT STYLES
-// ----------------------------------------
 
 .profile-picture-section {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  background: transparent !important; // override default
+  background: transparent !important;
   border: none !important;
   padding-bottom: 0 !important;
+
+  // Remove corner decorations
+  &::before,
+  &::after {
+    display: none;
+  }
 }
 
 .picture-wrapper {
@@ -443,26 +295,29 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #3b82f6; // Blue border
+  border: 3px solid cyber.$neon-cyan;
+  box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
 }
 
 .camera-icon-label {
   position: absolute;
   bottom: 0;
   right: 0;
-  background: white;
-  width: 32px;
-  height: 32px;
+  background: cyber.$neon-purple;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s;
+  box-shadow: 0 0 15px rgba(188, 19, 254, 0.5);
+  transition: all 0.3s ease;
+  border: 2px solid cyber.$dark-bg;
 
   &:hover {
     transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(188, 19, 254, 0.7);
   }
 }
 
@@ -470,41 +325,118 @@
   display: none;
 }
 
+.form-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: cyber.$neon-cyan;
+    font-family: 'Courier New', monospace;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    font-size: 14px;
+    color: cyber.$text-main;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: cyber.$neon-cyan;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    &[readonly] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
 .small-col {
   max-width: 120px;
 }
 
-.form-group.with-button {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
+.private-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 16px;
 
   .input-wrapper {
-    flex: 1;
-
     label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: cyber.$neon-cyan;
+      font-family: 'Courier New', monospace;
     }
 
     input {
       width: 100%;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      padding: 0 18px;
+      color: cyber.$text-main;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+
+      &[readonly] {
+        opacity: 0.6;
+      }
     }
   }
 }
 
 .change-btn {
-  padding: 0.75rem 1rem;
-  background: transparent;
-  border: 1px solid #3b82f6;
-  color: #3b82f6;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  height: 44px; // match input height roughly
+  @include cyber.neon-button(cyber.$neon-purple);
+  height: 48px;
+  min-width: 100px;
+  padding: 0 16px !important;
+  font-size: 10px !important;
+}
 
-  &:hover {
-    background: rgba(59, 130, 246, 0.1);
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 32px;
+  margin-bottom: 48px;
+
+  .save-button {
+    @include cyber.neon-button(cyber.$neon-cyan);
+    background: rgba(0, 243, 255, 0.1) !important;
+  }
+
+  .cancel-button {
+    @include cyber.neon-button(cyber.$text-muted);
   }
 }
 
@@ -515,172 +447,139 @@
 // Security Change Panel
 .security-change-panel {
   background: rgba(0, 0, 0, 0.4);
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 1.5rem;
-  margin-top: -1rem; // Pull closer to the label above
-  animation: slideDown 0.3s ease;
+  padding: 24px;
+  border: 1px solid rgba(0, 243, 255, 0.1);
+  margin-bottom: 20px;
+  animation: fade-in-up 0.4s ease;
 
   h4 {
     margin-top: 0;
-    margin-bottom: 1rem;
-    color: #e2e8f0;
-    font-size: 1.1rem;
+    margin-bottom: 16px;
+    color: cyber.$text-main;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
   }
 }
 
 .small-actions {
-  margin-top: 1rem;
+  margin-top: 16px;
   margin-bottom: 0;
   justify-content: flex-end;
 
   button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    padding: 10px 20px !important;
+    font-size: 10px !important;
   }
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+// Alerts
 .edit-error-alert {
-  background: rgba(220, 38, 38, 0.2); // Red background with opacity
-  border: 1px solid rgba(220, 38, 38, 0.5);
-  color: #fecaca; // Light red text
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: pre-line;
+  background: rgba(255, 71, 87, 0.1);
+  border-left: 2px solid #ff4757;
+  color: #ff4757;
+  padding: 16px;
+  margin-bottom: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
 
   &::before {
-    content: '⚠️';
+    content: '⚠ ';
   }
 }
 
 .edit-success-alert {
-  background: rgba(34, 197, 94, 0.2); // Green background
-  border: 1px solid rgba(34, 197, 94, 0.5);
-  color: #bbf7d0; // Light green text
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  background: rgba(0, 243, 255, 0.1);
+  border-left: 2px solid cyber.$neon-cyan;
+  color: cyber.$neon-cyan;
+  padding: 16px;
+  margin-bottom: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
 
   &::before {
-    content: '✅';
+    content: '✓ ';
   }
 }
 
-// Override input styles for better visibility
-.form-group {
+.small-alert {
+  padding: 12px;
+  font-size: 11px;
+}
 
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  textarea {
-    background: rgba(255, 255, 255, 0.08) !important; // Lighter background
-    border-color: rgba(255, 255, 255, 0.2) !important;
-    height: 45px; // Enforce consistent height
-    border-radius: 8px !important; // Enforce consistent rounding
+// Danger Zone
+.danger-zone {
+  margin-top: 48px;
+  padding: 24px;
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  background: rgba(255, 71, 87, 0.05);
 
-    // Typography & Spacing
-    font-family: inherit !important;
-    font-size: 1rem !important;
-    padding: 0 1rem !important;
-    color: #f8fafc !important;
+  h3 {
+    margin-top: 0;
+    color: #ff4757;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+  }
 
-    &::placeholder {
-      font-family: inherit;
-      color: #94a3b8;
-    }
-
-    &:focus {
-      background: rgba(255, 255, 255, 0.12) !important;
-      border-color: #8b5cf6 !important;
-    }
-
-    &.disabled-input {
-      background: rgba(255, 255, 255, 0.08) !important; // Match active input
-      color: #94a3b8;
-      opacity: 0.8;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important; // Match active border
-      cursor: default;
-    }
+  .delete-button {
+    @include cyber.neon-button(#ff4757);
+    background: rgba(255, 71, 87, 0.1) !important;
   }
 }
 
-// Private Data Row (Email/Password) - Grid Layout
-.private-row {
-  display: grid;
-  grid-template-columns: 1fr auto; // 1fr for input, auto for button
-  align-items: end;
-  gap: 1rem;
-  margin-bottom: 1rem;
+// Loading/Error States
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  @include cyber.glass-card;
+  max-width: 400px;
+  margin: 20px auto;
 
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    color: #e2e8f0;
+  p {
+    margin: 0;
+    color: cyber.$text-muted;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
+
+.error-state p {
+  color: #ff4757;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE
+// ─────────────────────────────────────────────────────────────────────────────
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
   }
 
-  input {
-    width: 100%;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    padding: 0 1rem;
-    color: #f8fafc;
-    font-family: inherit;
-    font-size: 1rem;
+  .private-row {
+    grid-template-columns: 1fr;
 
-    // Read-only specific style
-    &[readonly] {
-      cursor: default;
-      opacity: 1; // Ensure full visibility
-      background: rgba(255, 255, 255, 0.05); // Slightly distinct but clean
-    }
-
-    &:focus {
-      outline: none;
-      border-color: #8b5cf6;
-      background: rgba(255, 255, 255, 0.12);
+    .change-btn {
+      width: 100%;
+      justify-content: center;
     }
   }
 
-  .change-btn {
-    height: 45px;
-    min-width: 120px;
-    border-radius: 8px;
-    border: 1px solid #3b82f6;
-    background: transparent;
-    color: #3b82f6;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 0 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+  .form-actions {
+    flex-direction: column;
 
-    &:hover {
-      background: rgba(59, 130, 246, 0.1);
+    button {
+      width: 100%;
+      justify-content: center;
     }
   }
 }

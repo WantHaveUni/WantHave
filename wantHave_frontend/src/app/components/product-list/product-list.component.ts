@@ -63,7 +63,9 @@ export class ProductListComponent implements OnInit {
     this.currentUserId = this.authService.getUserId();
     this.fetchCategories();
     this.fetchProducts();
-    this.fetchWatchlist();
+    if (this.authService.isAuthenticated()) {
+      this.fetchWatchlist();
+    }
   }
 
   fetchWatchlist() {

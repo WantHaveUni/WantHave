@@ -57,7 +57,9 @@ export class ProductDetailComponent implements OnInit {
     }
 
     this.fetchProduct(id);
-    this.fetchWatchlist();
+    if (this.auth.isAuthenticated()) {
+      this.fetchWatchlist();
+    }
   }
 
   fetchWatchlist() {

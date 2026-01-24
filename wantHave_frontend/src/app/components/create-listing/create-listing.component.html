@@ -1,8 +1,4 @@
 <div class="space-container">
-    <!-- CUSTOM CURSOR (tracked by JS) -->
-    <div class="cursor-dot" #cursorDot></div>
-    <div class="cursor-outline" #cursorOutline></div>
-
     <!-- Three.js Background -->
     <div class="three-container">
         <canvas #spaceCanvas class="space-canvas"></canvas>
@@ -17,12 +13,10 @@
         @if (!previewMode()) {
         <!-- EDIT MODE -->
         <mat-card class="listing-card hover-trigger">
-            <mat-card-header>
-                <div class="glitch-wrapper">
-                    <mat-card-title class="glitch" data-text="CREATE NEW LISTING">CREATE NEW LISTING</mat-card-title>
-                </div>
-                <mat-card-subtitle>Upload an image and let AI analyze your product</mat-card-subtitle>
-            </mat-card-header>
+            <div class="card-header">
+                <h1 class="card-title glitch" data-text="CREATE NEW LISTING">CREATE NEW LISTING</h1>
+                <p class="card-subtitle">Upload an image and let AI analyze your product</p>
+            </div>
 
             <mat-card-content>
                 <!-- Image Upload Section -->

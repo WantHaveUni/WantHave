@@ -1,26 +1,36 @@
 @use '../shared-profile-styles.scss';
+@use '../../../styles/cyberpunk-theme' as cyber;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WATCHLIST - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
 
 .watchlist-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
+    gap: 20px;
+    padding: 24px;
+    position: relative;
+    z-index: 1;
 }
 
 .watchlist-card {
     position: relative;
-    background: rgba(30, 30, 50, 0.8);
-    border-radius: 12px;
+    @include cyber.glass-card;
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
     &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 32px rgba(139, 92, 246, 0.2);
-        border-color: rgba(139, 92, 246, 0.3);
+        transform: translateY(-8px);
+        box-shadow:
+            0 40px 100px -30px rgba(0, 0, 0, 0.9),
+            0 0 80px rgba(255, 0, 193, 0.15);
+
+        .watchlist-image {
+            transform: scale(1.05);
+        }
 
         .remove-button {
             opacity: 1;
@@ -32,6 +42,8 @@
     width: 100%;
     height: 180px;
     object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .watchlist-image-placeholder {
@@ -40,77 +52,74 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%);
-    font-size: 3rem;
+    background: rgba(0, 0, 0, 0.4);
+    font-size: 48px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .watchlist-content {
-    padding: 1rem;
+    padding: 20px;
 }
 
 .watchlist-title {
-    margin: 0 0 0.5rem;
-    font-size: 1rem;
+    margin: 0 0 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
     font-weight: 600;
-    color: #f8fafc;
+    color: cyber.$text-main;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-right: 2rem;
+    padding-right: 32px;
 }
 
 .watchlist-price {
     display: block;
-    font-size: 1.25rem;
+    font-size: 20px;
     font-weight: 700;
-    color: #fbbf24;
+    color: cyber.$neon-pink;
+    text-shadow: 0 0 15px rgba(255, 0, 193, 0.5);
+    font-family: 'Courier New', monospace;
 }
 
 .remove-button {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    width: 32px;
-    height: 32px;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(239, 68, 68, 0.9);
-    color: white;
-    border: none;
-    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.3);
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 14px;
     opacity: 0;
     transition: all 0.3s ease;
 
     &:hover {
-        background: #ef4444;
+        background: rgba(255, 71, 87, 0.2);
+        border-color: #ff4757;
+        box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
         transform: scale(1.1);
     }
 }
 
 .cta-button {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-    color: white;
+    @include cyber.neon-button(cyber.$neon-pink);
+    margin-top: 20px;
     text-decoration: none;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
-    }
 }
 
 @media (max-width: 480px) {
     .watchlist-grid {
         grid-template-columns: 1fr;
-        padding: 0.75rem;
+        padding: 16px;
     }
 
     .remove-button {

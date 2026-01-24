@@ -1,13 +1,18 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
+// ═══════════════════════════════════════════════════════════════════════════
+// GLOBAL STYLES - WantHave Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
+
 @use '@angular/material' as mat;
+@use './styles/cyberpunk-theme' as cyber;
+@use "sass:color";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ANGULAR MATERIAL THEME
+// ─────────────────────────────────────────────────────────────────────────────
 
 html {
-  @include mat.theme((color: (primary: mat.$violet-palette,
-        tertiary: mat.$cyan-palette,
+  @include mat.theme((color: (primary: mat.$cyan-palette,
+        tertiary: mat.$violet-palette,
         theme-type: dark,
       ),
       typography: Roboto,
@@ -15,73 +20,175 @@ html {
     ));
 }
 
-body {
-  // Enable dark color scheme
-  color-scheme: dark;
+// ─────────────────────────────────────────────────────────────────────────────
+// GLOBAL BASE STYLES
+// ─────────────────────────────────────────────────────────────────────────────
 
-  // Dark space background
-  background-color: #000000;
-  color: #f8fafc;
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
-  margin: 0;
-}
-
-/* Global styles for dark space theme */
 html,
 body {
   height: 100%;
-  background: #000000;
-}
-
-body {
+  background: cyber.$dark-bg;
+  color-scheme: dark;
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-// Override Material components for dark theme
-.mat-mdc-card {
-  --mdc-elevated-card-container-color: rgba(10, 10, 30, 0.85);
+body {
+  color: cyber.$text-main;
+  font: var(--mat-sys-body-medium);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MATERIAL COMPONENT OVERRIDES
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Cards
+.mat-mdc-card {
+  --mdc-elevated-card-container-color: #{cyber.$glass-panel};
+  border-radius: 0 !important;
+}
+
+// Select Dropdown
 .mat-mdc-select-panel {
-  background: #0a0a1a !important;
+  background: rgba(5, 5, 10, 0.95) !important;
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 0 !important;
+}
+
+// Select Trigger (the visible part)
+.mat-mdc-select {
+  font-family: 'Courier New', monospace !important;
+  font-size: 13px !important;
+}
+
+.mat-mdc-select-trigger {
+  padding: 8px 12px !important;
+}
+
+.mat-mdc-select-value {
+  color: cyber.$text-main !important;
+  font-family: 'Courier New', monospace !important;
+}
+
+.mat-mdc-select-arrow {
+  color: cyber.$neon-cyan !important;
+}
+
+.mat-mdc-select-placeholder {
+  color: cyber.$text-muted !important;
 }
 
 .mat-mdc-option {
-  color: #f8fafc !important;
+  color: cyber.$text-main !important;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
 
   &:hover {
-    background: rgba(139, 92, 246, 0.1) !important;
+    background: rgba(0, 243, 255, 0.1) !important;
+  }
+
+  &.mat-mdc-option-active,
+  &.mdc-list-item--selected {
+    background: rgba(0, 243, 255, 0.15) !important;
   }
 }
 
-// Leaflet Custom Icons
+// Snackbar
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: #{cyber.$glass-panel};
+  --mdc-snackbar-supporting-text-color: #fff;
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 0 !important;
+
+  .mdc-snackbar__label {
+    color: #fff !important;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+  }
+
+  .mdc-snackbar__surface {
+    background: rgba(0, 0, 0, 0.9) !important;
+  }
+
+  .mat-mdc-button {
+    color: cyber.$neon-cyan !important;
+  }
+}
+
+// Dialog
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: #{cyber.$glass-panel};
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 0 !important;
+}
+
+// Tooltip
+.mat-mdc-tooltip {
+  --mdc-plain-tooltip-container-color: #{cyber.$glass-panel};
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  border-radius: 0 !important;
+
+  .mdc-tooltip__surface {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+// Progress Spinner
+.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: #{cyber.$neon-cyan};
+}
+
+// Tabs
+.mat-mdc-tab-group {
+  .mat-mdc-tab {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 11px;
+  }
+
+  .mat-mdc-tab-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .mdc-tab-indicator__content--underline {
+    border-color: cyber.$neon-cyan !important;
+    box-shadow: 0 0 10px cyber.$neon-cyan;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAP MARKERS (Leaflet)
+// ─────────────────────────────────────────────────────────────────────────────
+
 .center-dot-marker {
-  background: #7c3aed;
+  background: cyber.$neon-purple;
   border: 1px solid #fff;
   border-radius: 50%;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px cyber.$neon-purple;
 
   &:hover {
-    background: #8b5cf6;
+    background: color.adjust(cyber.$neon-purple, $lightness: 10%);
     transform: scale(1.1);
   }
 }
 
-// Custom Cluster Styles
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
-  background-color: rgba(139, 92, 246, 0.6) !important; // Violet outer ring
+  background-color: rgba(188, 19, 254, 0.6) !important;
 
   div {
-    background-color: #7c3aed !important; // Darker violet center
+    background-color: cyber.$neon-purple !important;
     color: white !important;
     font-size: 14px !important;
     font-weight: bold !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 10px cyber.$neon-purple;
   }
 }
 
@@ -101,4 +208,35 @@ body {
     align-items: center;
     justify-content: center;
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCROLLBAR
+// ─────────────────────────────────────────────────────────────────────────────
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: cyber.$dark-bg;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 243, 255, 0.3);
+  border-radius: 0;
+
+  &:hover {
+    background: rgba(0, 243, 255, 0.5);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SELECTION
+// ─────────────────────────────────────────────────────────────────────────────
+
+::selection {
+  background: rgba(0, 243, 255, 0.3);
+  color: white;
 }

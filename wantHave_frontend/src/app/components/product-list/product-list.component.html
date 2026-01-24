@@ -4,15 +4,12 @@
     <h1>Products listed:</h1>
   </div>
   <div class="hero-actions">
-    <mat-form-field appearance="outline" class="sort-field">
-      <mat-label>Sort by</mat-label>
-      <mat-select [(value)]="sortBy" (selectionChange)="onSortChange()">
-        <mat-option value="newest">Newest first</mat-option>
-        <mat-option value="price_asc">Price: Low to High</mat-option>
-        <mat-option value="price_desc">Price: High to Low</mat-option>
-        <mat-option value="distance_asc">Distance: Near Me</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <mat-select [(value)]="sortBy" (selectionChange)="onSortChange()" class="sort-select">
+      <mat-option value="newest">Newest first</mat-option>
+      <mat-option value="price_asc">Price: Low to High</mat-option>
+      <mat-option value="price_desc">Price: High to Low</mat-option>
+      <mat-option value="distance_asc">Distance: Near Me</mat-option>
+    </mat-select>
     <button mat-stroked-button color="primary" (click)="fetchProducts()">Refresh list</button>
   </div>
 </section>
