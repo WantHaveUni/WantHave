@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink } from '@angular/router';
 import { Category } from '../../interfaces/category';
 import { Product } from '../../interfaces/product';
@@ -30,6 +31,7 @@ import { CategorySidebarComponent } from '../category-sidebar/category-sidebar.c
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
+    MatSidenavModule,
     RouterLink,
     CategorySidebarComponent,
   ],
@@ -52,6 +54,11 @@ export class ProductListComponent implements OnInit {
   watchlistIds: Set<number> = new Set();
   currentUserId: number | null = null;
 
+  // Mobile filter drawer state
+  isFilterDrawerOpen = signal(false);
+  isMobile = signal(false);
+  private readonly MOBILE_BREAKPOINT = 768;
+
   constructor(
     private productService: ProductService,
     private categoryService: CategoryService,
@@ -61,11 +68,41 @@ export class ProductListComponent implements OnInit {
 
   ngOnInit() {
     this.currentUserId = this.authService.getUserId();
+    this.checkMobile();
     this.fetchCategories();
     this.fetchProducts();
     if (this.authService.isAuthenticated()) {
       this.fetchWatchlist();
     }
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkMobile();
+  }
+
+  private checkMobile() {
+    this.isMobile.set(window.innerWidth < this.MOBILE_BREAKPOINT);
+    if (!this.isMobile()) {
+      this.isFilterDrawerOpen.set(false);
+    }
+  }
+
+  toggleFilterDrawer() {
+    this.isFilterDrawerOpen.update(v => !v);
+  }
+
+  closeFilterDrawer() {
+    this.isFilterDrawerOpen.set(false);
+  }
+
+  clearAllFilters() {
+    this.searchQuery = '';
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.cityFilter = '';
+    this.selectedCategoryId = null;
+    this.fetchProducts(null);
   }
 
   fetchWatchlist() {
