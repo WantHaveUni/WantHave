@@ -555,7 +555,13 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
                 this.isAnalyzing.set(false);
             },
             error: (err) => {
-                this.snackbar.open(err.error?.error || 'AI analysis failed', 'OK', { duration: 5000 });
+                let message = 'AI analysis failed';
+                if (err.status === 413) {
+                    message = 'Image too large! Please use an image smaller than 20MB.';
+                } else if (err.error?.error) {
+                    message = err.error.error;
+                }
+                this.snackbar.open(message, 'OK', { duration: 5000 });
                 this.isAnalyzing.set(false);
             },
         });
