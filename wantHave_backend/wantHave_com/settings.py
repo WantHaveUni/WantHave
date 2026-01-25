@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'wanthave.kub2.fh-joanneum.at',
     'wanthave-api.kub2.fh-joanneum.at',
-    'dev-wanthave.kub2.fh-joanneum.at'
+    'dev-wanthave.kub2.fh-joanneum.at',
     'dev-wanthave-api.kub2.fh-joanneum.at',
     'wanthave-backend',  # Kubernetes service name
 ]
