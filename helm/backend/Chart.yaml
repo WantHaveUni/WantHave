@@ -3,4 +3,4 @@ name: wanthave-backend      # Must be unique
 description: Django Backend for WantHave project
 type: application
 version: 0.1.0              # The version of the CHART itself
-appVersion: "1.0.0"         # The default version of the APP (overridden by CI)
+appVersion: "1.0.1"         # The default version of the APP (overridden by CI)
