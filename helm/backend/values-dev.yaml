@@ -11,3 +11,8 @@ ingress:
 
 # Override secret name for Dev environment
 secretName: dev-wanthave-secrets
+
+# Point to Redis in the PROD namespace
+appEnv:
+  - name: REDIS_HOST
+    value: "redis.wanthave.svc.cluster.local"
