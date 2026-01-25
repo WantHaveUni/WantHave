@@ -12,7 +12,16 @@ ingress:
 # Override secret name for Dev environment
 secretName: dev-wanthave-secrets
 
-# Point to Redis in the PROD namespace
+# Point to Redis in the PROD namespace (and restore other env vars)
 appEnv:
+  - name: DJANGO_ALLOWED_HOSTS
+    value: "*"
+  - name: DEBUG
+    value: "True" # Useful for Dev
+  - name: SQLITE_DB_PATH
+    value: "/data/db.sqlite3"
   - name: REDIS_HOST
+    # Override: Connect to Redis in 'wanthave' namespace
     value: "redis.wanthave.svc.cluster.local"
+  - name: MEDIA_ROOT
+    value: "/data/media"
