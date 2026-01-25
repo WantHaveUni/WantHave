@@ -35,6 +35,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'wanthave.kub2.fh-joanneum.at',
     'wanthave-api.kub2.fh-joanneum.at',
+    'dev-wanthave.kub2.fh-joanneum.at'
+    'dev-wanthave-api.kub2.fh-joanneum.at',
     'wanthave-backend',  # Kubernetes service name
 ]
 
@@ -75,6 +77,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
     "http://127.0.0.1:4200",
     "https://wanthave.kub2.fh-joanneum.at",
+    "https://dev-wanthave.kub2.fh-joanneum.at",
 ]
 
 ROOT_URLCONF = 'wantHave_com.urls'
