@@ -73,4 +73,48 @@
     color: cyber.$text-muted;
     text-transform: uppercase;
     letter-spacing: 2px;
+    text-align: center;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE
+// ─────────────────────────────────────────────────────────────────────────────
+
+@include cyber.respond-below(md) {
+    .app-footer {
+        padding: 24px 0;
+    }
+
+    .footer-content {
+        padding: 0 16px;
+        gap: 20px;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+    }
+
+    .footer-link {
+        width: 100%;
+        text-align: center;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        @include cyber.touch-target;
+
+        &:last-of-type {
+            border-bottom: none;
+        }
+    }
+
+    .divider {
+        display: none;
+    }
+
+    .copyright {
+        font-size: 9px;
+        letter-spacing: 1px;
+        padding-top: 8px;
+    }
 }

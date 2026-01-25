@@ -343,3 +343,78 @@ $text-muted: rgba(255, 255, 255, 0.5);
     z-index: 1;
     pointer-events: none;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE BREAKPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+$breakpoint-xs: 480px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Mobile-first mixins (min-width) - use when adding styles for larger screens
+@mixin respond-above($breakpoint) {
+    @if $breakpoint == xs {
+        @media (min-width: $breakpoint-xs) {
+            @content;
+        }
+    } @else if $breakpoint == sm {
+        @media (min-width: $breakpoint-sm) {
+            @content;
+        }
+    } @else if $breakpoint == md {
+        @media (min-width: $breakpoint-md) {
+            @content;
+        }
+    } @else if $breakpoint == lg {
+        @media (min-width: $breakpoint-lg) {
+            @content;
+        }
+    } @else if $breakpoint == xl {
+        @media (min-width: $breakpoint-xl) {
+            @content;
+        }
+    }
+}
+
+// Desktop-first mixins (max-width) - use when overriding desktop styles for mobile
+@mixin respond-below($breakpoint) {
+    @if $breakpoint == xs {
+        @media (max-width: #{$breakpoint-xs - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == sm {
+        @media (max-width: #{$breakpoint-sm - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == md {
+        @media (max-width: #{$breakpoint-md - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == lg {
+        @media (max-width: #{$breakpoint-lg - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == xl {
+        @media (max-width: #{$breakpoint-xl - 1}) {
+            @content;
+        }
+    }
+}
+
+// Touch-friendly target mixin (44px minimum per Apple/Google guidelines)
+@mixin touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+}
+
+// Mobile-optimized neon button
+@mixin neon-button-mobile($color: $neon-cyan) {
+    @include neon-button($color);
+    @include touch-target;
+    width: 100%;
+    justify-content: center;
+}

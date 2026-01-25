@@ -2,7 +2,7 @@ namespace: wanthave
 
 image:
   repository: registry.kub2.fh-joanneum.at/k8s/wanthave/frontend
-  tag: "latest" # This gets overwritten by the CI pipeline
+  tag: "" # Empty tag allows fallback to Chart.AppVersion
   pullPolicy: Always
   imagePullSecret: wanthave-argotoken
 

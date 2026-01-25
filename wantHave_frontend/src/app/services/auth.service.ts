@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { tap } from 'rxjs';
+import { Observable, tap, throwError } from 'rxjs';
 import { Credentials, RegisterPayload, TokenResponse } from '../interfaces/auth';
 
 @Injectable({
@@ -48,6 +48,19 @@ export class AuthService {
 
   accessToken(): string | null {
     return localStorage.getItem(this.tokenKey);
+  }
+
+  refreshToken(): Observable<{ access: string }> {
+    const refresh = localStorage.getItem(this.refreshKey);
+    if (!refresh) {
+      return throwError(() => new Error('No refresh token'));
+    }
+    return this.http.post<{ access: string }>('/api/token/refresh/', { refresh }).pipe(
+      tap(({ access }) => {
+        localStorage.setItem(this.tokenKey, access);
+        this.checkAdminStatus();
+      })
+    );
   }
 
   isAuthenticated(): boolean {

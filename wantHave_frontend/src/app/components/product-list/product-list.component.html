@@ -4,19 +4,43 @@
     <h1>Products listed:</h1>
   </div>
   <div class="hero-actions">
+    <!-- Mobile Filter Toggle Button -->
+    @if (isMobile()) {
+    <button mat-stroked-button (click)="toggleFilterDrawer()" class="filter-toggle-btn">
+      <mat-icon>tune</mat-icon>
+      <span>Filters</span>
+    </button>
+    }
     <mat-select [(value)]="sortBy" (selectionChange)="onSortChange()" class="sort-select">
       <mat-option value="newest">Newest first</mat-option>
       <mat-option value="price_asc">Price: Low to High</mat-option>
       <mat-option value="price_desc">Price: High to Low</mat-option>
       <mat-option value="distance_asc">Distance: Near Me</mat-option>
     </mat-select>
+    @if (!isMobile()) {
     <button mat-stroked-button color="primary" (click)="fetchProducts()">Refresh list</button>
+    }
   </div>
 </section>
 
-<section class="content">
-  <div class="layout">
-    <aside class="sidebar">
+<mat-sidenav-container class="product-sidenav-container">
+  <!-- Mobile Filter Drawer -->
+  <mat-sidenav
+    #filterDrawer
+    mode="over"
+    position="start"
+    [opened]="isFilterDrawerOpen()"
+    (closed)="closeFilterDrawer()"
+    class="filter-drawer">
+
+    <div class="filter-drawer-header">
+      <h2>Filters</h2>
+      <button mat-icon-button (click)="closeFilterDrawer()" aria-label="Close filters">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="filter-drawer-content">
       <mat-form-field appearance="outline" class="search-field">
         <mat-label>Search products</mat-label>
         <input matInput [(ngModel)]="searchQuery" placeholder="Search by name..." />
@@ -31,17 +55,19 @@
         <h3>Price Range</h3>
         <div class="price-inputs">
           <mat-form-field appearance="outline" class="price-field">
-            <mat-label>Min Price</mat-label>
-            <input matInput type="number" [(ngModel)]="minPrice" placeholder="0" min="0" />
+            <mat-label>Min</mat-label>
+            <input matInput type="number" [(ngModel)]="minPrice" min="0" />
           </mat-form-field>
           <span class="separator">-</span>
           <mat-form-field appearance="outline" class="price-field">
-            <mat-label>Max Price</mat-label>
-            <input matInput type="number" [(ngModel)]="maxPrice" placeholder="∞" min="0" />
+            <mat-label>Max</mat-label>
+            <input matInput type="number" [(ngModel)]="maxPrice" min="0" />
           </mat-form-field>
         </div>
         @if (minPrice !== null || maxPrice !== null) {
-        <button mat-button (click)="clearPriceFilter()" class="clear-price">Clear price filter</button>
+        <button mat-button (click)="clearPriceFilter()" class="clear-price">
+          Clear price filter
+        </button>
         }
       </div>
 
@@ -56,83 +82,158 @@
           </button>
           }
         </mat-form-field>
-        <a mat-stroked-button routerLink="/map" class="map-link">
+        <a mat-stroked-button routerLink="/map" class="map-link" (click)="closeFilterDrawer()">
           <mat-icon>map</mat-icon>
           View on Map
         </a>
       </div>
 
       @if (categoryLoading) {
-      <div class="loading-state">
-        <mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
-        <p>Loading categories…</p>
+      <div class="loading-state small">
+        <mat-progress-spinner diameter="24" mode="indeterminate"></mat-progress-spinner>
       </div>
-      } @else if (categoryError) {
-      <div class="error-state">
-        <p>{{ categoryError }}</p>
-        <button mat-flat-button color="primary" (click)="fetchCategories()">Try again</button>
-      </div>
-      } @else {
-      <app-category-sidebar [categories]="categories" [selectedId]="selectedCategoryId"
-        (categoryChange)="onCategoryChange($event)"></app-category-sidebar>
-      }
-    </aside>
-
-    <div class="results">
-      @if (loading) {
-      <div class="loading-state">
-        <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
-        <p>Loading products…</p>
-      </div>
-      } @else if (error) {
-      <div class="error-state">
-        <p>{{ error }}</p>
-        <button mat-flat-button color="primary" (click)="fetchProducts()">Try again</button>
-      </div>
-      } @else if (filteredProducts.length === 0 && !searchQuery) {
-      <p class="empty">No products yet.</p>
-      } @else if (filteredProducts.length === 0 && searchQuery) {
-      <p class="empty">No products found matching "{{ searchQuery }}".</p>
-      } @else {
-      <div class="product-grid">
-        @for (product of filteredProducts; track product.id) {
-        <a class="product-link" [routerLink]="['/products', product.id]"
-          [attr.aria-label]="'View details for ' + product.title">
-          <mat-card class="product-card">
-            @if (imageUrl(product); as img) {
-            <div class="image-shell">
-              <img [src]="img" [alt]="product.title" loading="lazy" />
-            </div>
-            } @else {
-            <div class="image-shell placeholder">No image</div>
-            }
-
-            @if (currentUserId !== product.seller_id) {
-            <button mat-icon-button class="watchlist-btn" (click)="toggleWatchlist($event, product)">
-              <mat-icon>{{ watchlistIds.has(product.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
-            </button>
-            }
-
-
-
-            <mat-card-header>
-              <mat-card-title>{{ product.title }}</mat-card-title>
-              <mat-card-subtitle>{{ product.price }} € · {{ product.status }}</mat-card-subtitle>
-            </mat-card-header>
-
-            <mat-card-content>
-              <p class="description">{{ product.description }}</p>
-              <div class="meta">
-                <span>Seller:
-                  {{ product.seller?.username || product.seller_username || 'Unknown' }}</span>
-                <span>{{ product.created_at | date : 'mediumDate' }}</span>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        </a>
-        }
-      </div>
+      } @else if (!categoryError) {
+      <app-category-sidebar
+        [categories]="categories"
+        [selectedId]="selectedCategoryId"
+        (categoryChange)="onCategoryChange($event)">
+      </app-category-sidebar>
       }
     </div>
-  </div>
-</section>
+
+    <div class="filter-drawer-footer">
+      <button mat-flat-button color="primary" (click)="closeFilterDrawer()" class="apply-btn">
+        Apply Filters
+      </button>
+      <button mat-button (click)="clearAllFilters(); closeFilterDrawer()" class="clear-all-btn">
+        Clear All
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <section class="content">
+      <div class="layout" [class.mobile-layout]="isMobile()">
+        <!-- Desktop Sidebar -->
+        @if (!isMobile()) {
+        <aside class="sidebar">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search products</mat-label>
+            <input matInput [(ngModel)]="searchQuery" placeholder="Search by name..." />
+            @if (searchQuery) {
+            <button matSuffix mat-icon-button (click)="clearSearch()" aria-label="Clear">
+              <mat-icon>close</mat-icon>
+            </button>
+            }
+          </mat-form-field>
+
+          <div class="price-filter">
+            <h3>Price Range</h3>
+            <div class="price-inputs">
+              <mat-form-field appearance="outline" class="price-field">
+                <mat-label>Min Price</mat-label>
+                <input matInput type="number" [(ngModel)]="minPrice" placeholder="0" min="0" />
+              </mat-form-field>
+              <span class="separator">-</span>
+              <mat-form-field appearance="outline" class="price-field">
+                <mat-label>Max Price</mat-label>
+                <input matInput type="number" [(ngModel)]="maxPrice" placeholder="∞" min="0" />
+              </mat-form-field>
+            </div>
+            @if (minPrice !== null || maxPrice !== null) {
+            <button mat-button (click)="clearPriceFilter()" class="clear-price">Clear price filter</button>
+            }
+          </div>
+
+          <div class="location-filter">
+            <h3>Location</h3>
+            <mat-form-field appearance="outline" class="location-field">
+              <mat-label>Filter by City</mat-label>
+              <input matInput [(ngModel)]="cityFilter" placeholder="e.g. Vienna" />
+              @if (cityFilter) {
+              <button matSuffix mat-icon-button (click)="clearCityFilter()" aria-label="Clear">
+                <mat-icon>close</mat-icon>
+              </button>
+              }
+            </mat-form-field>
+            <a mat-stroked-button routerLink="/map" class="map-link">
+              <mat-icon>map</mat-icon>
+              View on Map
+            </a>
+          </div>
+
+          @if (categoryLoading) {
+          <div class="loading-state">
+            <mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
+            <p>Loading categories…</p>
+          </div>
+          } @else if (categoryError) {
+          <div class="error-state">
+            <p>{{ categoryError }}</p>
+            <button mat-flat-button color="primary" (click)="fetchCategories()">Try again</button>
+          </div>
+          } @else {
+          <app-category-sidebar [categories]="categories" [selectedId]="selectedCategoryId"
+            (categoryChange)="onCategoryChange($event)"></app-category-sidebar>
+          }
+        </aside>
+        }
+
+        <div class="results">
+          @if (loading) {
+          <div class="loading-state">
+            <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+            <p>Loading products…</p>
+          </div>
+          } @else if (error) {
+          <div class="error-state">
+            <p>{{ error }}</p>
+            <button mat-flat-button color="primary" (click)="fetchProducts()">Try again</button>
+          </div>
+          } @else if (filteredProducts.length === 0 && !searchQuery) {
+          <p class="empty">No products yet.</p>
+          } @else if (filteredProducts.length === 0 && searchQuery) {
+          <p class="empty">No products found matching "{{ searchQuery }}".</p>
+          } @else {
+          <div class="product-grid">
+            @for (product of filteredProducts; track product.id) {
+            <a class="product-link" [routerLink]="['/products', product.id]"
+              [attr.aria-label]="'View details for ' + product.title">
+              <mat-card class="product-card">
+                @if (imageUrl(product); as img) {
+                <div class="image-shell">
+                  <img [src]="img" [alt]="product.title" loading="lazy" />
+                </div>
+                } @else {
+                <div class="image-shell placeholder">No image</div>
+                }
+
+                @if (currentUserId !== product.seller_id) {
+                <button mat-icon-button class="watchlist-btn" (click)="toggleWatchlist($event, product)">
+                  <mat-icon>{{ watchlistIds.has(product.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
+                </button>
+                }
+
+                <mat-card-header>
+                  <mat-card-title>{{ product.title }}</mat-card-title>
+                  <mat-card-subtitle>{{ product.price }} € · {{ product.status }}</mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                  <p class="description">{{ product.description }}</p>
+                  <div class="meta">
+                    <span>Seller:
+                      {{ product.seller?.username || product.seller_username || 'Unknown' }}</span>
+                    <span>{{ product.created_at | date : 'mediumDate' }}</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </a>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </section>
+  </mat-sidenav-content>
+</mat-sidenav-container>

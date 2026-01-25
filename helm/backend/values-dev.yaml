@@ -1,0 +1,13 @@
+# Values for DEV environment
+namespace: wanthave-dev
+
+image:
+  imagePullSecret: dev-wanthave-argotoken
+
+ingress:
+  host: dev-wanthave-api.kub2.fh-joanneum.at
+  tls:
+    secretName: dev-wanthave-api-tls
+
+# Override secret name for Dev environment
+secretName: dev-wanthave-secrets
