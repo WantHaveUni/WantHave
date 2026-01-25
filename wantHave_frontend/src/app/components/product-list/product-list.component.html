@@ -1,6 +1,6 @@
 <section class="hero">
   <div class="headline">
-    <p class="eyebrow">Browse WantHave</p>
+    <p class="eyebrow">Search in WantHave</p> <!-- Browse Wanthave-->
     <h1>Products listed:</h1>
   </div>
   <div class="hero-actions">
@@ -25,12 +25,7 @@
 
 <mat-sidenav-container class="product-sidenav-container">
   <!-- Mobile Filter Drawer -->
-  <mat-sidenav
-    #filterDrawer
-    mode="over"
-    position="start"
-    [opened]="isFilterDrawerOpen()"
-    (closed)="closeFilterDrawer()"
+  <mat-sidenav #filterDrawer mode="over" position="start" [opened]="isFilterDrawerOpen()" (closed)="closeFilterDrawer()"
     class="filter-drawer">
 
     <div class="filter-drawer-header">
@@ -93,9 +88,7 @@
         <mat-progress-spinner diameter="24" mode="indeterminate"></mat-progress-spinner>
       </div>
       } @else if (!categoryError) {
-      <app-category-sidebar
-        [categories]="categories"
-        [selectedId]="selectedCategoryId"
+      <app-category-sidebar [categories]="categories" [selectedId]="selectedCategoryId"
         (categoryChange)="onCategoryChange($event)">
       </app-category-sidebar>
       }
