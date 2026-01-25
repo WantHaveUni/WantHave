@@ -1,4 +1,5 @@
 # Values for DEV environment
+namespace: wanthave-dev
 ingress:
   host: dev-wanthave-api.kub2.fh-joanneum.at
   tls:
