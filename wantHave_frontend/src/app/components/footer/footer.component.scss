@@ -1,10 +1,31 @@
+@use '../../../styles/cyberpunk-theme' as cyber;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FOOTER - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
+
 .app-footer {
-    background-color: #333;
-    color: #fff;
-    padding: 1.5rem 0;
+    background: cyber.$dark-bg;
+    border-top: 1px solid rgba(0, 243, 255, 0.1);
+    padding: 32px 0;
     margin-top: auto;
-    /* Push to bottom if flex container used */
     width: 100%;
+    position: relative;
+
+    // Grid pattern
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+            linear-gradient(rgba(0, 243, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.02) 1px, transparent 1px);
+        background-size: 30px 30px;
+        pointer-events: none;
+    }
 }
 
 .footer-content {
@@ -13,33 +34,87 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    padding: 0 1rem;
+    gap: 16px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
 }
 
 .footer-links {
     display: flex;
-    gap: 1rem;
+    gap: 24px;
     align-items: center;
 }
 
 .footer-link {
-    color: #ddd;
+    color: cyber.$text-muted;
     text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    padding: 8px 0;
 
     &:hover {
-        color: #fff;
-        text-decoration: underline;
+        color: cyber.$neon-cyan;
+        text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
     }
 }
 
 .divider {
-    color: #666;
+    color: rgba(0, 243, 255, 0.3);
+    font-size: 6px;
 }
 
 .copyright {
-    font-size: 0.8rem;
-    color: #aaa;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: cyber.$text-muted;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE
+// ─────────────────────────────────────────────────────────────────────────────
+
+@include cyber.respond-below(md) {
+    .app-footer {
+        padding: 24px 0;
+    }
+
+    .footer-content {
+        padding: 0 16px;
+        gap: 20px;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+    }
+
+    .footer-link {
+        width: 100%;
+        text-align: center;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        @include cyber.touch-target;
+
+        &:last-of-type {
+            border-bottom: none;
+        }
+    }
+
+    .divider {
+        display: none;
+    }
+
+    .copyright {
+        font-size: 9px;
+        letter-spacing: 1px;
+        padding-top: 8px;
+    }
 }

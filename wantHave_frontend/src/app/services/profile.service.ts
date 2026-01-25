@@ -14,7 +14,7 @@ export class ProfileService {
     return this.http.get<UserProfile>(`${this.baseUrl}me/`);
   }
 
-  updateMe(data: Partial<UserProfile>): Observable<UserProfile> {
+  updateMe(data: any): Observable<UserProfile> {
     return this.http.patch<UserProfile>(`${this.baseUrl}me/`, data);
   }
 
@@ -32,5 +32,29 @@ export class ProfileService {
 
   getListings(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}${userId}/listings/`);
+  }
+
+  getWatchlist(): Observable<any[]> {
+    return this.http.get<any[]>('/api/market/watchlist/');
+  }
+
+  removeFromWatchlist(productId: number): Observable<void> {
+    return this.http.delete<void>(`/api/market/watchlist/${productId}/`);
+  }
+
+  addToWatchlist(productId: number): Observable<any> {
+    return this.http.post<any>('/api/market/watchlist/', { product_id: productId });
+  }
+
+  changePassword(data: any): Observable<any> {
+    return this.http.post('/api/market/change-password/', data);
+  }
+
+  changeEmail(data: any): Observable<any> {
+    return this.http.post('/api/market/change-email/', data);
+  }
+
+  changeUsername(data: any): Observable<any> {
+    return this.http.post('/api/market/change-username/', data);
   }
 }

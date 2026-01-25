@@ -1,23 +1,28 @@
 <div class="space-container">
-    <!-- Three.js 3D Canvas Background -->
+    <!-- Three.js Background -->
     <div class="three-container">
         <canvas #spaceCanvas class="space-canvas"></canvas>
     </div>
+
+    <!-- OVERLAY EFFECTS -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
 
     <!-- Main Content -->
     <div class="content-layer">
         @if (!previewMode()) {
         <!-- EDIT MODE -->
-        <mat-card class="listing-card">
-            <mat-card-header>
-                <mat-card-title>Create New Listing</mat-card-title>
-                <mat-card-subtitle>Upload an image and let AI analyze your product</mat-card-subtitle>
-            </mat-card-header>
+        <mat-card class="listing-card hover-trigger">
+            <div class="card-header">
+                <h1 class="card-title glitch" data-text="CREATE NEW LISTING">CREATE NEW LISTING</h1>
+                <p class="card-subtitle">Upload an image and let AI analyze your product</p>
+            </div>
 
             <mat-card-content>
                 <!-- Image Upload Section -->
                 <div class="image-upload-section">
-                    <div class="image-preview" [class.has-image]="imagePreviewUrl()" (click)="fileInput.click()">
+                    <div class="image-preview hover-trigger" [class.has-image]="imagePreviewUrl()"
+                        (click)="fileInput.click()">
                         @if (imagePreviewUrl()) {
                         <img [src]="imagePreviewUrl()" alt="Product preview" />
                         @if (isAnalyzing()) {
@@ -29,7 +34,7 @@
                         } @else {
                         <div class="upload-placeholder">
                             <mat-icon>cloud_upload</mat-icon>
-                            <span class="upload-title">Drop your image here or click to upload</span>
+                            <span class="upload-title">Drop image or click to upload</span>
                             <span class="upload-hint">Supports JPG, PNG, WebP up to 10MB</span>
                         </div>
                         }
@@ -37,13 +42,12 @@
                     <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
 
                     <button mat-raised-button color="accent" (click)="analyzeWithAI()"
-                        [disabled]="!selectedFile() || isAnalyzing()" class="ai-button">
+                        [disabled]="!selectedFile() || isAnalyzing()" class="ai-button hover-trigger">
                         @if (isAnalyzing()) {
                         <mat-spinner diameter="18"></mat-spinner>
-                        <span>Analyzing...</span>
+                        <span>Processing...</span>
                         } @else {
                         <ng-container>
-                            <mat-icon>auto_awesome</mat-icon>
                             <span>Analyze with AI</span>
                         </ng-container>
                         }
@@ -104,12 +108,13 @@
             </mat-card-content>
 
             <mat-card-actions align="end">
-                <button mat-button (click)="togglePreview()" [disabled]="!listingFormGroup.valid" class="preview-btn">
+                <button mat-button (click)="togglePreview()" [disabled]="!listingFormGroup.valid"
+                    class="preview-btn hover-trigger">
                     <mat-icon>visibility</mat-icon>
                     Preview
                 </button>
                 <button mat-raised-button color="primary" (click)="createListing()"
-                    [disabled]="!listingFormGroup.valid || !selectedFile()" class="publish-btn">
+                    [disabled]="!listingFormGroup.valid || !selectedFile()" class="publish-btn hover-trigger">
                     <mat-icon>send</mat-icon>
                     Publish
                 </button>
@@ -117,9 +122,9 @@
         </mat-card>
         } @else {
         <!-- PREVIEW MODE -->
-        <mat-card class="preview-card">
+        <mat-card class="preview-card hover-trigger">
             <mat-card-header>
-                <mat-card-title>Preview</mat-card-title>
+                <mat-card-title class="glitch" data-text="PREVIEW">PREVIEW</mat-card-title>
                 <mat-card-subtitle>Review your listing before publishing</mat-card-subtitle>
             </mat-card-header>
 
@@ -149,11 +154,11 @@
             </mat-card-content>
 
             <mat-card-actions align="end">
-                <button mat-button (click)="togglePreview()" class="back-btn">
+                <button mat-button (click)="togglePreview()" class="back-btn hover-trigger">
                     <mat-icon>arrow_back</mat-icon>
                     Back to Edit
                 </button>
-                <button mat-raised-button color="primary" (click)="createListing()" class="publish-btn">
+                <button mat-raised-button color="primary" (click)="createListing()" class="publish-btn hover-trigger">
                     <mat-icon>send</mat-icon>
                     Publish
                 </button>

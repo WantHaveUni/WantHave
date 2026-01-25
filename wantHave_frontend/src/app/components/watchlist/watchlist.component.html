@@ -1,0 +1,57 @@
+<div class="screen-container">
+    <!-- Header with back button -->
+    <div class="screen-header">
+        <button class="back-button" (click)="goBack.emit()">
+            <span class="back-arrow">←</span>
+            <span>Back</span>
+        </button>
+        <h1 class="screen-title">Watchlist</h1>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+    <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading your watchlist...</p>
+    </div>
+    }
+
+    <!-- Error State -->
+    @if (error) {
+    <div class="error-state">
+        <p>{{ error }}</p>
+    </div>
+    }
+
+    <!-- Content -->
+    @if (!loading && !error) {
+    @if (watchlist.length === 0) {
+    <div class="empty-state">
+        <span class="empty-icon">⭐</span>
+        <h2>Your Watchlist is Empty</h2>
+        <p>Save items you're interested in to keep track of them here.</p>
+        <a routerLink="/products" class="cta-button">Browse Products</a>
+    </div>
+    } @else {
+    <div class="watchlist-grid">
+        @for (item of watchlist; track item.id) {
+        <a [routerLink]="['/products', item.product.id]" class="watchlist-card">
+            @if (imageUrl(item.product); as img) {
+            <img [src]="img" [alt]="item.product.title" class="watchlist-image">
+            } @else {
+            <div class="watchlist-image-placeholder">📦</div>
+            }
+            <div class="watchlist-content">
+                <h3 class="watchlist-title">{{ item.product.title }}</h3>
+                <span class="watchlist-price">{{ item.product.price }} €</span>
+            </div>
+            <button class="remove-button" (click)="removeFromWatchlist(item.product.id, $event)"
+                title="Remove from watchlist">
+                ✕
+            </button>
+        </a>
+        }
+    </div>
+    }
+    }
+</div>

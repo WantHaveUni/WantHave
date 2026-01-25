@@ -1,0 +1,420 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// VARIABLES
+// ─────────────────────────────────────────────────────────────────────────────
+
+$neon-cyan: #00f3ff;
+$neon-purple: #bc13fe;
+$neon-pink: #ff00c1;
+$dark-bg: #050505;
+$glass-panel: rgba(10, 10, 10, 0.65);
+$text-main: #e0e0e0;
+$text-muted: rgba(255, 255, 255, 0.5);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ANIMATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.4), 0 0 40px rgba(188, 19, 254, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(0, 243, 255, 0.6), 0 0 60px rgba(188, 19, 254, 0.3);
+    }
+}
+
+@keyframes border-scan {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    100% {
+        background-position: 200% 0%;
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    50%,
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes glitch-anim-1 {
+    0% {
+        clip-path: inset(30% 0 10% 0);
+        transform: translateX(-2px);
+    }
+
+    20% {
+        clip-path: inset(70% 0 20% 0);
+        transform: translateX(2px);
+    }
+
+    40% {
+        clip-path: inset(10% 0 80% 0);
+        transform: translateX(-1px);
+    }
+
+    60% {
+        clip-path: inset(50% 0 30% 0);
+        transform: translateX(1px);
+    }
+
+    80% {
+        clip-path: inset(20% 0 60% 0);
+        transform: translateX(-2px);
+    }
+
+    100% {
+        clip-path: inset(85% 0 5% 0);
+        transform: translateX(0);
+    }
+}
+
+@keyframes glitch-anim-2 {
+    0% {
+        clip-path: inset(15% 0 60% 0);
+        transform: translateX(2px);
+    }
+
+    20% {
+        clip-path: inset(80% 0 5% 0);
+        transform: translateX(-2px);
+    }
+
+    40% {
+        clip-path: inset(40% 0 40% 0);
+        transform: translateX(1px);
+    }
+
+    60% {
+        clip-path: inset(10% 0 70% 0);
+        transform: translateX(-1px);
+    }
+
+    80% {
+        clip-path: inset(60% 0 20% 0);
+        transform: translateX(2px);
+    }
+
+    100% {
+        clip-path: inset(5% 0 85% 0);
+        transform: translateX(0);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MIXINS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Glass Card Mixin
+@mixin glass-card {
+    background: $glass-panel;
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+    box-shadow:
+        0 30px 80px -20px rgba(0, 0, 0, 0.8),
+        0 0 60px rgba(0, 243, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+// Neon Button Mixin
+@mixin neon-button($color: $neon-cyan) {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    font-family: 'Courier New', monospace !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border: 1px solid $color !important;
+    color: $color !important;
+    transition: all 0.3s ease !important;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba($color, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    &:hover:not(:disabled) {
+        background: rgba($color, 0.1) !important;
+        box-shadow: 0 0 30px rgba($color, 0.3), inset 0 0 20px rgba($color, 0.1);
+        text-shadow: 0 0 10px $color;
+
+        &::before {
+            left: 100%;
+        }
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        color: rgba(255, 255, 255, 0.3) !important;
+    }
+}
+
+// Cyberpunk Form Field Mixin
+@mixin cyberpunk-form-field {
+    .mat-mdc-text-field-wrapper {
+        background: rgba(255, 255, 255, 0.02) !important;
+    }
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+        border-color: rgba(0, 243, 255, 0.2) !important;
+    }
+
+    &:hover {
+
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+            border-color: rgba(0, 243, 255, 0.4) !important;
+        }
+    }
+
+    &.mat-focused {
+
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+            border-color: $neon-cyan !important;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+    }
+
+    input,
+    textarea {
+        color: $text-main !important;
+        caret-color: $neon-cyan;
+        font-family: 'Courier New', monospace;
+    }
+
+    mat-label {
+        color: $text-muted !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 11px;
+    }
+
+    .mat-mdc-select-value {
+        color: $text-main !important;
+    }
+}
+
+// Glitch Text Mixin
+@mixin glitch-text {
+    position: relative;
+    display: inline-block;
+
+    &::before,
+    &::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+    }
+
+    &::before {
+        left: 2px;
+        text-shadow: -1px 0 $neon-pink;
+        clip: rect(44px, 450px, 56px, 0);
+        animation: glitch-anim-1 5s infinite linear alternate-reverse;
+    }
+
+    &::after {
+        left: -2px;
+        text-shadow: -1px 0 $neon-cyan;
+        clip: rect(44px, 450px, 56px, 0);
+        animation: glitch-anim-2 5s infinite linear alternate-reverse;
+    }
+
+    &:hover::before,
+    &:hover::after {
+        animation-duration: 0.3s;
+    }
+}
+
+// Page Container Mixin
+@mixin page-container {
+    min-height: calc(100vh - 64px);
+    background: $dark-bg;
+    padding: 24px;
+}
+
+// Section Title Mixin
+@mixin section-title {
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: 600;
+    color: $text-main;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+// Scanline Overlay Mixin
+@mixin scanlines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0) 50%,
+            rgba(0, 0, 0, 0.2) 50%,
+            rgba(0, 0, 0, 0.2) 100%);
+    background-size: 100% 4px;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+// Vignette Overlay Mixin
+@mixin vignette {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE BREAKPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+$breakpoint-xs: 480px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Mobile-first mixins (min-width) - use when adding styles for larger screens
+@mixin respond-above($breakpoint) {
+    @if $breakpoint == xs {
+        @media (min-width: $breakpoint-xs) {
+            @content;
+        }
+    } @else if $breakpoint == sm {
+        @media (min-width: $breakpoint-sm) {
+            @content;
+        }
+    } @else if $breakpoint == md {
+        @media (min-width: $breakpoint-md) {
+            @content;
+        }
+    } @else if $breakpoint == lg {
+        @media (min-width: $breakpoint-lg) {
+            @content;
+        }
+    } @else if $breakpoint == xl {
+        @media (min-width: $breakpoint-xl) {
+            @content;
+        }
+    }
+}
+
+// Desktop-first mixins (max-width) - use when overriding desktop styles for mobile
+@mixin respond-below($breakpoint) {
+    @if $breakpoint == xs {
+        @media (max-width: #{$breakpoint-xs - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == sm {
+        @media (max-width: #{$breakpoint-sm - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == md {
+        @media (max-width: #{$breakpoint-md - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == lg {
+        @media (max-width: #{$breakpoint-lg - 1}) {
+            @content;
+        }
+    } @else if $breakpoint == xl {
+        @media (max-width: #{$breakpoint-xl - 1}) {
+            @content;
+        }
+    }
+}
+
+// Touch-friendly target mixin (44px minimum per Apple/Google guidelines)
+@mixin touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+}
+
+// Mobile-optimized neon button
+@mixin neon-button-mobile($color: $neon-cyan) {
+    @include neon-button($color);
+    @include touch-target;
+    width: 100%;
+    justify-content: center;
+}

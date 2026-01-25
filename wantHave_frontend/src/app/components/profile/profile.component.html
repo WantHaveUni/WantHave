@@ -1,222 +1,274 @@
-<div class="profile-container">
-  <div class="profile-header">
-    <h1>My Profile</h1>
-    @if (profile && !isEditMode) {
-    <button class="edit-button" (click)="enableEditMode()">Edit Profile</button>
-    }
-  </div>
+<div class="profile-container" [class.edit-mode]="activeView === 'edit'">
+  @if (activeView === 'overview') {
+  <!-- Profile Overview / Menu View -->
+  <div class="profile-overview-container">
+    <div class="profile-header">
+      <div class="header-pattern"></div>
 
-  @if (loading) {
-  <p>Loading...</p>
-  }
-
-  @if (error) {
-  <p class="error-message">{{ error }}</p>
-  }
-
-  @if (profile && !isEditMode) {
-  <div class="profile-view">
-    @if (profile.profile_picture) {
-    <div class="profile-picture-container">
-      <img [src]="profile.profile_picture" alt="Profile Picture" class="profile-picture">
-    </div>
-    }
-
-    <div class="profile-section">
-      <h2>Account Information</h2>
-      <div class="profile-field">
-        <strong>Username:</strong>
-        <span>{{ profile.user.username }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Email:</strong>
-        <span>{{ profile.user.email }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>First Name:</strong>
-        <span>{{ profile.user.first_name || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Last Name:</strong>
-        <span>{{ profile.user.last_name || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Member Since:</strong>
-        <span>{{ profile.member_since ? (profile.member_since | date:'mediumDate') : 'Unknown' }}</span>
-      </div>
-    </div>
-
-    <div class="profile-section">
-      <h2>Profile Details</h2>
-      <div class="profile-field">
-        <strong>Bio:</strong>
-        <span>{{ profile.bio || 'No bio provided' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>City:</strong>
-        <span>{{ profile.city || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Country:</strong>
-        <span>{{ profile.country || 'Not set' }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Address:</strong>
-        <span>{{ profile.address || 'No address provided' }}</span>
-      </div>
-      @if (profile.latitude && profile.longitude) {
-      <div class="profile-field">
-        <strong>Coordinates:</strong>
-        <span>{{ profile.latitude }}, {{ profile.longitude }}</span>
-      </div>
-      }
-    </div>
-
-    <div class="profile-section">
-      <h2>Marketplace Statistics</h2>
-      <div class="profile-field">
-        <strong>Active Listings:</strong>
-        <span>{{ profile.active_listings_count }}</span>
-      </div>
-      <div class="profile-field">
-        <strong>Sold Items:</strong>
-        <span>{{ profile.sold_items_count }}</span>
-      </div>
-    </div>
-
-    <div class="profile-section full-width">
-      <h2>My Listings</h2>
-      @if (listingsLoading) {
-      <p>Loading listings...</p>
-      } @else if (listings.length === 0) {
-      <p class="empty-state">No listings found.</p>
-      } @else {
-      <div class="mini-grid">
-        @for (item of listings; track item.id) {
-        <div class="mini-card">
-          <div class="mini-content">
-            <div class="mini-header">
-              <span class="mini-title">{{ item.title }}</span>
-              <span class="mini-price">{{ item.price }} €</span>
-            </div>
-            <div class="mini-status" [class.sold]="item.status === 'SOLD'">
-              {{ item.status }}
-            </div>
+      <div class="profile-avatar-section">
+        <div class="avatar-wrapper">
+          @if (profile?.profile_picture) {
+          <img [src]="profile!.profile_picture" alt="Profile Picture" class="avatar-image">
+          } @else {
+          <div class="avatar-placeholder">
+            <span class="avatar-icon">👤</span>
           </div>
-        </div>
-        }
-      </div>
-      }
-    </div>
-
-    <div class="profile-section full-width">
-      <h2>My Purchases</h2>
-      @if (purchasesLoading) {
-      <p>Loading purchases...</p>
-      } @else if (purchases.length === 0) {
-      <p class="empty-state">No purchases made yet.</p>
-      } @else {
-      <div class="mini-grid">
-        @for (item of purchases; track item.id) {
-        <div class="mini-card">
-          <div class="mini-content">
-            <div class="mini-header">
-              <span class="mini-title">{{ item.title }}</span>
-              <span class="mini-price">{{ item.price }} €</span>
-            </div>
-            <div class="mini-meta">
-              Sold on {{ item.sold_at | date }} by {{ item.seller_username }}
-            </div>
-          </div>
-        </div>
-        }
-      </div>
-      }
-    </div>
-  </div>
-  }
-
-  @if (profile && isEditMode) {
-  <div class="profile-edit">
-    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-      <div class="form-section">
-        <h2>Account Information</h2>
-
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" formControlName="username">
-        </div>
-
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" formControlName="email">
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="first_name">First Name</label>
-            <input type="text" id="first_name" formControlName="first_name">
-          </div>
-
-          <div class="form-group">
-            <label for="last_name">Last Name</label>
-            <input type="text" id="last_name" formControlName="last_name">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2>Profile Picture</h2>
-        @if (profile.profile_picture) {
-        <div class="current-picture">
-          <img [src]="profile.profile_picture" alt="Current Profile Picture" class="preview-picture">
-        </div>
-        }
-        <div class="form-group">
-          <label for="profile_picture">Upload New Picture</label>
-          <input type="file" id="profile_picture" (change)="onFileSelected($event)" accept="image/*">
-          @if (selectedFileName) {
-          <p class="file-selected">Selected: {{ selectedFileName }}</p>
           }
         </div>
+
+        <h1 class="username">{{ profile?.user?.username || 'Loading...' }}</h1>
+      </div>
+    </div>
+
+    @if (loading) {
+    <div class="loading-state">
+      <p>Loading profile...</p>
+    </div>
+    }
+
+    @if (error) {
+    <div class="error-state">
+      <p>{{ error }}</p>
+    </div>
+    }
+
+    @if (profile && !loading) {
+    <!-- Main Menu Items -->
+    <div class="menu-section">
+      @for (item of mainMenuItems; track item.label) {
+      <!-- Use click handler for view switching -->
+      <div class="menu-item" (click)="item.view ? setView(item.view) : null">
+        <span class="menu-icon">{{ item.icon }}</span>
+        <span class="menu-label">{{ item.label }}</span>
+        @if (item.badge) {
+        <span class="menu-badge">{{ item.badge }}</span>
+        }
+        <span class="menu-arrow">›</span>
+      </div>
+      }
+    </div>
+
+    <!-- Divider -->
+    <div class="menu-divider"></div>
+
+    <!-- Bottom Menu Items -->
+    <div class="menu-section">
+      @for (item of bottomMenuItems; track item.label) {
+      <!-- Action binding for items with actions (like Edit Profile) -->
+      @if (item.action) {
+      <div class="menu-item" (click)="item.action!()">
+        <span class="menu-icon">{{ item.icon }}</span>
+        <span class="menu-label">{{ item.label }}</span>
+        <span class="menu-arrow">›</span>
+      </div>
+      } @else {
+      <a [routerLink]="item.route" class="menu-item">
+        <span class="menu-icon">{{ item.icon }}</span>
+        <span class="menu-label">{{ item.label }}</span>
+        <span class="menu-arrow">›</span>
+      </a>
+      }
+      }
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Feature Views (SPA) -->
+  @if (activeView === 'listings') {
+  <app-my-listings (goBack)="setView('overview')"></app-my-listings>
+  }
+  @if (activeView === 'transactions') {
+  <app-my-transactions (goBack)="setView('overview')"></app-my-transactions>
+  }
+  @if (activeView === 'watchlist') {
+  <app-watchlist (goBack)="setView('overview')"></app-watchlist>
+  }
+
+  @if (activeView === 'edit' && profile) {
+  <!-- Edit Profile View -->
+  <div class="profile-edit-container">
+    <div class="edit-header">
+      <h2>Edit Profile</h2>
+    </div>
+
+    @if (error) {
+    <div class="edit-error-alert">
+      {{ error }}
+    </div>
+    }
+
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+
+      <!-- Profile Picture Section -->
+      <div class="form-section profile-picture-section">
+        <div class="picture-wrapper">
+          <img [src]="previewUrl || profile.profile_picture || 'assets/default-avatar.svg'" alt="Profile Picture"
+            class="edit-picture">
+          <label for="profile_picture" class="camera-icon-label">
+            📷
+            <input type="file" id="profile_picture" (change)="onFileSelected($event)" accept="image/*"
+              class="hidden-input">
+          </label>
+        </div>
       </div>
 
+      <!-- Public Data -->
       <div class="form-section">
-        <h2>Profile Details</h2>
-
-        <div class="form-group">
-          <label for="bio">Bio</label>
-          <textarea id="bio" formControlName="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
-        </div>
+        <h3>Public Data</h3>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="city">City</label>
-            <input type="text" id="city" formControlName="city" placeholder="e.g., Graz">
+            <label>First Name</label>
+            <input type="text" formControlName="first_name" placeholder="First Name">
           </div>
-
           <div class="form-group">
-            <label for="country">Country</label>
-            <input type="text" id="country" formControlName="country" placeholder="e.g., Austria">
+            <label>Last Name</label>
+            <input type="text" formControlName="last_name" placeholder="Last Name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group small-col">
+            <label>Zip Code</label>
+            <input type="text" formControlName="zip_code" placeholder="Zip">
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" formControlName="city" placeholder="City">
           </div>
         </div>
 
         <div class="form-group">
-          <label for="address">Address</label>
-          <input type="text" id="address" formControlName="address" placeholder="Enter your address">
-        </div>
-
-        <div class="form-row">
-          <div class="form-group full-width">
-            <label>Location (Click on map to set)</label>
-            <div id="map" class="map-container"></div>
-            <input type="hidden" formControlName="latitude">
-            <input type="hidden" formControlName="longitude">
-          </div>
+          <label>Country</label>
+          <input type="text" formControlName="country" placeholder="Enter Country">
         </div>
       </div>
 
-      <div class="form-actions">
+      <!-- Private Data -->
+      <div class="form-section">
+        <h3>Private Data (visible only to you)</h3>
+
+        <div class="private-row">
+          <div class="input-wrapper">
+            <label>Username</label>
+            <input type="text" [value]="profile.user.username" readonly>
+          </div>
+          <button type="button" class="change-btn" (click)="usernameChangeRequest()">CHANGE</button>
+        </div>
+
+        @if (isChangingUsername) {
+        <div class="security-change-panel" [formGroup]="securityForm">
+          <h4>Change Username</h4>
+
+          @if (securityError && isChangingUsername) {
+          <div class="edit-error-alert small-alert">
+            {{ securityError }}
+          </div>
+          }
+          @if (securitySuccess && isChangingUsername) {
+          <div class="edit-success-alert small-alert">
+            {{ securitySuccess }}
+          </div>
+          }
+
+          <div class="form-group">
+            <label>New Username</label>
+            <input type="text" formControlName="username" placeholder="New Username">
+          </div>
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" formControlName="current_password" placeholder="Confirm with Password">
+          </div>
+          <div class="form-actions small-actions">
+            <button type="button" class="save-button" (click)="submitUsernameChange()" [disabled]="saving">Update
+              Username</button>
+            <button type="button" class="cancel-button" (click)="cancelSecurityChange()">Cancel</button>
+          </div>
+        </div>
+        }
+
+        <div class="private-row">
+          <div class="input-wrapper">
+            <label>Email</label>
+            <input type="email" formControlName="email" readonly>
+          </div>
+          <button type="button" class="change-btn" (click)="emailChangeRequest()">CHANGE</button>
+        </div>
+
+        @if (isChangingEmail) {
+        <div class="security-change-panel" [formGroup]="securityForm">
+          <h4>Change Email</h4>
+
+          @if (securityError) {
+          <div class="edit-error-alert small-alert">
+            {{ securityError }}
+          </div>
+          }
+          @if (securitySuccess) {
+          <div class="edit-success-alert small-alert">
+            {{ securitySuccess }}
+          </div>
+          }
+
+          <div class="form-group">
+            <label>New Email</label>
+            <input type="email" formControlName="new_email" placeholder="New Email Address">
+          </div>
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" formControlName="current_password" placeholder="Confirm with Password">
+          </div>
+          <div class="form-actions small-actions">
+            <button type="button" class="save-button" (click)="submitEmailChange()" [disabled]="saving">Update
+              Email</button>
+            <button type="button" class="cancel-button" (click)="cancelSecurityChange()">Cancel</button>
+          </div>
+        </div>
+        }
+
+        <div class="private-row">
+          <div class="input-wrapper">
+            <label>Password</label>
+            <input type="password" value="********" readonly>
+          </div>
+          <button type="button" class="change-btn" (click)="passwordChangeRequest()">CHANGE</button>
+        </div>
+
+        @if (isChangingPassword) {
+        <div class="security-change-panel" [formGroup]="securityForm">
+          <h4>Change Password</h4>
+
+          @if (securityError) {
+          <div class="edit-error-alert small-alert">
+            {{ securityError }}
+          </div>
+          }
+          @if (securitySuccess) {
+          <div class="edit-success-alert small-alert">
+            {{ securitySuccess }}
+          </div>
+          }
+
+          <div class="form-group">
+            <label>Old Password</label>
+            <input type="password" formControlName="old_password" placeholder="Current Password">
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" formControlName="new_password" placeholder="New Password">
+          </div>
+          <div class="form-actions small-actions">
+            <button type="button" class="save-button" (click)="submitPasswordChange()" [disabled]="saving">Update
+              Password</button>
+            <button type="button" class="cancel-button" (click)="cancelSecurityChange()">Cancel</button>
+          </div>
+        </div>
+        }
+
+      </div>
+
+      <div class="form-actions center-actions">
         <button type="submit" class="save-button" [disabled]="saving || profileForm.invalid">
           {{ saving ? 'Saving...' : 'Save Changes' }}
         </button>

@@ -7,6 +7,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   annotations:
     # No cookies needed for static frontend
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
     
     {{- if and .Values.ingress.tls.enabled .Values.ingress.tls.clusterIssuer }}
     cert-manager.io/cluster-issuer: {{ .Values.ingress.tls.clusterIssuer }}

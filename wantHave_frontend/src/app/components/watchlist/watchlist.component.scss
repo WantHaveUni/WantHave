@@ -1,0 +1,128 @@
+@use '../shared-profile-styles.scss';
+@use '../../../styles/cyberpunk-theme' as cyber;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WATCHLIST - Cyberpunk Theme
+// ═══════════════════════════════════════════════════════════════════════════
+
+.watchlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.watchlist-card {
+    position: relative;
+    @include cyber.glass-card;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &:hover {
+        transform: translateY(-8px);
+        box-shadow:
+            0 40px 100px -30px rgba(0, 0, 0, 0.9),
+            0 0 80px rgba(255, 0, 193, 0.15);
+
+        .watchlist-image {
+            transform: scale(1.05);
+        }
+
+        .remove-button {
+            opacity: 1;
+        }
+    }
+}
+
+.watchlist-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.watchlist-image-placeholder {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    font-size: 48px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.watchlist-content {
+    padding: 20px;
+}
+
+.watchlist-title {
+    margin: 0 0 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: cyber.$text-main;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 32px;
+}
+
+.watchlist-price {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: cyber.$neon-pink;
+    text-shadow: 0 0 15px rgba(255, 0, 193, 0.5);
+    font-family: 'Courier New', monospace;
+}
+
+.remove-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(255, 71, 87, 0.2);
+        border-color: #ff4757;
+        box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+        transform: scale(1.1);
+    }
+}
+
+.cta-button {
+    @include cyber.neon-button(cyber.$neon-pink);
+    margin-top: 20px;
+    text-decoration: none;
+}
+
+@media (max-width: 480px) {
+    .watchlist-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+    }
+
+    .remove-button {
+        opacity: 1;
+    }
+}

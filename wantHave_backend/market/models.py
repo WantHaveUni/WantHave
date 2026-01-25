@@ -6,9 +6,9 @@ from django.utils import timezone
 # User Profile with Map Location
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    bio = models.TextField(blank=True, null=True, max_length=500)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
     city = models.CharField(max_length=100, blank=True, null=True)
+    zip_code = models.CharField(max_length=20, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -62,6 +62,11 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='product_images/')
     
+    # Location fields (optional - defaults to seller's location)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     sold_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='AVAILABLE')
@@ -69,6 +74,22 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+
+class WatchlistItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watchlist')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='watched_by')
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'product')
+        ordering = ['-added_at']
+
+    def __str__(self):
+        return f"{self.user.username} watches {self.product.title}"
+
 
 # Chat Models
 class Conversation(models.Model):

@@ -20,4 +20,7 @@ export interface Product {
   image?: string;
   created_at: string;
   status: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  city?: string | null;
 }
