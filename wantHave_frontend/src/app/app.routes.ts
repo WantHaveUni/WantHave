@@ -9,6 +9,7 @@ import { WatchlistComponent } from './components/watchlist/watchlist.component';
 import { CreateListingComponent } from './components/create-listing/create-listing.component';
 import { CheckoutSuccessComponent } from './components/checkout-success/checkout-success.component';
 import { CheckoutCancelComponent } from './components/checkout-cancel/checkout-cancel.component';
+import { AgbComponent } from './components/agb/agb.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -23,6 +24,7 @@ export const routes: Routes = [
   { path: 'watchlist', component: WatchlistComponent, canActivate: [authGuard] },
   { path: 'chat', loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent), canActivate: [authGuard] },
   { path: 'create-listing', component: CreateListingComponent, canActivate: [authGuard] },
+  { path: 'agb', component: AgbComponent },
   { path: 'checkout/success', component: CheckoutSuccessComponent, canActivate: [authGuard] },
   { path: 'checkout/cancel', component: CheckoutCancelComponent },
   { path: 'admin', loadComponent: () => import('./components/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent), canActivate: [authGuard] },
