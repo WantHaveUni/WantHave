@@ -43,4 +43,19 @@ deploy_main:
   script:
     # Logic for production/main deployment
     - echo "Deploying to Production..."
-    # (Repeat similar argocd commands for your prod apps here)
+    
+    # We DO NOT manually update ArgoCD app here.
+    # Why?
+    # 1. We pushed a change to 'main' including the new Chart.yaml version.
+    # 2. ArgoCD watches the Git Repo.
+    # 3. ArgoCD sees 'Chart.yaml' changed (AppVersion changed).
+    # 4. ArgoCD renders manifest -> Image Tag is now the new AppVersion.
+    # 5. ArgoCD syncs automatically.
+    
+    - echo "Waiting for ArgoCD to detect Git change and sync..."
+    # Optionally, we could manually trigger a sync just to be fast, but strictly speaking,
+    # "ArgoCD detects Git-Change" implies we leave it to the controller.
+    # However, to be helpful, we can just ensure the sync happens:
+    
+    - argocd app sync wanthave-backend --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN"
+    - argocd app sync wanthave-frontend --server "$ARGOCD_SERVER" --grpc-web --insecure --auth-token "$ARGOCD_TOKEN"
