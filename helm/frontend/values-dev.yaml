@@ -1,0 +1,5 @@
+# Values for DEV environment
+ingress:
+  host: dev-wanthave.kub2.fh-joanneum.at
+  tls:
+    secretName: dev-wanthave-ui-tls
