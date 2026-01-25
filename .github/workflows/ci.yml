@@ -63,10 +63,17 @@ jobs:
           docker build -t $IMAGE_NAME:$SHORT_SHA -f wantHave_frontend/Dockerfile wantHave_frontend/
           docker push $IMAGE_NAME:$SHORT_SHA
           
+          # 3. Tagging Strategy
+          if [ "$BRANCH_TAG" = "main" ]; then
+            # Production: Tag with Chart AppVersion
+            echo "Tagging as Production: $CHART_VERSION"
+            docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$CHART_VERSION
+            docker push $IMAGE_NAME:$CHART_VERSION
+          else
             # Dev: Tag with Branch Name (e.g. 'dev')
             echo "Tagging as Dev: $BRANCH_TAG"
             
-            # 1. Match GitLab CI expectation: SHA-dev (e.g. a1b2c3d-dev)
+            # 1. Match GitLab CI expectation: SHA-dev
             docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$SHORT_SHA-$BRANCH_TAG
             docker push $IMAGE_NAME:$SHORT_SHA-$BRANCH_TAG
             
@@ -77,6 +84,7 @@ jobs:
             # 3. Versioned Dev tag (dev-v0.1.0)
             docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG-v${CHART_VERSION}
             docker push $IMAGE_NAME:$BRANCH_TAG-v${CHART_VERSION}
+          fi
 
       # --- BUILD BACKEND ---
       - name: Build & Push Backend
@@ -103,12 +111,18 @@ jobs:
           else
             # Dev: Tag with Branch Name
             echo "Tagging as Dev: $BRANCH_TAG"
-            docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG-v${CHART_VERSION}
-            docker push $IMAGE_NAME:$BRANCH_TAG-v${CHART_VERSION}
             
-            # Also keep the plain branch tag
+            # 1. Match GitLab CI expectation: SHA-dev (e.g. a1b2c3d-dev)
+            docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$SHORT_SHA-$BRANCH_TAG
+            docker push $IMAGE_NAME:$SHORT_SHA-$BRANCH_TAG
+            
+            # 2. Latest Dev tag
             docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG
             docker push $IMAGE_NAME:$BRANCH_TAG
+            
+            # 3. Versioned Dev tag
+            docker tag $IMAGE_NAME:$SHORT_SHA $IMAGE_NAME:$BRANCH_TAG-v${CHART_VERSION}
+            docker push $IMAGE_NAME:$BRANCH_TAG-v${CHART_VERSION}
           fi
 
   trigger-gitlab-cd: #Fixing credentials issue
