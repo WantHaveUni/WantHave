@@ -56,7 +56,8 @@ jobs:
           
           # 1. Read Version from Chart.yaml
           # We use AppVersion because that is what the Helm Chart uses for the image tag
-          CHART_VERSION=$(awk -F': ' '/^appVersion:/ {print $2}' helm/frontend/Chart.yaml | tr -d '"')
+          # awk '{print $2}' splits by whitespace, ignoring trailing comments
+          CHART_VERSION=$(awk '/^appVersion:/ {print $2}' helm/frontend/Chart.yaml | tr -d '"')
           echo "Frontend Chart Version: $CHART_VERSION"
 
           # 2. Build with SHA (always good for history)
@@ -94,7 +95,7 @@ jobs:
           IMAGE_NAME=registry.kub2.fh-joanneum.at/k8s/wanthave/backend
           
           # 1. Read Version from Chart.yaml
-          CHART_VERSION=$(awk -F': ' '/^appVersion:/ {print $2}' helm/backend/Chart.yaml | tr -d '"')
+          CHART_VERSION=$(awk '/^appVersion:/ {print $2}' helm/backend/Chart.yaml | tr -d '"')
           echo "Backend Chart Version: $CHART_VERSION"
 
           # 2. Build with SHA
