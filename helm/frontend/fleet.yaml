@@ -1,8 +1,11 @@
 defaultNamespace: wanthave-fleet-dev
 helm:
   releaseName: wanthave-frontend-dev
-targets:
-  - clusterSelector: {}
+targetCustomizations:
+  - name: dev
+    namespace: wanthave-fleet-dev
+    clusterSelector:
+      matchLabels: {}
     helm:
       values:
         ingress:
