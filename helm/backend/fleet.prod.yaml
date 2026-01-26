@@ -1,0 +1,9 @@
+defaultNamespace: wanthave-fleet
+helm:
+  releaseName: wanthave-backend
+targets:
+  - clusterSelector: {}
+    helm:
+      values:
+        ingress:
+          host: wanthave-fleet-api.kub2.fh-joanneum.at

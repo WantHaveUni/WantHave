@@ -1,0 +1,20 @@
+defaultNamespace: wanthave-fleet-dev
+helm:
+  releaseName: wanthave-backend-dev
+targets:
+  - clusterSelector: {}
+    helm:
+      values:
+        ingress:
+          host: dev.wanthave-fleet-api.kub2.fh-joanneum.at
+        appEnv:
+          - name: DJANGO_ALLOWED_HOSTS
+            value: "*"
+          - name: DEBUG
+            value: "False"
+          - name: SQLITE_DB_PATH
+            value: "/data/db.sqlite3"
+          - name: REDIS_HOST
+            value: "redis.wanthave-fleet"
+          - name: MEDIA_ROOT
+            value: "/data/media"

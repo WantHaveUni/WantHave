@@ -1,0 +1,5 @@
+defaultNamespace: wanthave-fleet
+helm:
+  releaseName: wanthave-redis
+targets:
+  - clusterSelector: {}
