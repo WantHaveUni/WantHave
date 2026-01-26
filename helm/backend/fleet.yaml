@@ -11,7 +11,7 @@ targetCustomizations:
         ingress:
           host: dev.wanthave-fleet-api.kub2.fh-joanneum.at
         image:
-          imagePullSecret: dev-wanthave-fleet-token
+          imagePullSecret: dev-wanthave-token
         secretName: dev-wanthave-fleet-secrets
         appEnv:
           - name: DJANGO_ALLOWED_HOSTS

@@ -11,4 +11,4 @@ targetCustomizations:
         ingress:
           host: dev.wanthave-fleet.kub2.fh-joanneum.at
         image:
-          imagePullSecret: dev-wanthave-fleet-token
+          imagePullSecret: dev-wanthave-token
