@@ -7,3 +7,5 @@ targets:
       values:
         ingress:
           host: wanthave-fleet.kub2.fh-joanneum.at
+        image:
+          imagePullSecret: wanthave-fleet-token
