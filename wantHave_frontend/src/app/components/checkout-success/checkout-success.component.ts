@@ -122,14 +122,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     }
 
     .chat-hint a {
-      color: #2dff7a;
+      color: #00f3ff;
       text-decoration: none;
       font-weight: 600;
       transition: text-shadow 0.3s ease;
     }
 
     .chat-hint a:hover {
-      text-shadow: 0 0 10px rgba(45, 255, 122, 0.5);
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
     }
 
     mat-card-actions {
