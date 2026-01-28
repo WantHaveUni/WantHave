@@ -1,9 +1,14 @@
 defaultNamespace: wanthave-fleet
 helm:
   releaseName: wanthave-frontend
-targets:
-  - clusterSelector: {}
+targetCustomizations:
+  - name: prod
+    namespace: wanthave-fleet
+    clusterSelector:
+      matchLabels: {}
     helm:
       values:
         ingress:
           host: wanthave-fleet.kub2.fh-joanneum.at
+        image:
+          imagePullSecret: wanthave-fleet-token

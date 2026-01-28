@@ -1,5 +1,8 @@
 defaultNamespace: wanthave-fleet
 helm:
   releaseName: wanthave-redis
-targets:
-  - clusterSelector: {}
+targetCustomizations:
+  - name: prod
+    namespace: wanthave-fleet
+    clusterSelector:
+      matchLabels: {}

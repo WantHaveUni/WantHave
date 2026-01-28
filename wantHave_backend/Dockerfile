@@ -24,5 +24,9 @@ COPY . .
 # Port für Django/Daphne
 EXPOSE 8000
 
-# Start-Befehl (Daphne als ASGI-Server für WebSocket-Support)
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "wantHave_com.asgi:application"]
+# Entrypoint script ausführbar machen
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+# Start-Befehl (führt Migrations aus und startet Daphne)
+CMD ["./entrypoint.sh"]

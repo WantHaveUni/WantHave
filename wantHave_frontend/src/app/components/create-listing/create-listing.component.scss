@@ -381,7 +381,7 @@ $text-muted: rgba(255, 255, 255, 0.5);
   pointer-events: none;
 
   .coords {
-    color: $neon-purple;
+    color: $neon-cyan;
   }
 
   .version {
@@ -719,11 +719,11 @@ $text-muted: rgba(255, 255, 255, 0.5);
   }
 
   mat-icon {
-    color: $neon-purple;
+    color: $neon-cyan;
     font-size: 18px;
     width: 18px;
     height: 18px;
-    text-shadow: 0 0 10px $neon-purple;
+    text-shadow: 0 0 10px $neon-cyan;
   }
 
   .suggestion-content {
@@ -734,7 +734,7 @@ $text-muted: rgba(255, 255, 255, 0.5);
     .suggestion-label {
       font-size: 10px;
       font-weight: 600;
-      color: $neon-purple;
+      color: $neon-cyan;
       text-transform: uppercase;
       letter-spacing: 2px;
       font-family: 'Courier New', monospace;
@@ -764,8 +764,8 @@ mat-card-actions {
 
     &[color="primary"] {
       background: transparent !important;
-      border: 1px solid $neon-purple !important;
-      color: $neon-purple !important;
+      border: 1px solid $neon-cyan !important;
+      color: $neon-cyan !important;
 
       &:hover:not(:disabled) {
         background: rgba(188, 19, 254, 0.1) !important;
@@ -896,11 +896,11 @@ mat-card-actions {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: $neon-purple;
+  color: $neon-cyan;
   font-size: 11px;
   padding: 8px 16px;
-  background: rgba(188, 19, 254, 0.1);
-  border: 1px solid rgba(188, 19, 254, 0.3);
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.3);
   text-transform: uppercase;
   letter-spacing: 1px;
 

@@ -1,9 +1,14 @@
 defaultNamespace: wanthave-fleet-dev
 helm:
   releaseName: wanthave-frontend-dev
-targets:
-  - clusterSelector: {}
+targetCustomizations:
+  - name: dev
+    namespace: wanthave-fleet-dev
+    clusterSelector:
+      matchLabels: {}
     helm:
       values:
         ingress:
           host: dev.wanthave-fleet.kub2.fh-joanneum.at
+        image:
+          imagePullSecret: dev-wanthave-token

@@ -4,8 +4,10 @@ import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import * as L from 'leaflet';
-import 'leaflet.markercluster';
+// Leaflet is loaded globally via angular.json scripts (with markercluster plugin)
+// We declare L as 'any' to use the global instance that has markerClusterGroup attached
+declare const L: any;
+
 import { Product } from '../../interfaces/product';
 import { ProductService } from '../../services/product.service';
 
@@ -23,9 +25,9 @@ export class MapViewComponent implements OnInit, AfterViewInit {
     products: Product[] = [];
     loading = true;
     error = '';
-    private map!: L.Map;
+    private map!: any;
     // Use MarkerClusterGroup (installed via npm and imported)
-    private markersLayer!: L.MarkerClusterGroup;
+    private markersLayer!: any;
 
     ngOnInit() {
         this.fetchProducts();
@@ -36,10 +38,10 @@ export class MapViewComponent implements OnInit, AfterViewInit {
     }
 
     private initMap() {
-        // Default center (Europe)
+        // Default center (Austria)
         this.map = L.map('map', {
-            center: [48.8566, 2.3522],
-            zoom: 5,
+            center: [47.5, 14.5],  // Austria center (near Salzburg/Styria)
+            zoom: 7,               // Zoom to show all of Austria
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -53,6 +55,11 @@ export class MapViewComponent implements OnInit, AfterViewInit {
             spiderfyOnMaxZoom: true
         });
         this.map.addLayer(this.markersLayer);
+
+        // If products already loaded (API responded before view init), add markers now
+        if (this.products.length > 0) {
+            this.addMarkers();
+        }
     }
 
     fetchProducts() {
@@ -61,7 +68,10 @@ export class MapViewComponent implements OnInit, AfterViewInit {
             next: (products) => {
                 this.products = products.filter(p => p.latitude && p.longitude);
                 this.loading = false;
-                this.addMarkers();
+                // Only add markers if the map is already initialized
+                if (this.map && this.markersLayer) {
+                    this.addMarkers();
+                }
             },
             error: (err) => {
                 console.error('Failed to load products', err);
@@ -74,7 +84,7 @@ export class MapViewComponent implements OnInit, AfterViewInit {
     private addMarkers() {
         this.markersLayer.clearLayers();
 
-        const bounds: L.LatLngBoundsExpression = [];
+        const bounds: Array<[number, number]> = [];
 
         this.products.forEach((product) => {
             if (product.latitude && product.longitude) {
@@ -128,7 +138,7 @@ export class MapViewComponent implements OnInit, AfterViewInit {
 
         // Fit map to markers if any
         if (bounds.length > 0) {
-            this.map.fitBounds(bounds as L.LatLngBoundsExpression, { padding: [50, 50] });
+            this.map.fitBounds(bounds, { padding: [50, 50] });
         }
     }
 

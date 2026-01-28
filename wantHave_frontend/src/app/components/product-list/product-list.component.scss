@@ -101,7 +101,7 @@
   }
 
   .clear-all-btn {
-    color: cyber.$neon-purple !important;
+    color: cyber.$neon-cyan !important;
     font-family: "Courier New", monospace;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -151,10 +151,10 @@
   text-transform: uppercase;
   letter-spacing: 3px;
   font-size: 11px;
-  color: cyber.$neon-purple;
+  color: cyber.$neon-cyan;
   font-family: "Courier New", monospace;
   margin: 0;
-  text-shadow: 0 0 10px rgba(188, 19, 254, 0.5);
+  text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
 
   @include cyber.respond-above(md) {
     font-size: 14px;
@@ -236,7 +236,7 @@
   }
 
   // Refresh button - fixed width on desktop
-  > button:not(.filter-toggle-btn) {
+  >button:not(.filter-toggle-btn) {
     width: 140px;
   }
 }
@@ -325,7 +325,7 @@
 .clear-price {
   width: 100%;
   font-size: 11px;
-  color: cyber.$neon-purple !important;
+  color: cyber.$neon-cyan !important;
   margin-top: 8px;
 
   &:hover {
