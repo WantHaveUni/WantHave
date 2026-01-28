@@ -53,6 +53,11 @@ export class MapViewComponent implements OnInit, AfterViewInit {
             spiderfyOnMaxZoom: true
         });
         this.map.addLayer(this.markersLayer);
+
+        // If products already loaded (API responded before view init), add markers now
+        if (this.products.length > 0) {
+            this.addMarkers();
+        }
     }
 
     fetchProducts() {
@@ -61,7 +66,10 @@ export class MapViewComponent implements OnInit, AfterViewInit {
             next: (products) => {
                 this.products = products.filter(p => p.latitude && p.longitude);
                 this.loading = false;
-                this.addMarkers();
+                // Only add markers if the map is already initialized
+                if (this.map && this.markersLayer) {
+                    this.addMarkers();
+                }
             },
             error: (err) => {
                 console.error('Failed to load products', err);
