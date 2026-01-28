@@ -9,6 +9,11 @@ import 'leaflet.markercluster';
 import { Product } from '../../interfaces/product';
 import { ProductService } from '../../services/product.service';
 
+// Extend Leaflet types for MarkerCluster (types come from @types/leaflet.markercluster)
+declare module 'leaflet' {
+    function markerClusterGroup(options?: MarkerClusterGroupOptions): MarkerClusterGroup;
+}
+
 @Component({
     selector: 'app-map-view',
     standalone: true,
