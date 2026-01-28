@@ -546,7 +546,7 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
                     title: suggestion.title,
                     description: suggestion.description,
                     category_id: suggestion.category_id,
-                    price: suggestion.price_min,
+                    price: (suggestion.price_min + suggestion.price_max) / 2,
                 });
                 this.priceMin.set(suggestion.price_min);
                 this.priceMax.set(suggestion.price_max);
