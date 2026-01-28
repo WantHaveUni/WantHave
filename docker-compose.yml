@@ -1,0 +1,25 @@
+services:
+  redis:
+    image: redis:7.2-alpine
+
+  wanthave-backend:
+    build: ./wantHave_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - DEBUG=True
+    volumes:
+      - backend-data:/data
+
+  frontend:
+    build: ./wantHave_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - wanthave-backend
+
+volumes:
+  backend-data:
