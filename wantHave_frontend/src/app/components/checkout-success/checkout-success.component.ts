@@ -19,8 +19,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         </mat-card-header>
         <mat-card-content>
           <p>Thank you for your purchase. Your order has been confirmed.</p>
-          <p *ngIf="sessionId" class="session-id">Session ID: {{ sessionId }}</p>
           <p>You will receive a confirmation email shortly.</p>
+          <p class="chat-hint">Check your <a routerLink="/chat">chat</a> for order details.</p>
         </mat-card-content>
         <mat-card-actions>
           <a mat-raised-button color="primary" routerLink="/profile">
@@ -115,13 +115,21 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       font-size: 14px;
     }
 
-    .session-id {
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.4);
-      font-family: 'Courier New', monospace;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 8px 12px;
-      display: inline-block;
+    .chat-hint {
+      margin-top: 16px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .chat-hint a {
+      color: #2dff7a;
+      text-decoration: none;
+      font-weight: 600;
+      transition: text-shadow 0.3s ease;
+    }
+
+    .chat-hint a:hover {
+      text-shadow: 0 0 10px rgba(45, 255, 122, 0.5);
     }
 
     mat-card-actions {

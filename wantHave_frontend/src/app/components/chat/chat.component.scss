@@ -156,7 +156,7 @@
 
 .convo-product {
   font-size: 11px;
-  color: cyber.$neon-purple;
+  color: #2dff7a;
   margin-top: 4px;
   font-family: 'Courier New', monospace;
 }
@@ -213,7 +213,7 @@
 
 .product-banner-link {
   font-size: 11px;
-  color: cyber.$neon-purple;
+  color: #2dff7a;
   font-family: 'Courier New', monospace;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -271,7 +271,7 @@
   &.received {
     align-self: flex-start;
     background: rgba(188, 19, 254, 0.1);
-    border: 1px solid rgba(45, 255, 122, 0.755);
+    border: 1px solid rgba(188, 19, 254, 0.2);
     color: cyber.$text-main;
   }
 }
