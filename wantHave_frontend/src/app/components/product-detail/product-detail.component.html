@@ -94,7 +94,9 @@
         <label for="editPrice">Price (EUR)</label>
         <input type="number" id="editPrice" [(ngModel)]="editData.price" min="0" step="0.01" />
       </div>
-      <div class="error-message" *ngIf="editError">{{ editError }}</div>
+      @if (editError) {
+      <div class="error-message">{{ editError }}</div>
+      }
     </div>
     <div class="modal-footer">
       <button mat-stroked-button (click)="closeEditModal()">Cancel</button>

@@ -20,16 +20,22 @@
                     <span class="convo-name">
                         @for (p of convo.participants; track p.id) {
                         <span>
-                            <span *ngIf="p.id !== currentUser?.id">{{ p.username }}</span>
+                            @if (p.id !== currentUser?.id) {
+                            <span>{{ p.username }}</span>
+                            }
                         </span>
                         }
                     </span>
-                    <span class="convo-product" *ngIf="convo.product">
+                    @if (convo.product) {
+                    <span class="convo-product">
                         Re: {{ convo.product.title }}
                     </span>
-                    <span class="convo-last-msg" *ngIf="convo.last_message">
+                    }
+                    @if (convo.last_message) {
+                    <span class="convo-last-msg">
                         {{ convo.last_message.content | slice:0:30 }}...
                     </span>
+                    }
                 </div>
                 <button class="delete-convo-btn" (click)="deleteConversation(convo, $event)"
                     title="Delete conversation">
@@ -41,32 +47,39 @@
     </div>
 
     <!-- Main Chat Window -->
-    <div class="chat-window" *ngIf="selectedConversation; else noSelection">
+    @if (selectedConversation) {
+    <div class="chat-window">
         <!-- Product Banner (if conversation is about a product) -->
-        <a *ngIf="selectedConversation.product" class="product-banner"
-            [routerLink]="['/products', selectedConversation.product.id]">
+        @if (selectedConversation.product) {
+        <a class="product-banner" [routerLink]="['/products', selectedConversation.product.id]">
             <div class="product-banner-info">
                 <span class="product-banner-title">{{ selectedConversation.product.title }}</span>
                 <span class="product-banner-price">€{{ selectedConversation.product.price }}</span>
             </div>
             <span class="product-banner-link">View Product →</span>
         </a>
+        }
 
         <div class="chat-header">
             <div class="chat-header-info">
                 @for (p of selectedConversation.participants; track p.id) {
                 <span>
-                    <span *ngIf="p.id !== currentUser?.id">{{ p.username }}</span>
+                    @if (p.id !== currentUser?.id) {
+                    <span>{{ p.username }}</span>
+                    }
                 </span>
                 }
             </div>
-            <button *ngIf="canMakeOffer()" class="offer-btn" (click)="openOfferModal()">
+            @if (canMakeOffer()) {
+            <button class="offer-btn" (click)="openOfferModal()">
                 💰 Make Offer
             </button>
+            }
         </div>
 
         <!-- Offer Cards Section -->
-        <div class="offers-section" *ngIf="offers.length > 0">
+        @if (offers.length > 0) {
+        <div class="offers-section">
             @for (offer of offers; track offer.id) {
             <div class="offer-card" [ngClass]="'status-' + offer.status.toLowerCase()">
                 <div class="offer-header">
@@ -79,49 +92,66 @@
                 </div>
 
                 <!-- Seller Actions for PENDING offers -->
-                <div class="offer-actions" *ngIf="offer.status === 'PENDING' && isSeller()">
+                @if (offer.status === 'PENDING' && isSeller()) {
+                <div class="offer-actions">
                     <button class="btn-accept" (click)="respondToOffer(offer.id, true)">✓ Accept</button>
                     <button class="btn-decline" (click)="respondToOffer(offer.id, false)">✗ Decline</button>
                 </div>
+                }
 
                 <!-- Buyer waiting for PENDING offers -->
-                <div class="offer-waiting" *ngIf="offer.status === 'PENDING' && isBuyer()">
+                @if (offer.status === 'PENDING' && isBuyer()) {
+                <div class="offer-waiting">
                     <span>⏳ Waiting for seller response...</span>
                 </div>
+                }
 
                 <!-- Buyer Actions for ACCEPTED offers -->
-                <div class="offer-actions" *ngIf="offer.status === 'ACCEPTED' && isBuyer()">
+                @if (offer.status === 'ACCEPTED' && isBuyer()) {
+                <div class="offer-actions">
                     <button class="btn-pay" (click)="payOffer(offer)">💳 Pay Now</button>
                     <button class="btn-cancel" (click)="cancelOffer(offer.id)">Cancel</button>
                 </div>
+                }
 
                 <!-- Seller waiting for ACCEPTED offers -->
-                <div class="offer-waiting" *ngIf="offer.status === 'ACCEPTED' && isSeller()">
+                @if (offer.status === 'ACCEPTED' && isSeller()) {
+                <div class="offer-waiting">
                     <span>✓ Accepted - Waiting for buyer payment...</span>
                 </div>
+                }
 
                 <!-- PAID offer - Success message for buyer -->
-                <div class="offer-success" *ngIf="offer.status === 'PAID' && isBuyer()">
+                @if (offer.status === 'PAID' && isBuyer()) {
+                <div class="offer-success">
                     <span>🎉 Payment successful! You purchased this item.</span>
                 </div>
+                }
 
                 <!-- PAID offer - Success message for seller -->
-                <div class="offer-success" *ngIf="offer.status === 'PAID' && isSeller()">
+                @if (offer.status === 'PAID' && isSeller()) {
+                <div class="offer-success">
                     <span>🎉 Payment received! Item has been sold.</span>
                 </div>
+                }
 
                 <!-- DECLINED offer -->
-                <div class="offer-declined" *ngIf="offer.status === 'DECLINED'">
+                @if (offer.status === 'DECLINED') {
+                <div class="offer-declined">
                     <span>❌ Offer was declined</span>
                 </div>
+                }
 
                 <!-- CANCELLED offer -->
-                <div class="offer-cancelled" *ngIf="offer.status === 'CANCELLED'">
+                @if (offer.status === 'CANCELLED') {
+                <div class="offer-cancelled">
                     <span>🚫 Offer was cancelled</span>
                 </div>
+                }
             </div>
             }
         </div>
+        }
 
         <div class="messages-area" #messagesContainer>
             @for (msg of messages; track msg.id || msg.timestamp) {
@@ -138,32 +168,36 @@
             <button (click)="sendMessage()">Send</button>
         </div>
     </div>
-
-    <ng-template #noSelection>
-        <div class="empty-state">
-            <p>Select a conversation to start chatting</p>
-        </div>
-    </ng-template>
+    } @else {
+    <div class="empty-state">
+        <p>Select a conversation to start chatting</p>
+    </div>
+    }
 </div>
 
 <!-- Offer Modal -->
-<div class="modal-overlay" *ngIf="showOfferModal" (click)="closeOfferModal()">
+@if (showOfferModal) {
+<div class="modal-overlay" (click)="closeOfferModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
             <h3>Make an Offer</h3>
             <button class="modal-close" (click)="closeOfferModal()">×</button>
         </div>
         <div class="modal-body">
-            <p class="product-info" *ngIf="selectedConversation?.product">
+            @if (selectedConversation?.product) {
+            <p class="product-info">
                 Product: <strong>{{ selectedConversation?.product?.title }}</strong><br>
                 Listed Price: <strong>€{{ selectedConversation?.product?.price }}</strong>
             </p>
+            }
             <div class="form-group">
                 <label for="offerAmount">Your Offer (€)</label>
                 <input type="number" id="offerAmount" [(ngModel)]="offerAmount" placeholder="Enter your offer amount"
                     min="1" step="0.01">
             </div>
-            <div class="error-message" *ngIf="offerError">{{ offerError }}</div>
+            @if (offerError) {
+            <div class="error-message">{{ offerError }}</div>
+            }
         </div>
         <div class="modal-footer">
             <button class="btn-cancel" (click)="closeOfferModal()">Cancel</button>
@@ -173,3 +207,4 @@
         </div>
     </div>
 </div>
+}
