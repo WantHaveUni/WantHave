@@ -89,14 +89,6 @@ https://dev-wanthave.kub2.fh-joanneum.at/products
 - **Username:** Dummyuser
 - **Password:** Dummyuser1
 
-## Quick Start (Docker)
-
-```bash
-docker-compose up --build
-```
-
-Open http://localhost
-
 ## Local Development
 
 ### Requirements
@@ -117,6 +109,14 @@ docker run -d -p 6379:6379 redis:7.2-alpine
 cd wantHave_backend
 pip install -r requirements.txt
 python manage.py migrate
+
+# Set API keys (optional - needed for payments and AI features)
+export STRIPE_SECRET_KEY=your api key
+export STRIPE_PUBLISHABLE_KEY=your api key
+    # https://dashboard.stripe.com/ you can find it under Developers - test/apikeys
+export GEMINI_API_KEY=your api key
+    # https://aistudio.google.com/api-keys
+
 python manage.py runserver
 ```
 
@@ -129,15 +129,6 @@ npm start
 ```
 
 Open http://localhost:4200
-
-## Admin Account
-
-Create the admin account after first setup:
-
-```bash
-cd wantHave_backend
-python manage.py createsuperuser
-```
 
 Use these credentials:
 
