@@ -15,4 +15,3 @@ pytest==7.4.3
 pytest-django==4.7.0
 pytest-asyncio==0.21.1
 gunicorn==21.2.0
-mysqlclient==2.2.4
