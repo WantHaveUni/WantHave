@@ -3,17 +3,23 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+export interface ChatUser {
+    id: number;
+    username: string;
+    profile_picture?: string | null;
+}
+
 export interface Message {
     id?: number;
     conversation?: number;
-    sender: any; // Using any for now, ideally User interface
+    sender: ChatUser;
     content: string;
     timestamp: string;
 }
 
 export interface Conversation {
     id: number;
-    participants: any[];
+    participants: ChatUser[];
     product?: { id: number; title: string; price: string; seller_id: number };
     last_message?: Message;
 }
@@ -129,7 +135,11 @@ export class ChatService {
                 // Handle regular message
                 const message: Message = {
                     content: data.message,
-                    sender: { id: data.sender_id },
+                    sender: {
+                        id: data.sender_id,
+                        username: data.sender_username,
+                        profile_picture: data.sender_profile_picture
+                    },
                     timestamp: data.timestamp,
                     conversation: data.conversation
                 };

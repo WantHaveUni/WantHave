@@ -134,6 +134,15 @@
   font-family: 'Courier New', monospace;
 }
 
+.convo-avatar .avatar-image {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 16px;
+  border: 1px solid rgba(0, 243, 255, 0.2);
+}
+
 .convo-details {
   display: flex;
   flex-direction: column;
@@ -235,6 +244,38 @@
   letter-spacing: 1px;
 }
 
+.chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-image-header {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(0, 243, 255, 0.3);
+}
+
+.avatar-circle-header {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background: rgba(0, 243, 255, 0.1);
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  color: cyber.$neon-cyan;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.chat-header-username {
+  font-weight: 600;
+}
+
 .offer-btn {
   @include cyber.neon-button(cyber.$neon-purple);
   padding: 10px 20px !important;
@@ -260,6 +301,10 @@
   position: relative;
   font-size: 14px;
   line-height: 1.5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
 
   &.sent {
     align-self: flex-end;
@@ -274,6 +319,35 @@
     border: 1px solid rgba(188, 19, 254, 0.2);
     color: cyber.$text-main;
   }
+}
+
+.msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(188, 19, 254, 0.3);
+  flex-shrink: 0;
+}
+
+.msg-avatar-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  background: rgba(188, 19, 254, 0.1);
+  border: 1px solid rgba(188, 19, 254, 0.2);
+  color: cyber.$neon-purple;
+  font-family: 'Courier New', monospace;
+  flex-shrink: 0;
+}
+
+.message-content {
+  flex: 1;
 }
 
 .message-time {
