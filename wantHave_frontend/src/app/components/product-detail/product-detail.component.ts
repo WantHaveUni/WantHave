@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +18,9 @@ interface DetailItem {
 
 import { MatIconModule } from '@angular/material/icon';
 
+// Leaflet is loaded globally via angular.json scripts
+declare const L: any;
+
 // this component shows the details of a single product and allows interaction if the user is authenticated
 @Component({
   selector: 'app-product-detail',
@@ -26,7 +29,7 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss',
 })
-export class ProductDetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit, AfterViewInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(ProductService);
@@ -40,6 +43,7 @@ export class ProductDetailComponent implements OnInit {
   processingCheckout = false;
   watchlistIds: Set<number> = new Set();
   private profileService = inject(ProfileService);
+  private locationMap: any = null;
 
   // Edit Modal State
   showEditModal = false;
@@ -60,6 +64,58 @@ export class ProductDetailComponent implements OnInit {
     if (this.auth.isAuthenticated()) {
       this.fetchWatchlist();
     }
+  }
+
+  ngAfterViewInit() {
+    // Map will be initialized after product is loaded
+  }
+
+  private initLocationMap() {
+    if (!this.product || !this.product.latitude || !this.product.longitude) {
+      return;
+    }
+
+    // Wait for DOM element to be available
+    setTimeout(() => {
+      const mapContainer = document.getElementById('product-location-map');
+      if (!mapContainer) return;
+
+      // Clean up existing map
+      if (this.locationMap) {
+        this.locationMap.remove();
+      }
+
+      this.locationMap = L.map('product-location-map', {
+        center: [this.product!.latitude, this.product!.longitude],
+        zoom: 12,
+        zoomControl: true,
+        scrollWheelZoom: false,
+        dragging: true
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(this.locationMap);
+
+      // Add radius circle (2km radius for privacy)
+      L.circle([this.product!.latitude, this.product!.longitude], {
+        color: '#8b5cf6',
+        fillColor: '#a78bfa',
+        fillOpacity: 0.3,
+        radius: 2000,
+        interactive: false
+      }).addTo(this.locationMap);
+
+      // Add small center dot
+      const centerIcon = L.divIcon({
+        className: 'location-center-dot',
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+      });
+
+      L.marker([this.product!.latitude, this.product!.longitude], { icon: centerIcon })
+        .addTo(this.locationMap);
+    }, 100);
   }
 
   fetchWatchlist() {
@@ -243,6 +299,7 @@ export class ProductDetailComponent implements OnInit {
         this.product = product;
         this.details = this.buildDetails(product);
         this.loading = false;
+        this.initLocationMap();
       },
       error: (err) => {
         console.error('Failed to load product', err);

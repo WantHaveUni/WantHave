@@ -69,6 +69,18 @@
         }
       </div>
     </div>
+
+    <!-- Location Map -->
+    @if (product.latitude && product.longitude) {
+    <div class="location-section">
+      <h3 class="location-title">
+        <mat-icon>location_on</mat-icon>
+        Approximate Location
+      </h3>
+      <p class="location-hint">{{ product.city || 'Location available' }}</p>
+      <div id="product-location-map" class="location-map"></div>
+    </div>
+    }
   </mat-card>
   }
 </section>
