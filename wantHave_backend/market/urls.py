@@ -16,7 +16,7 @@ router.register(r'users', UserViewSet, basename='user')
 router.register(r'watchlist', WatchlistViewSet, basename='watchlist')
 
 urlpatterns = [
-    path('products/autofill/', AIAutofillView.as_view(), name='product-autofill'),
+    path('products/ai-autofill/', AIAutofillView.as_view(), name='product-autofill'),
     path('', include(router.urls)),
     path('products/<int:pk>/detail/', ProductDetailView.as_view(), name='product-detail'),
     path('register/', RegisterView.as_view(), name='register'),
