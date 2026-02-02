@@ -17,6 +17,36 @@ from .serializers import (
 )
 from .models import UserProfile, Product, Category, Order, StripeWebhookEvent, WatchlistItem
 from .stripe_service import StripeService
+import requests
+
+
+def get_city_from_coords(lat, lng):
+    """
+    Reverse geocode coordinates to get city name using Nominatim (OpenStreetMap).
+    Returns city name or None if lookup fails.
+    """
+    try:
+        response = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"lat": lat, "lon": lng, "format": "json"},
+            headers={"User-Agent": "WantHave/1.0"},
+            timeout=5
+        )
+        if response.status_code == 200:
+            data = response.json()
+            address = data.get("address", {})
+            # Try various address fields that might contain the city name
+            return (
+                address.get("city") or 
+                address.get("town") or 
+                address.get("village") or 
+                address.get("municipality") or
+                address.get("county")
+            )
+    except Exception:
+        pass  # Silently fail - city is optional
+    return None
+
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -56,17 +86,35 @@ class ProductViewSet(viewsets.ModelViewSet):
         user = self.request.user
         extra_data = {'seller': user}
         
+        # Get latitude/longitude from request or profile
+        latitude = self.request.data.get('latitude')
+        longitude = self.request.data.get('longitude')
+        city = self.request.data.get('city')
+        
         try:
             profile = user.profile
             # Only set location if not explicitly provided in request
-            if not self.request.data.get('latitude') and profile.latitude:
-                extra_data['latitude'] = profile.latitude
-            if not self.request.data.get('longitude') and profile.longitude:
-                extra_data['longitude'] = profile.longitude
-            if not self.request.data.get('city') and profile.city:
-                extra_data['city'] = profile.city
+            if not latitude and profile.latitude:
+                latitude = profile.latitude
+            if not longitude and profile.longitude:
+                longitude = profile.longitude
+            if not city and profile.city:
+                city = profile.city
         except UserProfile.DoesNotExist:
             pass  # No profile, skip location
+        
+        # Set coordinates in extra_data if we have them
+        if latitude:
+            extra_data['latitude'] = float(latitude)
+        if longitude:
+            extra_data['longitude'] = float(longitude)
+        
+        # If we have coordinates but no city, perform reverse geocoding
+        if latitude and longitude and not city:
+            city = get_city_from_coords(float(latitude), float(longitude))
+        
+        if city:
+            extra_data['city'] = city
         
         serializer.save(**extra_data)
 
