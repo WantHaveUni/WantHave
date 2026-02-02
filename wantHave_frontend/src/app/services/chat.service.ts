@@ -79,7 +79,7 @@ export class ChatService {
         if (productId) {
             payload.product_id = productId;
         }
-        return this.http.post<Conversation>(`${this.apiUrl}/conversations/start/`, payload);
+        return this.http.post<Conversation>(`${this.apiUrl}/conversations/`, payload);
     }
 
     deleteConversation(conversationId: number): Observable<void> {
@@ -99,20 +99,22 @@ export class ChatService {
     }
 
     respondToOffer(offerId: number, accept: boolean): Observable<Offer> {
-        return this.http.post<Offer>(`${this.apiUrl}/offers/${offerId}/respond/`, {
-            action: accept ? 'accept' : 'decline'
+        return this.http.patch<Offer>(`${this.apiUrl}/offers/${offerId}/`, {
+            status: accept ? 'ACCEPTED' : 'DECLINED'
         });
     }
 
     payOffer(offerId: number, successUrl: string, cancelUrl: string): Observable<{ url: string; session_id: string; order_id: number }> {
-        return this.http.post<{ url: string; session_id: string; order_id: number }>(`${this.apiUrl}/offers/${offerId}/pay/`, {
+        return this.http.post<{ url: string; session_id: string; order_id: number }>(`${this.apiUrl}/offers/${offerId}/payment/`, {
             success_url: successUrl,
             cancel_url: cancelUrl
         });
     }
 
     cancelOffer(offerId: number): Observable<Offer> {
-        return this.http.post<Offer>(`${this.apiUrl}/offers/${offerId}/cancel/`, {});
+        return this.http.patch<Offer>(`${this.apiUrl}/offers/${offerId}/`, {
+            status: 'CANCELLED'
+        });
     }
 
     connect(conversationId: number) {

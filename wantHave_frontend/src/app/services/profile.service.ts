@@ -47,14 +47,14 @@ export class ProfileService {
   }
 
   changePassword(data: any): Observable<any> {
-    return this.http.post('/api/market/change-password/', data);
+    return this.http.patch(`${this.baseUrl}me/password/`, data);
   }
 
   changeEmail(data: any): Observable<any> {
-    return this.http.post('/api/market/change-email/', data);
+    return this.http.patch(`${this.baseUrl}me/email/`, data);
   }
 
   changeUsername(data: any): Observable<any> {
-    return this.http.post('/api/market/change-username/', data);
+    return this.http.patch(`${this.baseUrl}me/username/`, data);
   }
 }

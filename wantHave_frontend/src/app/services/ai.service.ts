@@ -18,6 +18,6 @@ export class AiService {
     analyzeImage(file: File): Observable<AISuggestion> {
         const formData = new FormData();
         formData.append('image', file);
-        return this.http.post<AISuggestion>(`${this.baseUrl}ai-autofill/`, formData);
+        return this.http.post<AISuggestion>(`${this.baseUrl}autofill/`, formData);
     }
 }

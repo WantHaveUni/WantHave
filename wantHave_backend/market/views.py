@@ -528,7 +528,7 @@ def stripe_webhook(request):
 class ChangePasswordView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
+    def patch(self, request):
         user = request.user
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
@@ -551,7 +551,7 @@ class ChangePasswordView(views.APIView):
 class ChangeEmailView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
+    def patch(self, request):
         user = request.user
         new_email = request.data.get('new_email')
         password = request.data.get('password')
@@ -574,7 +574,7 @@ class ChangeEmailView(views.APIView):
 class ChangeUsernameView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
+    def patch(self, request):
         user = request.user
         new_username = request.data.get('new_username')
         password = request.data.get('password')
