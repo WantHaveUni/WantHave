@@ -3,6 +3,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from market.models import Conversation, Message
 from django.contrib.auth import get_user_model
+from django.conf import settings
+import os
 
 User = get_user_model()
 
@@ -102,7 +104,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         profile_picture = None
         try:
             if hasattr(sender, 'profile') and sender.profile.profile_picture:
-                profile_picture = sender.profile.profile_picture.url
+                relative_url = sender.profile.profile_picture.url
+                # Build absolute URL using BACKEND_URL setting
+                backend_url = os.getenv('BACKEND_URL', '').rstrip('/')
+                if backend_url:
+                    profile_picture = f"{backend_url}{relative_url}"
+                else:
+                    profile_picture = relative_url
         except Exception:
             pass
 

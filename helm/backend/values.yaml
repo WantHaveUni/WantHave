@@ -38,6 +38,8 @@ appEnv:
     value: "redis"  # Kubernetes service name for Redis
   - name: MEDIA_ROOT
     value: "/data/media"
+  - name: BACKEND_URL
+    value: "https://wanthave-api.kub2.fh-joanneum.at"
 
 # SQLite storage (Keep this for Backend)
 persistence:
