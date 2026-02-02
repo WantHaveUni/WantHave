@@ -53,9 +53,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {
                     'type': 'chat_message',
-                    'message': saved_message.content,
-                    'sender_id': saved_message.sender.id,
-                    'timestamp': str(saved_message.timestamp)
+                    'message': saved_message['content'],
+                    'sender_id': saved_message['sender_id'],
+                    'sender_username': saved_message['sender_username'],
+                    'sender_profile_picture': saved_message['sender_profile_picture'],
+                    'timestamp': saved_message['timestamp']
                 }
             )
 
@@ -63,6 +65,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         message = event['message']
         sender_id = event['sender_id']
+        sender_username = event['sender_username']
+        sender_profile_picture = event['sender_profile_picture']
         timestamp = event.get('timestamp', '')
 
         # Send message to WebSocket
@@ -70,6 +74,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'type': 'message',
             'message': message,
             'sender_id': sender_id,
+            'sender_username': sender_username,
+            'sender_profile_picture': sender_profile_picture,
             'timestamp': timestamp,
             'conversation': self.room_name
         }))
@@ -91,5 +97,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         conversation_id = self.room_name
         sender = User.objects.get(id=sender_id)
         conversation = Conversation.objects.get(id=conversation_id)
-        return Message.objects.create(conversation=conversation, sender=sender, content=message)
+        msg = Message.objects.create(conversation=conversation, sender=sender, content=message)
+        
+        profile_picture = None
+        try:
+            if hasattr(sender, 'profile') and sender.profile.profile_picture:
+                profile_picture = sender.profile.profile_picture.url
+        except Exception:
+            pass
+
+        return {
+            'content': msg.content,
+            'sender_id': sender.id,
+            'sender_username': sender.username,
+            'sender_profile_picture': profile_picture,
+            'timestamp': str(msg.timestamp)
+        }
 

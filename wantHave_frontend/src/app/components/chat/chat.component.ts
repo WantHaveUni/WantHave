@@ -311,4 +311,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         // Get the most recent pending or accepted offer
         return this.offers.find(o => o.status === 'PENDING' || o.status === 'ACCEPTED') || null;
     }
+
+    getOtherParticipant(conversation: Conversation): any {
+        if (!conversation || !conversation.participants || !this.currentUser) return null;
+        return conversation.participants.find(p => p.id !== this.currentUser.id) || conversation.participants[0];
+    }
 }

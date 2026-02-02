@@ -62,34 +62,34 @@ class ConversationViewSet(viewsets.ModelViewSet):
         conversation.messages.exclude(sender=request.user).update(is_read=True)
         return Response({'status': 'marked as read'})
 
-    @action(detail=False, methods=['post'])
-    def start(self, request):
+    def create(self, request):
+        """Create a new conversation or return existing one (REST-conform: POST /conversations/)"""
         other_user_id = request.data.get('user_id')
         product_id = request.data.get('product_id')
-        
+
         if not other_user_id:
-            return Response({'error': 'User ID required'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'detail': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
         # Build query for existing conversation between these users
         conversations = Conversation.objects.filter(
             participants=request.user
         ).filter(
             participants__id=other_user_id
         )
-        
+
         # If product_id provided, filter by product as well
         if product_id:
             conversations = conversations.filter(product_id=product_id)
         else:
             conversations = conversations.filter(product__isnull=True)
-        
+
         if conversations.exists():
             return Response(ConversationSerializer(conversations.first()).data)
-        
+
         # Create new conversation
         conversation = Conversation.objects.create()
         conversation.participants.add(request.user, other_user_id)
-        
+
         # Link to product if provided
         if product_id:
             try:
@@ -98,7 +98,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 conversation.save()
             except Product.DoesNotExist:
                 pass
-        
+
         return Response(ConversationSerializer(conversation).data, status=status.HTTP_201_CREATED)
 
 
@@ -188,47 +188,73 @@ class OfferViewSet(viewsets.ModelViewSet):
         serializer = OfferSerializer(offer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'])
-    def respond(self, request, pk=None):
-        """Seller accepts or declines an offer"""
+    def partial_update(self, request, pk=None):
+        """Update offer status (REST-conform: PATCH /offers/{id}/)
+
+        For seller to respond: {status: 'ACCEPTED'} or {status: 'DECLINED'}
+        For buyer to cancel: {status: 'CANCELLED'}
+        """
         offer = self.get_object()
-        action_type = request.data.get('action')  # 'accept' or 'decline'
+        new_status = request.data.get('status')
 
-        if action_type not in ['accept', 'decline']:
+        if not new_status:
             return Response(
-                {'error': 'action must be "accept" or "decline"'},
+                {'detail': 'status is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Only seller can respond
-        if offer.seller != request.user:
-            return Response(
-                {'error': 'Only the seller can respond to this offer'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        new_status = new_status.upper()
 
-        # Must be pending
-        if offer.status != 'PENDING':
-            return Response(
-                {'error': f'Cannot respond to an offer with status: {offer.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Handle seller response (accept/decline)
+        if new_status in ['ACCEPTED', 'DECLINED']:
+            if offer.seller != request.user:
+                return Response(
+                    {'detail': 'Only the seller can accept or decline this offer'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-        # Update offer status
-        if action_type == 'accept':
-            offer.status = 'ACCEPTED'
+            if offer.status != 'PENDING':
+                return Response(
+                    {'detail': f'Cannot respond to an offer with status: {offer.status}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            offer.status = new_status
+            offer.responded_at = timezone.now()
+            offer.save()
+
+            serializer = OfferSerializer(offer)
+            return Response(serializer.data)
+
+        # Handle buyer cancellation
+        elif new_status == 'CANCELLED':
+            if offer.buyer != request.user:
+                return Response(
+                    {'detail': 'Only the buyer can cancel this offer'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            if offer.status != 'ACCEPTED':
+                return Response(
+                    {'detail': f'Cannot cancel an offer with status: {offer.status}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            offer.status = 'CANCELLED'
+            offer.save()
+
+            serializer = OfferSerializer(offer)
+            return Response(serializer.data)
+
         else:
-            offer.status = 'DECLINED'
+            return Response(
+                {'detail': 'Invalid status. Must be ACCEPTED, DECLINED, or CANCELLED'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        offer.responded_at = timezone.now()
-        offer.save()
-
-        serializer = OfferSerializer(offer)
-        return Response(serializer.data)
-
-    @action(detail=True, methods=['post'])
-    def pay(self, request, pk=None):
-        """Buyer pays for an accepted offer via Stripe"""
+    @action(detail=True, methods=['post'], url_path='payment', url_name='payment')
+    def payment(self, request, pk=None):
+        """Buyer pays for an accepted offer via Stripe (REST-conform: POST /offers/{id}/payment/)"""
         from market.stripe_service import StripeService
         import stripe
 
@@ -278,31 +304,6 @@ class OfferViewSet(viewsets.ModelViewSet):
                 {'error': f'Payment service error: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-    @action(detail=True, methods=['post'])
-    def cancel(self, request, pk=None):
-        """Buyer cancels an accepted offer"""
-        offer = self.get_object()
-
-        # Only buyer can cancel
-        if offer.buyer != request.user:
-            return Response(
-                {'error': 'Only the buyer can cancel this offer'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        # Can only cancel if accepted
-        if offer.status != 'ACCEPTED':
-            return Response(
-                {'error': f'Cannot cancel an offer with status: {offer.status}'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        offer.status = 'CANCELLED'
-        offer.save()
-
-        serializer = OfferSerializer(offer)
-        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def by_conversation(self, request):

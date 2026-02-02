@@ -16,12 +16,12 @@ router.register(r'users', UserViewSet, basename='user')
 router.register(r'watchlist', WatchlistViewSet, basename='watchlist')
 
 urlpatterns = [
-    path('products/ai-autofill/', AIAutofillView.as_view(), name='product-ai-autofill'),
+    path('products/autofill/', AIAutofillView.as_view(), name='product-autofill'),
     path('', include(router.urls)),
     path('products/<int:pk>/detail/', ProductDetailView.as_view(), name='product-detail'),
     path('register/', RegisterView.as_view(), name='register'),
-    path('change-password/', ChangePasswordView.as_view(), name='change-password'),
-    path('change-email/', ChangeEmailView.as_view(), name='change-email'),
-    path('change-username/', ChangeUsernameView.as_view(), name='change-username'),
+    path('profiles/me/password/', ChangePasswordView.as_view(), name='profile-password'),
+    path('profiles/me/email/', ChangeEmailView.as_view(), name='profile-email'),
+    path('profiles/me/username/', ChangeUsernameView.as_view(), name='profile-username'),
     path('webhooks/stripe/', stripe_webhook, name='stripe-webhook'),
 ]

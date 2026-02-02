@@ -5,9 +5,19 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email'] # Adjust fields as needed
+        fields = ['id', 'username', 'email', 'profile_picture']
+
+    def get_profile_picture(self, obj):
+        try:
+            if hasattr(obj, 'profile') and obj.profile.profile_picture:
+                return obj.profile.profile_picture.url
+        except Exception:
+            pass
+        return None
 
 class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)

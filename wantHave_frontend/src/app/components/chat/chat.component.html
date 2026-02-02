@@ -13,18 +13,20 @@
             @for (convo of conversations; track convo.id) {
             <li [class.active]="convo.id === selectedConversation?.id" (click)="selectConversation(convo)">
                 <div class="convo-avatar">
-                    <!-- Placeholder avatar -->
-                    <div class="avatar-circle">{{ convo.participants[0]?.username?.charAt(0) | uppercase }}</div>
+                    @let other = getOtherParticipant(convo);
+                    @if (other?.profile_picture) {
+                    <img [src]="other.profile_picture" class="avatar-image" [alt]="other.username">
+                    } @else {
+                    <div class="avatar-circle">{{ other?.username?.charAt(0) | uppercase }}</div>
+                    }
                 </div>
+                <!-- <div class="convo-avatar">
+                     Placeholder avatar 
+                    <div class="avatar-circle">{{ convo.participants[0]?.username?.charAt(0) | uppercase }}</div>
+                </div> -->
                 <div class="convo-details">
                     <span class="convo-name">
-                        @for (p of convo.participants; track p.id) {
-                        <span>
-                            @if (p.id !== currentUser?.id) {
-                            <span>{{ p.username }}</span>
-                            }
-                        </span>
-                        }
+                        {{ other?.username }}
                     </span>
                     @if (convo.product) {
                     <span class="convo-product">
@@ -62,12 +64,14 @@
 
         <div class="chat-header">
             <div class="chat-header-info">
-                @for (p of selectedConversation.participants; track p.id) {
-                <span>
-                    @if (p.id !== currentUser?.id) {
-                    <span>{{ p.username }}</span>
-                    }
-                </span>
+                @let headerOther = getOtherParticipant(selectedConversation);
+                @if (headerOther) {
+                @if (headerOther.profile_picture) {
+                <img [src]="headerOther.profile_picture" class="avatar-image-header" [alt]="headerOther.username">
+                } @else {
+                <div class="avatar-circle-header">{{ headerOther.username.charAt(0) | uppercase }}</div>
+                }
+                <span class="chat-header-username">{{ headerOther.username }}</span>
                 }
             </div>
             @if (canMakeOffer()) {
@@ -157,6 +161,15 @@
             @for (msg of messages; track msg.id || msg.timestamp) {
             <div class="message-bubble" [class.sent]="msg.sender.id === currentUser?.id"
                 [class.received]="msg.sender.id !== currentUser?.id">
+
+                @if(msg.sender.id !== currentUser?.id) {
+                @if(msg.sender.profile_picture) {
+                <img [src]="msg.sender.profile_picture" class="msg-avatar" [alt]="msg.sender.username">
+                } @else {
+                <div class="msg-avatar-placeholder">{{ msg.sender.username?.charAt(0) | uppercase }}</div>
+                }
+                }
+
                 <div class="message-content">{{ msg.content }}</div>
                 <div class="message-time">{{ msg.timestamp | date:'shortTime' }}</div>
             </div>

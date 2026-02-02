@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Observable, tap, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 import { Credentials, RegisterPayload, TokenResponse } from '../interfaces/auth';
 
 @Injectable({
@@ -8,6 +9,7 @@ import { Credentials, RegisterPayload, TokenResponse } from '../interfaces/auth'
 })
 export class AuthService {
   private http = inject(HttpClient);
+  private router = inject(Router);
   private readonly tokenKey = 'wanthave_access';
   private readonly refreshKey = 'wanthave_refresh';
   private readonly usernameKey = 'wanthave_username';
@@ -44,6 +46,7 @@ export class AuthService {
     this.loggedIn.set(false);
     this.usernameSignal.set(null);
     this.adminSignal.set(false);
+    this.router.navigate(['/login']);
   }
 
   accessToken(): string | null {
