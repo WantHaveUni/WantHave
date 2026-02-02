@@ -49,7 +49,7 @@ class AIAutofillTestCase(TestCase):
         # Create test image and make request
         image = self._create_test_image()
         response = self.client.post(
-            '/api/market/products/ai-autofill/',
+            '/api/market/products/autofill/',
             {'image': image},
             format='multipart'
         )
@@ -63,7 +63,7 @@ class AIAutofillTestCase(TestCase):
     def test_ai_autofill_no_image(self):
         """Test error when no image is provided."""
         response = self.client.post(
-            '/api/market/products/ai-autofill/',
+            '/api/market/products/autofill/',
             {},
             format='multipart'
         )
@@ -77,7 +77,7 @@ class AIAutofillTestCase(TestCase):
         image = self._create_test_image()
 
         response = self.client.post(
-            '/api/market/products/ai-autofill/',
+            '/api/market/products/autofill/',
             {'image': image},
             format='multipart'
         )
@@ -101,7 +101,7 @@ class AIAutofillTestCase(TestCase):
 
         image = self._create_test_image()
         response = self.client.post(
-            '/api/market/products/ai-autofill/',
+            '/api/market/products/autofill/',
             {'image': image},
             format='multipart'
         )
@@ -118,7 +118,7 @@ class AIAutofillTestCase(TestCase):
 
         image = self._create_test_image()
         response = self.client.post(
-            '/api/market/products/ai-autofill/',
+            '/api/market/products/autofill/',
             {'image': image},
             format='multipart'
         )
