@@ -14,6 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
     def get_profile_picture(self, obj):
         try:
             if hasattr(obj, 'profile') and obj.profile.profile_picture:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(obj.profile.profile_picture.url)
                 return obj.profile.profile_picture.url
         except Exception:
             pass

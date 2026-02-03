@@ -25,3 +25,5 @@ appEnv:
     value: "redis.wanthave.svc.cluster.local"
   - name: MEDIA_ROOT
     value: "/data/media"
+  - name: BACKEND_URL
+    value: "https://dev-wanthave-api.kub2.fh-joanneum.at"

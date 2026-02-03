@@ -610,10 +610,12 @@ export class CreateListingComponent implements AfterViewInit, OnDestroy {
             formData.append('category_id', String(this.listingFormGroup.value.category_id));
         }
 
-        // Add location if available
+        // Add approximate location if available (rounded to ~1.1km for privacy)
         if (lat !== null && lng !== null) {
-            formData.append('latitude', lat.toString());
-            formData.append('longitude', lng.toString());
+            const approxLat = Math.round(lat * 100) / 100;  // ~1.1km precision
+            const approxLng = Math.round(lng * 100) / 100;
+            formData.append('latitude', approxLat.toString());
+            formData.append('longitude', approxLng.toString());
         }
 
         this.http.post('/api/market/products/', formData).subscribe({
