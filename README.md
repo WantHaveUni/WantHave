@@ -79,11 +79,6 @@ A peer-to-peer marketplace where users can buy and sell items locally with real-
 you can find the Kubernetes deployment here:
 https://dev-wanthave.kub2.fh-joanneum.at/products
 
-**Admin Account:**
-
-- **Username:** Admin
-- **Password:** Test123
-
 **User Account:**
 
 - **Username:** Dummyuser
